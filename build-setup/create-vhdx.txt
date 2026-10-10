@@ -1,0 +1,1 @@
+create vdisk file="D:\WitAquaBuild\build.vhdx" maximum=491520 type=expandable

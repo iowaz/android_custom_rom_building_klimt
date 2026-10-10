@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Xiaomi 15T Pro (klimt) on Evolution X cnb (Android 17).
+     Copy to .repo/local_manifests/klimt.xml after the repo init of Evolution-X/manifest, branch cnb,
+     with Git LFS enabled (see the README).
+     vendor/xiaomi/klimt and vendor_evolution are PRIVATE repositories: you need read access to them,
+     or replace them (see the README). -->
+<manifest>
+  <remote name="iowaz" fetch="https://github.com/iowaz" />
+  <remote name="misakazip" fetch="https://github.com/misakazip-dev" />
+
+  <!-- Device, kernel and proprietary blobs -->
+  <project path="device/xiaomi/klimt" name="android_device_xiaomi_klimt" remote="iowaz" revision="evox" />
+  <project path="kernel/xiaomi/klimt" name="android_kernel_xiaomi_klimt" remote="iowaz" revision="17.0" clone-depth="1" />
+  <project path="kernel/xiaomi/klimt-prebuilt" name="android_kernel_xiaomi_klimt-prebuilt" remote="misakazip" revision="17.0" clone-depth="1" />
+  <project path="vendor/xiaomi/klimt" name="proprietary_vendor_xiaomi_klimt" remote="iowaz" revision="evox" />
+
+  <!-- Device dependencies (lineage.dependencies; Evolution X's roomservice only reads evolution.dependencies) -->
+  <project path="hardware/xiaomi" name="LineageOS/android_hardware_xiaomi" remote="github" revision="lineage-24.0" />
+  <project path="device/mediatek/sepolicy_vndr" name="LineageOS/android_device_mediatek_sepolicy_vndr" remote="github" revision="lineage-24.0" />
+
+  <!-- Evolution X projects replaced by the klimt forks (same repository names under iowaz) -->
+  <extend-project name="build_soong" remote="iowaz" revision="cnb-klimt" />
+  <extend-project name="hardware_interfaces" remote="iowaz" revision="cnb-klimt" />
+  <extend-project name="vendor_evolution" remote="iowaz" revision="cnb-klimt" />
+</manifest>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Evolution X cnb: klimt sources. Device tree is then switched to the build9 state
+     (branch verify-all-prs from the witaqua tree); vendor/xiaomi/klimt is copied from the witaqua tree
+     (regenerated from the OS3.0.335 OTA), not synced from the stale GitLab repo. -->
+<manifest>
+  <remote name="misakazip" fetch="https://github.com/misakazip-dev" />
+
+  <project path="device/xiaomi/klimt" name="android_device_xiaomi_klimt" remote="misakazip" revision="17.0" />
+  <project path="kernel/xiaomi/klimt" name="android_kernel_xiaomi_klimt" remote="misakazip" revision="17.0" clone-depth="1" />
+  <project path="kernel/xiaomi/klimt-prebuilt" name="android_kernel_xiaomi_klimt-prebuilt" remote="misakazip" revision="17.0" clone-depth="1" />
+
+  <!-- device lineage.dependencies (Evo roomservice reads evolution.dependencies, so list them here) -->
+  <project path="hardware/xiaomi" name="LineageOS/android_hardware_xiaomi" remote="github" revision="lineage-24.0" />
+  <project path="device/mediatek/sepolicy_vndr" name="LineageOS/android_device_mediatek_sepolicy_vndr" remote="github" revision="lineage-24.0" />
+</manifest>

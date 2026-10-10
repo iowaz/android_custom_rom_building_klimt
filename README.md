@@ -268,4 +268,4 @@ To my brothers and to Carol:
 - **[Vinicius](http://lattes.cnpq.br/8470339884809920)**, my oldest brother: a fucking genius, and one of the
   coolest human beings I know. I look up to him very much.
 - **Carol ([@carolsantossilva](https://github.com/carolsantossilva))**, my girlfriend and also a software
-  developer, who encourages me a lot and lets me spend a few Saturdays on my "menino things".
+  developer, who encourages me a lot and lets me spend a few Saturdays on my "Coisinhas de menino".

@@ -260,6 +260,9 @@ Thank you.
 
 ## Dedication
 
+Academic work, like a thesis or a dissertation, usually has a page dedicated to the people behind it. That is
+rare in software development, but this project deserves one.
+
 To my brothers and to Carol:
 
 - **João Gabriel ([@jgcl](https://github.com/jgcl))**, my brother, also a software engineer, who always

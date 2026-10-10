@@ -249,9 +249,23 @@ building, debugging and checking behind this repository and the device-tree comm
 
 Just as surely, none of this exists without the community:
 
+- **[misakazip](https://github.com/misakazip)**, who explored the klimt ecosystem first: the device tree, the
+  kernel and the bring-up in [misakazip-dev](https://github.com/misakazip-dev). **Without that work, this ROM
+  could not have been done.**
 - **The Evolution X developers**, whose ROM this is.
 - **LineageOS** and **AOSP**, which everything is built on.
-- **misakazip**, whose klimt device tree, kernel and bring-up made a klimt ROM possible in the first place.
 - The authors of every change picked into these trees, credited in each commit.
 
 Thank you.
+
+## Dedication
+
+To my brothers and to Carol:
+
+- **João Gabriel ([@jgcl](https://github.com/jgcl))**, my brother, also a software engineer, who always
+  motivated me to follow this career. I only became a developer because of him, more than 15 years ago, when I
+  was 14 or 15.
+- **[Vinicius](http://lattes.cnpq.br/8470339884809920)**, my oldest brother: a fucking genius, and one of the
+  coolest human beings I know. I look up to him very much.
+- **Carol ([@carolsantossilva](https://github.com/carolsantossilva))**, my girlfriend and also a software
+  developer, who encourages me a lot and lets me spend a few Saturdays on my "menino things".

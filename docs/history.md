@@ -16,7 +16,7 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 | evox7 | 2026-10-09 | success, flashed (wipe) | First **user** build with **private keys**. Doze through SystemUI, a wake-up sensor for screen-off fingerprint, the Evolution X fingerprint override, MIUI Camera, and A2DP hardware offload off (Bluetooth audio was silent). |
 | evox8 | 2026-10-10 | success, flashed (dirty) | Camera crashes fixed: the A15 camera blobs get the stock `libui` as `libui_vendor.so`. Also charging control, reverse wireless charging, always-on display in the panel's doze mode, and Dolby Atmos controls. |
 | evox9 | 2026-10-10 | success, flashed (dirty) | Security patch level 2026-10-01 plus the October fixes (PduParser, decodeWapPdu, Bluetooth). Custom ROM hiding synced with upstream. Play Integrity passes BASIC, DEVICE and STRONG. |
-| evox10 | 2026-10-10 | building | The lockscreen fingerprint icon showed as a white block because SystemUI had no `pixel_pitch`; an overlay now sets 56.82 (447 ppi). The icon is also back at the stock centre (640, 2518). |
+| evox10 | 2026-10-10 | success, flashed (dirty) | The lockscreen fingerprint icon showed as a white block because SystemUI had no `pixel_pitch`; an overlay now sets 56.82 (447 ppi). The icon is also back at the stock centre (640, 2518). |
 
 ## Open items
 

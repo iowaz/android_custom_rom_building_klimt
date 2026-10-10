@@ -263,7 +263,7 @@ Thank you.
 Academic work, like a thesis or a dissertation, usually has a page dedicated to the people behind it. That is
 rare in software development, but this project deserves one.
 
-To my brothers and to Carol:
+To my brothers, to Carol and to Mendonça:
 
 - **João Gabriel ([@jgcl](https://github.com/jgcl))**, my brother, also a software engineer, who always
   motivated me to follow this career. I only became a developer because of him, more than 15 years ago, when I
@@ -272,3 +272,5 @@ To my brothers and to Carol:
   coolest human beings I know. I look up to him very much.
 - **Carol ([@carolsantossilva](https://github.com/carolsantossilva))**, my girlfriend and also a software
   developer, who encourages me a lot and lets me spend a few Saturdays on my "Coisinhas de menino".
+- **[Luiz Mendonça](https://www.linkedin.com/in/luiz-mendon%C3%A7a-561b8b17/)**, known simply as Mendonça: a
+  long-time leader (and boss, hahaha) who taught me a lot in the past and still does.

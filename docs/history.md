@@ -20,7 +20,7 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 | evox11 | 2026-10-11 | success, not flashed (evox12 includes it) | **UI lag:** Xiaomi's `mi_thermald` capped the CPU at 1.4/2.1/2.0 GHz, because on HyperOS the system picks its thermal profile and nothing did here (Geekbench 7: 1321 single, 5043 multi). A new XiaomiParts app (Settings > Battery > Performance & thermal, plus a Quick Settings tile) sets HyperOS's performance profile by default, with per-app profiles. **Slow charging:** the bundled 90 W charger gave about 9 W, because `batterysecret` could not read and write the charger's verification nodes in sysfs, so the phone stayed at 5 V. It now has the same sysfs access as on stock. Also allowed the mpbe ioctl `0x6703`. |
 | evox12 | 2026-10-11 | success, flashed (dirty) | **Wakeup sources:** about 55 kernel wakeup sources had no label `system_suspend` can read, so they had no names in the stats and every poll logged about 560 denials, which used up the kernel's audit rate limit and hid other denials. 54 genfscon entries now label them `sysfs_wakeup`, most taken from the stock policy. **Video calling off:** Evolution X does not ship the stock `vtservice`, and with ViLTE/ViWiFi on, the IMS service waited for it every 5.5 s; VoLTE stays on. Also two stock rules: the power HAL may look up the fingerprint HAL in `/proc`, and the camera HAL may set attributes on its debug files. |
 | evox13 | 2026-10-11 | success, flashed (dirty) | **Log noise.** SurfaceFlinger logged "Mapper error: 7" about 750 times a minute: RenderEngine asks every buffer for SMPTE 2094-50 metadata, new in Android 17, and the MediaTek mapper doesn't support it; libui now asks the mapper once (patch in `patches/tree`). The composer looked for Xiaomi's light sensor service about 190 times a minute: it was never shipped, so the stock daemon that corrects the under-display light sensor for the screen's own light is added. MIUI Camera logged about 7,000 lines on every launch because MiSys could not create its watermark folder. Also: dontaudit for harmless property lookups by the camera, audio and GPS HALs, stock labels for camera and TEE status properties, the FeliCa script's setup check, and the USB product name. |
-| evox14 | 2026-10-11 | success, not flashed yet | **Camera and sensor policy.** Stock labels and permissions for the camera direct-I/O mapper, debug-file append, camera calibration/state properties and composer idle-mode property. MiSys reads the dedicated stock blackbox partition label. The sensor daemon gets narrow heap open/read access, the stock system-property dontaudit and an exact boolean label for its actual framebuffer property setter. Heap reads and the framebuffer setter are observed-need exceptions; all other new access follows stock. Offline policy/context/tests and image AVB/layout/module checks pass. The camera overflow hypothesis still needs the capture/exit test after flashing. |
+| evox14 | 2026-10-11 | success, flashed (dirty) | **Camera and sensor policy.** Stock labels and permissions for the camera direct-I/O mapper, debug-file append, camera calibration/state properties and composer idle-mode property. MiSys reads the dedicated stock blackbox partition label. The sensor daemon gets narrow heap open/read access, the stock system-property dontaudit and an exact boolean label for its actual framebuffer property setter. Heap reads and the framebuffer setter are observed-need exceptions; all other new access follows stock. Offline policy/context/tests and image AVB/layout/module checks pass. Dirty-flashed to slot b and booted. Watermark photos save after re-enabling the watermark; the earlier DataStorager overflow was not observed in this session. Video lens switching still triggers a camera HAL watchdog abort. |
 
 ## Open items
 
@@ -29,13 +29,20 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 - The two slots run different HyperOS firmware (slot a has OS3.0.302, slot b has OS3.0.335). Sync slot a's firmware
   before applying any A/B OTA.
 - MIUI Camera: the watermark copy flood is fixed and photos with the Leica watermark save on evox13.
-  A pre-existing DataStorager crash when leaving capture remains to be retested on evox14 after the
-  stock direct-I/O mapper access fix. Lens switches while recording can still deadlock.
+  On evox14, watermark 3 initially crashed the app because its private `config.json` was missing
+  (ENOENT); the user re-enabled the watermark and photos then saved. The earlier DataStorager
+  overflow and direct-I/O mapper denial did not recur in the session. Video lens switching
+  triggered a GuardMonitor SIGABRT after MiaNode-Init stalled for 10.88 seconds; the blocked
+  thread was waiting in MiaOfflineSession::parallelInitAllNodes. New property-read denials
+  affect MiSys and the camera app
+  on `vendor_mtkcam_prop`; investigate stock reader permissions before adding access.
 - Camera search of category-labelled system data remains denied by MLS; stock does not justify an exception.
 - Frequent libc warnings for non-vendor camera property names remain. A platform policy integration was
   deferred from evox14; vendor dontaudit does not silence libc.
-- The light sensor service runs and sends calibrated lux on evox13. After evox14, check the startup
-  denials and enable Adaptive brightness for dark/bright room light-sensor and calibrated-lux tests.
+- On evox14 the light sensor service stays running and sends calibrated lux; no citsensorservice
+  denials appeared in the capture. The user reports Adaptive brightness working in the dark/bright
+  test and confirms turning it off afterwards. The framebuffer property remains unset, so its
+  setter path has not been demonstrated at runtime.
 - The FeliCa apps stay enabled on phones that were set up before evox13; the script only acts before setup.
 - Video calling over LTE/Wi-Fi is turned off (evox12). Turning it back on would need the stock `vtservice` and
   its libraries.

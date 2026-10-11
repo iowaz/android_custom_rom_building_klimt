@@ -17,6 +17,7 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 | evox8 | 2026-10-10 | success, flashed (dirty) | Camera crashes fixed: the A15 camera blobs get the stock `libui` as `libui_vendor.so`. Also charging control, reverse wireless charging, always-on display in the panel's doze mode, and Dolby Atmos controls. |
 | evox9 | 2026-10-10 | success, flashed (dirty) | Security patch level 2026-10-01 plus the October fixes (PduParser, decodeWapPdu, Bluetooth). Custom ROM hiding synced with upstream. Play Integrity passes BASIC, DEVICE and STRONG. |
 | evox10 | 2026-10-10 | success, flashed (dirty) | The lockscreen fingerprint icon showed as a white block because SystemUI had no `pixel_pitch`; an overlay now sets 56.82 (447 ppi). The icon is also back at the stock centre (640, 2518). |
+| evox11 | 2026-10-11 | success, not flashed yet | **UI lag:** Xiaomi's `mi_thermald` capped the CPU at 1.4/2.1/2.0 GHz, because on HyperOS the system picks its thermal profile and nothing did here (Geekbench 7: 1321 single, 5043 multi). A new XiaomiParts app (Settings > Battery > Performance & thermal, plus a Quick Settings tile) sets HyperOS's performance profile by default, with per-app profiles. **Slow charging:** the bundled 90 W charger gave about 9 W, because `batterysecret` could not read and write the charger's verification nodes in sysfs, so the phone stayed at 5 V. It now has the same sysfs access as on stock. Also allowed the mpbe ioctl `0x6703`. |
 
 ## Open items
 
@@ -25,3 +26,7 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 - The two slots run different HyperOS firmware (slot a has OS3.0.302, slot b has OS3.0.335). Sync slot a's firmware
   before applying any A/B OTA.
 - MIUI Camera leftovers (port issues): a deadlock on lens switches while recording, and crashes with watermarks.
+- About 55 kernel wakeup sources have no SELinux label, so `system_suspend` cannot read their stats. Each poll
+  logs hundreds of denials, which hides other denials behind the kernel's rate limit. A fix is being prepared.
+- Video calling over LTE/Wi-Fi: MediaTek's IMS service waits for `media.VTS`, but Evolution X does not ship the
+  stock `vtservice`.

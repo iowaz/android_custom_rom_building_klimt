@@ -19,7 +19,8 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 | evox10 | 2026-10-10 | success, flashed (dirty) | The lockscreen fingerprint icon showed as a white block because SystemUI had no `pixel_pitch`; an overlay now sets 56.82 (447 ppi). The icon is also back at the stock centre (640, 2518). |
 | evox11 | 2026-10-11 | success, not flashed (evox12 includes it) | **UI lag:** Xiaomi's `mi_thermald` capped the CPU at 1.4/2.1/2.0 GHz, because on HyperOS the system picks its thermal profile and nothing did here (Geekbench 7: 1321 single, 5043 multi). A new XiaomiParts app (Settings > Battery > Performance & thermal, plus a Quick Settings tile) sets HyperOS's performance profile by default, with per-app profiles. **Slow charging:** the bundled 90 W charger gave about 9 W, because `batterysecret` could not read and write the charger's verification nodes in sysfs, so the phone stayed at 5 V. It now has the same sysfs access as on stock. Also allowed the mpbe ioctl `0x6703`. |
 | evox12 | 2026-10-11 | success, flashed (dirty) | **Wakeup sources:** about 55 kernel wakeup sources had no label `system_suspend` can read, so they had no names in the stats and every poll logged about 560 denials, which used up the kernel's audit rate limit and hid other denials. 54 genfscon entries now label them `sysfs_wakeup`, most taken from the stock policy. **Video calling off:** Evolution X does not ship the stock `vtservice`, and with ViLTE/ViWiFi on, the IMS service waited for it every 5.5 s; VoLTE stays on. Also two stock rules: the power HAL may look up the fingerprint HAL in `/proc`, and the camera HAL may set attributes on its debug files. |
-| evox13 | 2026-10-11 | success, not flashed yet | **Log noise.** SurfaceFlinger logged "Mapper error: 7" about 750 times a minute: RenderEngine asks every buffer for SMPTE 2094-50 metadata, new in Android 17, and the MediaTek mapper doesn't support it; libui now asks the mapper once (patch in `patches/tree`). The composer looked for Xiaomi's light sensor service about 190 times a minute: it was never shipped, so the stock daemon that corrects the under-display light sensor for the screen's own light is added. MIUI Camera logged about 7,000 lines on every launch because MiSys could not create its watermark folder. Also: dontaudit for harmless property lookups by the camera, audio and GPS HALs, stock labels for camera and TEE status properties, the FeliCa script's setup check, and the USB product name. |
+| evox13 | 2026-10-11 | success, flashed (dirty) | **Log noise.** SurfaceFlinger logged "Mapper error: 7" about 750 times a minute: RenderEngine asks every buffer for SMPTE 2094-50 metadata, new in Android 17, and the MediaTek mapper doesn't support it; libui now asks the mapper once (patch in `patches/tree`). The composer looked for Xiaomi's light sensor service about 190 times a minute: it was never shipped, so the stock daemon that corrects the under-display light sensor for the screen's own light is added. MIUI Camera logged about 7,000 lines on every launch because MiSys could not create its watermark folder. Also: dontaudit for harmless property lookups by the camera, audio and GPS HALs, stock labels for camera and TEE status properties, the FeliCa script's setup check, and the USB product name. |
+| evox14 | 2026-10-11 | success, not flashed yet | **Camera and sensor policy.** Stock labels and permissions for the camera direct-I/O mapper, debug-file append, camera calibration/state properties and composer idle-mode property. MiSys reads the dedicated stock blackbox partition label. The sensor daemon gets narrow heap open/read access, the stock system-property dontaudit and an exact boolean label for its actual framebuffer property setter. Heap reads and the framebuffer setter are observed-need exceptions; all other new access follows stock. Offline policy/context/tests and image AVB/layout/module checks pass. The camera overflow hypothesis still needs the capture/exit test after flashing. |
 
 ## Open items
 
@@ -27,10 +28,14 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
   fingerprint icon. This is an upstream layout bug; for now, disable one of the two.
 - The two slots run different HyperOS firmware (slot a has OS3.0.302, slot b has OS3.0.335). Sync slot a's firmware
   before applying any A/B OTA.
-- MIUI Camera leftovers (port issues): a deadlock on lens switches while recording, and crashes with watermarks
-  (evox13 lets the watermark configs be copied; to be retested).
-- evox13's light sensor service runs untested on the phone so far: check that it stays up and that
-  auto-brightness behaves in dark and bright rooms.
+- MIUI Camera: the watermark copy flood is fixed and photos with the Leica watermark save on evox13.
+  A pre-existing DataStorager crash when leaving capture remains to be retested on evox14 after the
+  stock direct-I/O mapper access fix. Lens switches while recording can still deadlock.
+- Camera search of category-labelled system data remains denied by MLS; stock does not justify an exception.
+- Frequent libc warnings for non-vendor camera property names remain. A platform policy integration was
+  deferred from evox14; vendor dontaudit does not silence libc.
+- The light sensor service runs and sends calibrated lux on evox13. After evox14, check the startup
+  denials and enable Adaptive brightness for dark/bright room light-sensor and calibrated-lux tests.
 - The FeliCa apps stay enabled on phones that were set up before evox13; the script only acts before setup.
 - Video calling over LTE/Wi-Fi is turned off (evox12). Turning it back on would need the stock `vtservice` and
   its libraries.

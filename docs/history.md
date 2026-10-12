@@ -21,6 +21,7 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 | evox12 | 2026-10-11 | success, flashed (dirty) | **Wakeup sources:** about 55 kernel wakeup sources had no label `system_suspend` can read, so they had no names in the stats and every poll logged about 560 denials, which used up the kernel's audit rate limit and hid other denials. 54 genfscon entries now label them `sysfs_wakeup`, most taken from the stock policy. **Video calling off:** Evolution X does not ship the stock `vtservice`, and with ViLTE/ViWiFi on, the IMS service waited for it every 5.5 s; VoLTE stays on. Also two stock rules: the power HAL may look up the fingerprint HAL in `/proc`, and the camera HAL may set attributes on its debug files. |
 | evox13 | 2026-10-11 | success, flashed (dirty) | **Log noise.** SurfaceFlinger logged "Mapper error: 7" about 750 times a minute: RenderEngine asks every buffer for SMPTE 2094-50 metadata, new in Android 17, and the MediaTek mapper doesn't support it; libui now asks the mapper once (patch in `patches/tree`). The composer looked for Xiaomi's light sensor service about 190 times a minute: it was never shipped, so the stock daemon that corrects the under-display light sensor for the screen's own light is added. MIUI Camera logged about 7,000 lines on every launch because MiSys could not create its watermark folder. Also: dontaudit for harmless property lookups by the camera, audio and GPS HALs, stock labels for camera and TEE status properties, the FeliCa script's setup check, and the USB product name. |
 | evox14 | 2026-10-11 | success, flashed (dirty) | **Camera and sensor policy.** Stock labels and permissions for the camera direct-I/O mapper, debug-file append, camera calibration/state properties and composer idle-mode property. MiSys reads the dedicated stock blackbox partition label. The sensor daemon gets narrow heap open/read access, the stock system-property dontaudit and an exact boolean label for its actual framebuffer property setter. Heap reads and the framebuffer setter are observed-need exceptions; all other new access follows stock. Offline policy/context/tests and image AVB/layout/module checks pass. Dirty-flashed to slot b and booted. Watermark photos save after re-enabling the watermark; the earlier DataStorager overflow was not observed in this session. Video lens switching still triggers a camera HAL watchdog abort. |
+| evox15 | 2026-10-12 | building; unverified, not flashed | **Charging telemetry and controlled camera candidate.** Device Health normalizes the kernel current sign and reports the unreliable average/time estimate as unsupported, so BatteryStats can use charge-level history. Exact photo mode 0x9002 uses the existing bounded HIS initialization fallback; watchdog and lock ownership remain intact. Independent source review and offline vendor/recovery compilation passed. Full build, image verification and phone runtime tests are pending. See [evox15 details](evox15.md). |
 
 ## Open items
 
@@ -32,8 +33,11 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
   On evox14, watermark 3 initially crashed the app because its private `config.json` was missing
   (ENOENT); the user re-enabled the watermark and photos then saved. The earlier DataStorager
   overflow and direct-I/O mapper denial did not recur in the session. Video lens switching
-  triggered a GuardMonitor SIGABRT after MiaNode-Init stalled for 10.88 seconds; the blocked
-  thread was waiting in MiaOfflineSession::parallelInitAllNodes. New property-read denials
+  triggered a GuardMonitor SIGABRT after MiaNode-Init stalled for 10.88 seconds; the immediate
+  logged transition was video 0x8004 to photo 0x9002. The blocked thread waited in
+  MiaOfflineSession::parallelInitAllNodes on a HIS session-lifetime gate held by the old session.
+  Its adaptor flush had 24 outstanding requests. The evox15 bounded initialization candidate
+  has not demonstrated old-flush recovery or correct image output on the phone. New property-read denials
   affect MiSys and the camera app
   on `vendor_mtkcam_prop`; investigate stock reader permissions before adding access.
 - Camera search of category-labelled system data remains denied by MLS; stock does not justify an exception.
@@ -43,6 +47,9 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
   denials appeared in the capture. The user reports Adaptive brightness working in the dark/bright
   test and confirms turning it off afterwards. The framebuffer property remains unset, so its
   setter path has not been demonstrated at runtime.
+- Charging estimates on evox14 can show many days: the kernel average current stays at 4.5 mA
+  and its time-to-full value is stale; current polarity is opposite the Android convention.
+  The evox15 Health correction still needs packaged-image verification and a phone charge/discharge test.
 - The FeliCa apps stay enabled on phones that were set up before evox13; the script only acts before setup.
 - Video calling over LTE/Wi-Fi is turned off (evox12). Turning it back on would need the stock `vtservice` and
   its libraries.

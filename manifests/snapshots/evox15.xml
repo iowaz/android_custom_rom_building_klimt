@@ -275,7 +275,7 @@
   <project name="OTA" path="evolution/OTA" remote="evo" revision="d8882bf1b63eedd520d754190e5478402fc0debf" upstream="refs/heads/cnb" dest-branch="refs/heads/cnb"/>
   <project name="OTA" path="evolution/OTA-VANILLA" remote="evo" revision="72c970945d8eeae3491fa62d2d0ae7e1b95c8ae8" upstream="cnb-vanilla" dest-branch="cnb-vanilla"/>
   <project name="TheParasiteProject/packages_apps_BtHelper" path="packages/apps/BtHelper" remote="github-non-los" revision="fbcd1f249ce4c04b5631c0aa90a05e6e8ab43928" upstream="main" dest-branch="main"/>
-  <project name="android_device_xiaomi_klimt" path="device/xiaomi/klimt" remote="iowaz" revision="831aede51253a1ca926993557eba7155edc8233a" upstream="evox" dest-branch="evox" groups="local::klimt"/>
+  <project name="android_device_xiaomi_klimt" path="device/xiaomi/klimt" remote="iowaz" revision="a528622c4f52e603a1f3cfa4d998b60da6e0e5c9" upstream="evox" dest-branch="evox" groups="local::klimt"/>
   <project name="android_kernel_xiaomi_klimt" path="kernel/xiaomi/klimt" remote="iowaz" revision="b13ac15b32e25368f70859fff986e07c18d9d5a5" upstream="17.0" dest-branch="17.0" groups="local::klimt" clone-depth="1"/>
   <project name="android_kernel_xiaomi_klimt-prebuilt" path="kernel/xiaomi/klimt-prebuilt" remote="misakazip" revision="a2d1dae44726c14b1295f4042cddd9fedacd39e0" upstream="17.0" dest-branch="17.0" groups="local::klimt" clone-depth="1"/>
   <project name="art" remote="evo" revision="2ae0ac223eccfbdebc5ec5a4bb2795d58c13326d" upstream="refs/heads/cnb" dest-branch="refs/heads/cnb" groups="pdk"/>

@@ -1,15 +1,16 @@
 # evox15 controlled test build
 
 Status on 2026-10-12: the initial build exited 1 at 10:33 Sao Paulo after 33 minutes, during Kati packaging.
-Image verification did not run. A service-path repair is prepared; it has not been rebuilt or flashed.
-Charging and camera runtime validation remain pending.
+Image verification did not run for that attempt. Attempt 2 started at 11:01 Sao Paulo with the reviewed
+service-path repair. It is building and has not been image-verified or flashed. Runtime validation remains pending.
 
 ## Source and reproduction
 
 - Initial attempt device: [831aede](https://github.com/iowaz/android_device_xiaomi_klimt/commit/831aede51253a1ca926993557eba7155edc8233a).
-- Prepared packaging repair: [a528622](https://github.com/iowaz/android_device_xiaomi_klimt/commit/a528622c4f52e603a1f3cfa4d998b60da6e0e5c9) (not rebuilt).
+- Attempt 2 packaging repair: [a528622](https://github.com/iowaz/android_device_xiaomi_klimt/commit/a528622c4f52e603a1f3cfa4d998b60da6e0e5c9) (build in progress).
 - Private proprietary vendor: `74d378be9f0b832f2c83284474a0f5da72062ca2` on `evox`.
-- [Pinned manifest](../manifests/snapshots/evox15.xml): records the failed initial attempt, generated from its `repo manifest -r`.
+- [Attempt 2 manifest](../manifests/snapshots/evox15.xml): generated from the corrected build's `repo manifest -r`.
+- [Attempt 1 manifest](../manifests/snapshots/evox15-attempt1.xml): preserves the failed initial attempt.
 - [Build script](../build-setup/evox/build-evox15.sh), [verification](../build-setup/evox/verify-evox15.sh),
   [ten new image checks](../build-setup/evox/fix15/check-image.py) and
   [strict report validator](../build-setup/evox/fix15/validate-reports.py).
@@ -66,9 +67,10 @@ configuration error, not a freeze or disk-watchdog stop. Source analysis complet
 The repair removes the shared stems, uses `.klimt` and `.klimt_recovery` binary names, and gives their init
 and VINTF files matching unique names. The existing Health domain and HAL identity are preserved. Generic
 modules and standalone chargers remain overridden in the product. The image checks also require the generic
-binaries to be absent from the extracted package. The initial snapshot above remains the failed-attempt record;
-the follow-up device commit identifies the prepared repair. Its actual Soong/Kati and image checks await a
-separately requested rebuild. The monitor never automatically restarts a failed build.
+binaries to be absent from the extracted package. Both attempt snapshots are preserved above.
+The user authorized repairs and build retries until completion; attempt 2 uses the reviewed follow-up commit.
+Its actual Soong/Kati and image checks are pending. The supervisor handles one build and verification at a time;
+further retries follow diagnosis and review rather than a blind loop.
 
 ## Completion gates
 

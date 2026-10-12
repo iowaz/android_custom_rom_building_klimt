@@ -13,17 +13,17 @@ mods=json.loads((P/'module-info.json').read_text())
 for name in ['android.hardware.health-service.klimt','android.hardware.health-service.klimt_recovery']:
     mod=mods.get(name,{})
     ok(f'evox15 selected {name} from device health source','device/xiaomi/klimt/health' in mod.get('path',[]) and bool(mod.get('installed')))
-normal=F/'vendor/bin/hw/android.hardware.health-service.example';built=P/'vendor/bin/hw/android.hardware.health-service.example'
-ok('evox15 packaged device health binary equals built output',sha(normal) is not None and sha(normal)==sha(built))
+normal=F/'vendor/bin/hw/android.hardware.health-service.klimt';built=P/'vendor/bin/hw/android.hardware.health-service.klimt'
+ok('evox15 packaged device health binary equals built output',sha(normal) is not None and sha(normal)==sha(built) and not (F/'vendor/bin/hw/android.hardware.health-service.example').exists())
 # Generic Health binary from the verified evox14 image; no private debug artifact needed.
 BASELINE_HEALTH_SHA='2f3f2d7a2a5eb290b5834a6d5c9098b7fbe03c2dfc4e6c8929cb94417a3a2c47'
 ok('evox15 health binary replaced generic baseline',sha(normal) is not None and sha(normal)!=BASELINE_HEALTH_SHA)
-rec=P/'recovery/root/system/bin/hw/android.hardware.health-service.example_recovery'
-found=[x for x in RD.rglob('android.hardware.health-service.example_recovery') if x.is_file()]
-ok('evox15 packaged recovery health equals built output',rec.is_file() and len(found)==1 and sha(found[0])==sha(rec))
-for relative,source in [('vendor/etc/init/android.hardware.health-service.example.rc','android.hardware.health-service.example.rc'),('vendor/etc/vintf/manifest/android.hardware.health-service.example.xml','android.hardware.health-service.example.xml')]:
+rec=P/'recovery/root/system/bin/hw/android.hardware.health-service.klimt_recovery'
+found=[x for x in RD.rglob('android.hardware.health-service.klimt_recovery') if x.is_file()]
+ok('evox15 packaged recovery health equals built output',rec.is_file() and len(found)==1 and sha(found[0])==sha(rec) and not list(RD.rglob('android.hardware.health-service.example_recovery')))
+for relative,source in [('vendor/etc/init/android.hardware.health-service.klimt.rc','android.hardware.health-service.klimt.rc'),('vendor/etc/vintf/manifest/android.hardware.health-service.klimt.xml','android.hardware.health-service.klimt.xml')]:
     ok(f'evox15 retained {source}',sha(F/relative) is not None and sha(F/relative)==sha(D/'health'/source))
-rcs=[x for x in RD.rglob('android.hardware.health-service.example_recovery.rc') if x.is_file()]
-ok('evox15 recovery health init retained',len(rcs)==1 and sha(rcs[0])==sha(D/'health/android.hardware.health-service.example_recovery.rc'))
+rcs=[x for x in RD.rglob('android.hardware.health-service.klimt_recovery.rc') if x.is_file()]
+ok('evox15 recovery health init retained',len(rcs)==1 and sha(rcs[0])==sha(D/'health/android.hardware.health-service.klimt_recovery.rc'))
 assert len(checks)==10
 if not all(checks):raise SystemExit(1)

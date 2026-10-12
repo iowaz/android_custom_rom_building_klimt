@@ -1,13 +1,15 @@
 # evox15 controlled test build
 
-Status on 2026-10-12: source changes reviewed and pushed; build running. Image verification and runtime
-validation are pending. This build has not been flashed.
+Status on 2026-10-12: the initial build exited 1 at 10:33 Sao Paulo after 33 minutes, during Kati packaging.
+Image verification did not run. A service-path repair is prepared; it has not been rebuilt or flashed.
+Charging and camera runtime validation remain pending.
 
 ## Source and reproduction
 
-- Device: [831aede](https://github.com/iowaz/android_device_xiaomi_klimt/commit/831aede51253a1ca926993557eba7155edc8233a).
+- Initial attempt device: [831aede](https://github.com/iowaz/android_device_xiaomi_klimt/commit/831aede51253a1ca926993557eba7155edc8233a).
+- Prepared packaging repair: [a528622](https://github.com/iowaz/android_device_xiaomi_klimt/commit/a528622c4f52e603a1f3cfa4d998b60da6e0e5c9) (not rebuilt).
 - Private proprietary vendor: `74d378be9f0b832f2c83284474a0f5da72062ca2` on `evox`.
-- [Pinned manifest](../manifests/snapshots/evox15.xml): generated from the current build's `repo manifest -r`.
+- [Pinned manifest](../manifests/snapshots/evox15.xml): records the failed initial attempt, generated from its `repo manifest -r`.
 - [Build script](../build-setup/evox/build-evox15.sh), [verification](../build-setup/evox/verify-evox15.sh),
   [ten new image checks](../build-setup/evox/fix15/check-image.py) and
   [strict report validator](../build-setup/evox/fix15/validate-reports.py).
@@ -29,7 +31,9 @@ The device-local Health service normalizes both the current getter and HealthInf
 INT_MIN overflow, exposes average current as unsupported (zero in the snapshot), and sets time-to-full to -1.
 BatteryStats then falls back to measured charge-level step durations. It can initially show no estimate until
 at least one valid duration is available. Charger power, thermal limits and charging control are unchanged.
-Normal/recovery service filenames, init configuration and VINTF identity are retained.
+The naming repair gives normal/recovery binaries and RC/XML files unique Klimt filenames. Init executable
+paths and factory/meta imports follow those names; service identities, permissions and VINTF HAL identity
+are retained, and the vendor binary receives the existing Health execution label.
 
 Independent review, current-sign/boundary checks and offline compilation with the existing Android vendor
 and recovery target commands passed. Full Soong compilation and packaged-image checks are pending.
@@ -51,6 +55,20 @@ the old hardware flush. Correct photo output and repeated session recovery still
 Exact-byte/branch, ELF 4 KB/16 KB mapping, 65,536 mode-routing and local Bionic loading checks passed.
 Independent review approved a controlled test build. Actual camera namespace loading, lens/recording transitions,
 watermark photos, stabilization and repeated recovery are pending; camera property-reader denials remain open.
+
+## Packaging failure and repair
+
+The initial attempt used unique module names but retained generic `.example` binary stems. Soong generated
+install rules for both the generic service and the Klimt service at the same target path. Kati rejected
+`vendor/bin/hw/android.hardware.health-service.example` as an overridden command; this was a build
+configuration error, not a freeze or disk-watchdog stop. Source analysis completed before the failure.
+
+The repair removes the shared stems, uses `.klimt` and `.klimt_recovery` binary names, and gives their init
+and VINTF files matching unique names. The existing Health domain and HAL identity are preserved. Generic
+modules and standalone chargers remain overridden in the product. The image checks also require the generic
+binaries to be absent from the extracted package. The initial snapshot above remains the failed-attempt record;
+the follow-up device commit identifies the prepared repair. Its actual Soong/Kati and image checks await a
+separately requested rebuild. The monitor never automatically restarts a failed build.
 
 ## Completion gates
 

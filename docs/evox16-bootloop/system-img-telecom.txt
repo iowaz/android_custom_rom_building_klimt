@@ -1,0 +1,9 @@
+debugfs listing of target_files IMAGES/system.img (sha256 e1dad9da...92ab5, the system.img in lineage_klimt-evox16-img.zip):
+   2500   40755 (2)      0      0    4096 31-Dec-2008 22:00 Telecom
+   2506   40755 (2)      0      0    4096 31-Dec-2008 22:00 TelecomShim
+   2500   40755 (2)      0      0    4096 31-Dec-2008 22:00 .
+   2280   40755 (2)      0      0    4096 31-Dec-2008 22:00 ..
+   2501  100644 (1)      0      0   2642429 31-Dec-2008 22:00 Telecom.apk
+   2502   40755 (2)      0      0    4096 31-Dec-2008 22:00 oat
+
+    491  100755 (1)      0   2000   765392 31-Dec-2008 22:00 property_info_checker

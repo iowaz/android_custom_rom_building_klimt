@@ -1,0 +1,26 @@
+Telecom/Telecom.apk: package: name='com.android.server.telecom' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+a077eb590ece405c8226474dfa440ee9b7fd60549e0af526f13e73f9bcc473fc  $OUT/system/priv-app/Telecom/Telecom.apk
+TelecomShim/TelecomShim.apk: package: name='com.android.server.telecom' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'
+1f393cec3869945daa207b587f42378de30e5625ccc5ff479e109835611cf5a1  $OUT/system/priv-app/TelecomShim/TelecomShim.apk
+-rwxr-xr-x 1 diogo diogo 765392 2026-10-14 17:22:51.481553927 -0300 $OUT/system/bin/property_info_checker
+
+$OUT/system/priv-app/Telecom:
+total 2596
+drwxr-xr-x  3 diogo diogo    4096 2026-10-14 18:11:33.204462376 -0300 .
+drwxr-xr-x 44 diogo diogo    4096 2026-10-14 18:11:33.199251830 -0300 ..
+-rw-r--r--  1 diogo diogo 2642429 2026-10-14 18:11:33.212737194 -0300 Telecom.apk
+drwxr-xr-x  3 diogo diogo    4096 2026-10-14 18:11:33.200462376 -0300 oat
+
+$OUT/system/priv-app/Telecom/oat/arm64:
+total 68
+drwxr-xr-x 2 diogo diogo  4096 2026-10-14 18:11:33.216462374 -0300 .
+drwxr-xr-x 3 diogo diogo  4096 2026-10-14 18:11:33.200462376 -0300 ..
+-rw-r--r-- 1 diogo diogo 33424 2026-10-14 18:11:33.214607706 -0300 Telecom.odex
+-rw-r--r-- 1 diogo diogo 22960 2026-10-14 18:11:33.216462374 -0300 Telecom.vdex
+
+$OUT/system/priv-app/TelecomShim:
+total 32
+drwxr-xr-x  3 diogo diogo  4096 2026-10-14 19:20:44.495432106 -0300 .
+drwxr-xr-x 44 diogo diogo  4096 2026-10-14 18:11:33.199251830 -0300 ..
+-rw-r--r--  1 diogo diogo 16607 2026-10-14 19:20:44.495432106 -0300 TelecomShim.apk
+drwxr-xr-x  3 diogo diogo  4096 2026-10-09 20:08:00.729252473 -0300 oat

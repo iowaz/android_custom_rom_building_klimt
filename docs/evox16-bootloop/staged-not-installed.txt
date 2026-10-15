@@ -1,0 +1,6 @@
+# Staged files not in out/target/product/klimt/.installable_files after the evox16 build
+system/bin/property_info_checker
+system/priv-app/Telecom/Telecom.apk
+system/priv-app/Telecom/oat/arm64/Telecom.odex
+system/priv-app/Telecom/oat/arm64/Telecom.vdex
+# plus 621 kernel module files under vendor_dlkm/ and system_dlkm/lib/modules (expected: copied outside the install list)

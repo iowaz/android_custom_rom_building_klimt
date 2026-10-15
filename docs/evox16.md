@@ -2,7 +2,9 @@
 
 Status on 2026-10-14: built and image-verified, then **dirty-flashed to slot b, where it boot-loops**
 (`system_server` crashes in Telecom setup; see [Boot loop on the phone](#boot-loop-on-the-phone)). The phone was
-restored to evox15 the same night without a wipe. **Do not flash this image.** `evox16` is the build name: it is still
+restored to evox15 the same night without a wipe. **Do not flash this image.** The cause was our build process (a
+stray legacy Telecom APK), and most of evox16's local changes were then reverted: see the
+[evox16 review](evox16-review.md) and [evox17](evox17.md). `evox16` is the build name: it is still
 Android 17 (`cp2a`, build ID `CP2A.260605.016`, security patch 2026-10-01). What changed is Evolution X itself,
 from 12.2 to **12.3**, plus a review of every upstream change that touches a klimt patch.
 
@@ -113,19 +115,25 @@ Evolution X 12.3's frameworks/base has two `TelecomLoaderService` variants:
   `telecom` service, so it expects an `ITelecomService`.
 - **Platform** (`services/telecom/platform`) first unwraps an `ITelecomLoader` and calls `createTelecomService()`.
 
-The image's `system_server` ran the mainline variant, but the Telecom app (`packages/services/Telecomm`,
-`TelecomService.onBind`) returned an `ITelecomLoader` binder. The first `TelecomManager` call therefore reached the
-wrong interface and killed the system process. All the other "The system died" app crashes follow from that.
+The image's `system_server` ran the mainline variant, but the Telecom app that answered was the legacy one
+(`packages/services/Telecomm/legacy-src`, `TelecomService.onBind`), which returns an `ITelecomLoader` binder. The
+first `TelecomManager` call therefore reached the wrong interface and killed the system process. All the other
+"The system died" app crashes follow from that.
 
-The cause is a mismatch between the framework and the Telecom app in the 12.3 sources and build configuration.
-It is not one of our patches: the only Telecomm changes are in `Ringer.java` (call flash and two log calls),
-which is not on this path. Which build flag selects the variant, and why the two sides disagree, has not been
-investigated yet.
+**Cause (found in the [review](evox16-review.md)): our build process, not the 12.3 sources.**
+- The release flag `RELEASE_TELECOM_MAINLINE_MODULE` is true, so the product installs `TelecomShim` only.
+- The focused precheck ran `m Telecom` to compile our Telecomm patch, and that installed the legacy `Telecom`
+  app into `out/target/product/klimt/system/priv-app`.
+- The incremental full build never removed it, so `system.img` shipped both APKs.
+- Both are `com.android.server.telecom`. PackageManager kept the legacy one and logged
+  `Failed to scan /system/priv-app/TelecomShim: ... Skipping duplicate`.
 
-Nothing in verification boots the image. The precheck compiled `services` and `Telecom` separately, and the
-image checks inspect files and producers, so a handshake between two correctly built modules passed every gate.
-A future build needs a boot test (an emulator, or a careful flash with a known-good build ready to restore)
-before it is called ready.
+An earlier version of this page blamed a framework/Telecom mismatch in the 12.3 sources; that was wrong.
+The evidence is in [evox16-bootloop/](evox16-bootloop/).
+
+Nothing in verification booted the image, and the verifier recorded the duplicate package without failing.
+evox17 removes the precheck, runs `m installclean` before the build, and fails on stray or duplicate
+installs. It still needs a phone boot before anyone calls it ready.
 
 Restore: rebooted to the bootloader and flashed the verified evox15 ZIP (`63982b33…3f90a`) the same way, still
 on slot b with no wipe. Exit 0, 0 errors, no erase. It booted in 36 s with no `system_server` crashes. evox16 never

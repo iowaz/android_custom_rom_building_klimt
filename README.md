@@ -32,26 +32,25 @@ signed with my own private keys, with Google apps included (`WITH_GMS=true`).
 | `hardware/interfaces` | [iowaz/hardware_interfaces](https://github.com/iowaz/hardware_interfaces) | `cnb-klimt` | public | Drops the HIDL `light@2.0` interface so the stock vendor blob is used |
 | `build/soong` | [iowaz/build_soong](https://github.com/iowaz/build_soong) | `evox16` | public | Allows the `miui` boot jar packages (`cnb-klimt` is the 12.2 history) |
 | `frameworks/native` | [iowaz/frameworks_native](https://github.com/iowaz/frameworks_native) | `evox16` | public | libui stops asking the MediaTek mapper for SMPTE 2094-50 metadata it doesn't list |
-| `packages/apps/Settings` | [iowaz/packages_apps_Settings](https://github.com/iowaz/packages_apps_Settings) | `evox16` | public | Carrier network scan keeps the legacy fallback and error handling the MediaTek modem needs |
-| `system/memory/libdmabufheap` | [iowaz/android_system_memory_libdmabufheap](https://github.com/iowaz/android_system_memory_libdmabufheap) | `evox16` | public | Selects the legacy allocator independently of libion |
-| `hardware/xiaomi` | [iowaz/android_hardware_xiaomi](https://github.com/iowaz/android_hardware_xiaomi) | `evox16` | public | Xiaomi HALs (fingerprint, sensors), fork of LineageOS `lineage-24.0`: bounded UDFPS status reads |
+| `hardware/xiaomi` | [LineageOS/android_hardware_xiaomi](https://github.com/LineageOS/android_hardware_xiaomi) | `lineage-24.0` | public | Xiaomi HALs (fingerprint, sensors) |
 | `device/mediatek/sepolicy_vndr` | [LineageOS/android_device_mediatek_sepolicy_vndr](https://github.com/LineageOS/android_device_mediatek_sepolicy_vndr) | `lineage-24.0` | public | MediaTek vendor SELinux policy |
 | `vendor/evolution-priv/keys` | not in git | | **offline only** | Signing keys, generated once (see [Keys](#keys)) |
 
 `vendor/lineage` is plain Evolution-X/vendor_evolution again since evox16: both of our old `cnb-klimt` commits
 (the security patch level and the fingerprint override) are upstream in 12.3.
 
-**Only changes that klimt needs get a fork.** As of evox16, 14 projects carry a local change. The five
-klimt-specific ones are the forks above (build/soong, frameworks/native, Settings, libdmabufheap,
-hardware/xiaomi). The other nine are generic fixes with no fork: frameworks/base, libcore, system/sepolicy,
-packages/modules/Bluetooth, packages/services/Telecomm, Sandbox, ThemeStore, AppLocker and Seedvault. The
-system/sepolicy one keeps `su` out of the user build's permissive domains, which Evolution X 12.3 added. All 14
-are exported as patches in the device tree under
+**Only changes that klimt needs get a fork, and everything else stays upstream.** The upstream maintainers test
+on real devices; our changes are untested until a build boots on the phone. As of evox17 the local changes are
+the device tree, the kernel and vendor repositories, and the three small forks above (build/soong,
+frameworks/native, hardware/interfaces), all of which were already in evox15. evox16 had added generic fixes to
+twelve more projects; the [evox16 review](docs/evox16-review.md) reverted them. The build/soong and
+frameworks/native patches are also exported in the device tree under
 [`patches/tree/`](https://github.com/iowaz/android_device_xiaomi_klimt/tree/evox/patches/tree), each with its exact
-base commit, patch hashes and the expected final tree. Apply them with `patches/tree/apply.sh <tree root>`. It
-refuses a dirty project or a different base, and skips a project whose tree is already final, so the forks are
-skipped. The evox15 patch set is kept in `patches/tree-evox15/`. See [docs/evox16.md](docs/evox16.md) for what
-each change does.
+base commit, patch hash and the expected final tree, for a checkout without the forks. Apply them with
+`patches/tree/apply.sh <tree root>`. It refuses a dirty project or a different base, and skips a project whose
+tree is already final, so with the forks it does nothing. The evox15 patch set is kept in `patches/tree-evox15/`;
+all of it is in 12.3. The iowaz `packages_apps_Settings`, `android_hardware_xiaomi` and
+`android_system_memory_libdmabufheap` forks are only used by the evox16 snapshot.
 
 ### Without access to the private repositories
 
@@ -69,8 +68,8 @@ anyone without access to the private vendor repository. So this repository ships
 - [`manifests/local_manifests/klimt.xml`](manifests/local_manifests/klimt.xml) adds the klimt repositories and
   swaps in the forks on top of the latest Evolution X `cnb`. This is what you want for a new build.
 - [`manifests/snapshots/`](manifests/snapshots) pins every project at the commit used for each build (latest:
-  [`evox16.xml`](manifests/snapshots/evox16.xml), image-verified but it **boot-loops**, see
-  [docs/evox16.md](docs/evox16.md#boot-loop-on-the-phone); the last build that boots is
+  [`evox17.xml`](manifests/snapshots/evox17.xml), not boot-tested yet; [`evox16.xml`](manifests/snapshots/evox16.xml)
+  **boot-loops**, see the [evox16 review](docs/evox16-review.md); the last build that boots is
   [`evox15.xml`](manifests/snapshots/evox15.xml)), as generated by
   [`snapshot-manifest.py`](build-setup/evox/snapshot-manifest.py) from `repo manifest -r`.
   - Evolution X force-pushes `cnb` often. Of the 312 GitHub projects in the evox10 snapshot, 23 were rebased upstream
@@ -178,34 +177,28 @@ bash /mnt/c/XiaomiBuilds/build-setup/evox/start-build.sh evox14 updatepackage   
 bash /mnt/c/XiaomiBuilds/build-setup/evox/progress.sh evox14                    # one-line status
 ```
 
-Since evox16, builds go through the attempt-isolated tooling in
-[`build-setup/evox/evox16`](build-setup/evox/evox16) (its [README](build-setup/evox/evox16/README.md) has the
+Since evox16, builds go through attempt-isolated tooling, now
+[`build-setup/evox/evox17`](build-setup/evox/evox17) (its [README](build-setup/evox/evox17/README.md) has the
 full contract). Each attempt gets its own ID, log/evidence folder and delivery folder; nothing from an earlier
 attempt is overwritten. A readiness JSON pins the whole frozen manifest (every project HEAD, checked clean before
-and after), the five public signing certificates, the disk budget and the checks that passed first.
+and after), the five public signing certificates, the disk budget and the checks that passed first. One detached
+controller runs `m -j12 installclean`, then `m -j12 updatepackage`, then the verifier:
 
-1. **Focused precheck** (optional, recommended after source changes): compiles only the changed modules and the
-   policy tests, about an hour instead of a failed full build.
+```bash
+bash /mnt/c/XiaomiBuilds/build-setup/evox/evox17/start.sh evox17-attempt01 \
+  /mnt/c/XiaomiBuilds/debug/evox17/BUILD_READY.json
+python3 -B /mnt/c/XiaomiBuilds/build-setup/evox/evox17/controller.py status evox17-attempt01
+```
 
-   ```bash
-   bash /mnt/c/XiaomiBuilds/build-setup/evox/evox16/start-precheck.sh evox16-precheck05 \
-     /mnt/c/XiaomiBuilds/debug/evox16/PRECHECK_READY.json
-   ```
-
-2. **Full build and verification**: one detached controller runs `m -j12 updatepackage`, then the verifier.
-
-   ```bash
-   bash /mnt/c/XiaomiBuilds/build-setup/evox/evox16/start.sh evox16-attempt01 \
-     /mnt/c/XiaomiBuilds/debug/evox16/BUILD_READY.json
-   python3 -B /mnt/c/XiaomiBuilds/build-setup/evox/evox16/controller.py status evox16-attempt01
-   ```
+evox16 also had a focused precheck (`m <changed modules>`). It is gone: module goals install into the same
+staging directories the images are packed from, and that is how evox16 shipped a stray Telecom app.
 
 The controller and its watchdog identify the build by PID, `/proc` start time, boot ID and session, and stop
 only that build (disk below 10 GB on D: or 2 GB on either ext4 disk). They never restart a build. Quiet steps
 are not treated as a freeze. Progress, CPU and disk samples go to `/mnt/wsl/evox/logs/evox16/<attempt>/`. A
 fixed verifier can re-check a successful build without rebuilding (`verify.py --recheck`). See
-[docs/evox16.md](docs/evox16.md) for the evox16 run; the evox15 wrappers and notes are in
-[docs/evox15.md](docs/evox15.md).
+[docs/evox17.md](docs/evox17.md) and [docs/evox16.md](docs/evox16.md) for those runs; the evox15 wrappers and
+notes are in [docs/evox15.md](docs/evox15.md).
 
 Typical times on this PC:
 
@@ -227,21 +220,24 @@ unpacks every image and runs two sets of checks.
 
 [`fixcheck*.sh`](build-setup/evox/cmp) checks that every fix from every build so far is still in the images.
 
-Since evox16, [`verify.py`](build-setup/evox/evox16/verify.py) does this in a fresh, attempt-only folder, and
+Since evox16, [`verify.py`](build-setup/evox/evox17/verify.py) does this in a fresh, attempt-only folder, and
 only for a ZIP produced by that attempt (hash, size and mtime from the build's own exit record). It requires:
 - all 165 historical fix checks, matched by name (the two old false-failure waivers are gone);
 - the must-hold checks, now also with `android-info.txt`;
-- six image checks in [`image-checks/check_image.py`](build-setup/evox/evox16/image-checks/check_image.py):
-  - policy: recompiled policy, empty permissive domains, device labels;
-  - patch packaging: MIUI jars, libui/Gralloc, lights, libcore;
-  - private vendor compatibility: blob hashes, ELF dependencies, allocator and Wi-Fi shim;
+- seven image checks in [`image-checks/check_image.py`](build-setup/evox/evox17/image-checks/check_image.py):
+  - policy: recompiled policy, the exact permissive domains (`su`, as upstream), device labels, upstream sepolicy;
+  - patch packaging: MIUI jars, libui/Gralloc, lights, upstream libcore;
+  - private vendor compatibility: blob hashes, ELF dependencies, the allocator symbols the blobs use, Wi-Fi shim;
   - Health semantics;
   - GMS/themes/apps;
-  - Doze packaging: TouchBridge bytecode, UDFPS/sensor producers, resolved AOD defaults.
+  - Doze packaging: TouchBridge bytecode, UDFPS/sensor producers, resolved AOD defaults;
+  - install integrity (since evox17): every staged file is in the build's install list, no package is installed
+    twice, and the Telecom app variant matches the framework's loader.
 
 Only then does it write the delivery folder: the ZIP, the `-flash.bat`/`-flash.sh` helpers, `SHA256SUMS`,
-`RESULTS.json`, `COMPARISON-evox16.md` and `VERIFIED.txt`. The verified attempt is then copied to the usual flat
-names in `out-evox` (`lineage_klimt-evox16-img.zip` and its `-evox16` files). `VERIFIED.txt` is not a phone test.
+`RESULTS.json`, `COMPARISON-evox17.md` and `VERIFIED.txt`. The verified attempt is then copied to the usual flat
+names in `out-evox` (`lineage_klimt-evox17-img.zip` and its `-evox17` files). **`VERIFIED.txt` is not a phone
+test**; since evox17 it says "NOT boot-tested".
 The evox15 verifier is described in [docs/evox15.md](docs/evox15.md).
 
 The must-hold checks compare against reference images (an earlier build, misakazip's build, the phone's own
@@ -287,23 +283,28 @@ relies on an A/B OTA, because the OTA writes to the other slot.
   RegionSampling threads, which pointed straight at an Android 17 metadata request the Android 16 mapper doesn't
   support. Check the TID before guessing.
 
-- **Compile the changed modules before the full build.** evox16's focused precheck found a javac error in one
-  of our own patches in an hour. A host-side test had passed because its stub copied the wrong API; stubs must
-  mirror the real signatures.
+- **Never build module goals in the tree you package.** `m <module>` installs that module into
+  `out/target/product/<device>/`, and the images are packed from that directory, not from the product's install
+  list. evox16's precheck ran `m Telecom` for one of our patches; the incremental build kept the stray legacy
+  Telecom app next to TelecomShim, and the phone boot-looped. Run `m installclean` before a release build and
+  check that the image only holds the product's installs.
 - **A checker failure is not an image failure.** The image checks exit 1 for a real defect and 2 for missing
   tools or evidence. In evox16 all four stops were checker bugs: a timeout, a regex, wrong source strings and a
   Make parser. Each was confirmed against the reference builds before the checker was changed, then the same ZIP
   was re-verified without rebuilding.
-- **Image verification is not a boot test.** evox16 passed every compile, policy and image check and still
-  boot-looped. `system_server` and the Telecom app were each built correctly but disagreed on their binder
-  handshake, and no file check can see that. Keep the last working ZIP next to the new one and be ready to
-  restore it; a dirty restore to the same slot with the same keys worked.
+- **Image verification is not a boot test, and evidence nobody reads is not a check.** evox16 passed every
+  compile, policy and image check and still boot-looped. Its verifier even listed the duplicate Telecom package,
+  as information only. Make such findings fail the build. Keep the last working ZIP next to the new one and be
+  ready to restore it; a dirty restore to the same slot with the same keys worked.
+- **Trust upstream over our own fixes.** The upstream maintainers test on devices; our changes are untested until
+  the phone boots them. evox16 carried twelve "improvements" klimt did not need. Change upstream code only for a
+  failure seen on klimt, or for something klimt cannot work without.
 - **A shallow checkout can't push a fork.** `repo sync --depth=1` leaves git unable to tell GitHub what it
   already has, and large pushes fail with HTTP 500.
   [`gh_replay_commits.py`](build-setup/evox/evox16/gh_replay_commits.py) recreates the commits through the
   GitHub API instead, and only moves the branch when the SHAs match.
 
-The build history, from the first failed build to evox16, is in [docs/history.md](docs/history.md).
+The build history, from the first failed build to evox17, is in [docs/history.md](docs/history.md).
 
 ## Running it in CI
 

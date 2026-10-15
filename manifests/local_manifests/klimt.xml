@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Xiaomi 15T Pro (klimt) on Evolution X 12.3 cnb (Android 17), as of evox16.
+<!-- Xiaomi 15T Pro (klimt) on Evolution X 12.3 cnb (Android 17), as of evox17.
      Copy to .repo/local_manifests/klimt.xml after the repo init of Evolution-X/manifest, branch cnb,
-     with Git LFS enabled (see the README), then run device/xiaomi/klimt/patches/tree/apply.sh.
+     with Git LFS enabled (see the README). The forks below already carry patches/tree, so apply.sh
+     only reports "Equivalent full final tree" for them.
      vendor/xiaomi/klimt is a PRIVATE repository: you need read access to it, or replace it (see the README).
-     Only projects with a klimt-specific change have an iowaz fork; generic fixes live in patches/tree. -->
+     Only projects with a klimt-specific change have an iowaz fork; everything else is upstream. -->
 <manifest>
   <remote name="iowaz" fetch="https://github.com/iowaz" />
   <remote name="misakazip" fetch="https://github.com/misakazip-dev" />
@@ -14,18 +15,12 @@
   <project path="kernel/xiaomi/klimt-prebuilt" name="android_kernel_xiaomi_klimt-prebuilt" remote="misakazip" revision="17.0" clone-depth="1" />
   <project path="vendor/xiaomi/klimt" name="proprietary_vendor_xiaomi_klimt" remote="iowaz" revision="evox" />
 
-  <!-- Device dependencies (lineage.dependencies; Evolution X's roomservice only reads evolution.dependencies).
-       hardware/xiaomi is our fork: bounded UDFPS status reads in the sensor HAL. -->
-  <project path="hardware/xiaomi" name="android_hardware_xiaomi" remote="iowaz" revision="evox16" />
+  <!-- Device dependencies (lineage.dependencies; Evolution X's roomservice only reads evolution.dependencies) -->
+  <project path="hardware/xiaomi" name="LineageOS/android_hardware_xiaomi" remote="github" revision="lineage-24.0" />
   <project path="device/mediatek/sepolicy_vndr" name="LineageOS/android_device_mediatek_sepolicy_vndr" remote="github" revision="lineage-24.0" />
 
   <!-- Evolution X projects replaced by the klimt forks (same repository names under iowaz) -->
   <extend-project name="build_soong" remote="iowaz" revision="evox16" />            <!-- MIUI boot jar packages -->
   <extend-project name="hardware_interfaces" remote="iowaz" revision="cnb-klimt" /> <!-- stock AIDL lights -->
   <extend-project name="frameworks_native" remote="iowaz" revision="evox16" />      <!-- MediaTek mapper SMPTE 2094-50 guard -->
-  <extend-project name="packages_apps_Settings" remote="iowaz" revision="evox16" /> <!-- MediaTek carrier scan fallback -->
-
-  <!-- LineageOS project replaced by our fork: legacy allocator selected independently of libion -->
-  <remove-project name="LineageOS/android_system_memory_libdmabufheap" />
-  <project path="system/memory/libdmabufheap" name="android_system_memory_libdmabufheap" remote="iowaz" revision="evox16" groups="pdk" />
 </manifest>

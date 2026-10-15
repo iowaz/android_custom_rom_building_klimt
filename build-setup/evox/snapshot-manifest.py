@@ -27,16 +27,15 @@ bases = dict(l.split() for l in raw(DEVICE, "patches/tree/BASES", "evox").splitl
 vendor_sha = gh("repos/iowaz/proprietary_vendor_xiaomi_klimt/commits/evox", "-q", ".sha")
 assert vendor_sha and len(vendor_sha) == 40, "cannot read iowaz/proprietary_vendor_xiaomi_klimt (gh auth?)"
 
-# path -> (iowaz repo name, branch). Since evox16 only klimt-specific changes have a fork.
+# path -> (iowaz repo name, branch). Only klimt-specific changes have a fork. evox17 dropped the
+# evox16 Settings, hardware/xiaomi and libdmabufheap forks (back on upstream); their branches stay
+# for the evox16 snapshot.
 FORKS = {
     "device/xiaomi/klimt": ("android_device_xiaomi_klimt", "evox"),
     "kernel/xiaomi/klimt": ("android_kernel_xiaomi_klimt", "17.0"),
     "build/soong": ("build_soong", "evox16"),
     "hardware/interfaces": ("hardware_interfaces", "cnb-klimt"),
     "frameworks/native": ("frameworks_native", "evox16"),
-    "packages/apps/Settings": ("packages_apps_Settings", "evox16"),
-    "hardware/xiaomi": ("android_hardware_xiaomi", "evox16"),
-    "system/memory/libdmabufheap": ("android_system_memory_libdmabufheap", "evox16"),
 }
 # path -> (remote, name, branch): back on upstream (evox16 has none of our commits there)
 UPSTREAM = {

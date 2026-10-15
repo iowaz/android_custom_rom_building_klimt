@@ -1,0 +1,6 @@
+# logcat-all.txt (phone, evox16 boot loop, 2026-10-14): how PackageManager resolved the two Telecom APKs
+10-14 23:05:48.317 12039 12099 D PackageCacher: Feature flags for package /system/priv-app/Telecom: {android.permission.flags.access_local_network_permission_enabled=true}
+10-14 23:05:48.321 12039 12101 D PackageCacher: Feature flags for package /system/priv-app/TelecomShim: {android.permission.flags.access_local_network_permission_enabled=true}
+10-14 23:05:48.400 12039 12039 I PackageManager: /system/priv-app/TelecomShim changed; collecting certs
+10-14 23:05:48.400 12039 12039 W PackageManager: Failed to scan /system/priv-app/TelecomShim: Application package com.android.server.telecom already installed.  Skipping duplicate.
+10-14 23:05:50.327 12039 12039 D nativeloader: Configuring clns-shared-22 for other apk /system/priv-app/Telecom/Telecom.apk. target_sdk_version=37, uses_libraries=, library_path=/system/priv-app/Telecom/lib/arm64:/system/priv-app/Telecom/Telecom.apk!/lib/arm64-v8a:/system/lib64:/system_ext/lib64,

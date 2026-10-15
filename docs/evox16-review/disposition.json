@@ -1,0 +1,46 @@
+{
+  "root_cause": {
+    "claude": "Build process. The evox16 focused precheck ran module goals including the legacy Telecom app; `m Telecom` installed system/priv-app/Telecom into the shared staging directory. The full incremental build never removed it (it is not in the product install list) and packed it into system.img next to TelecomShim. Both are com.android.server.telecom; PackageManager scanned Telecom first and skipped TelecomShim as a duplicate, so the mainline TelecomLoaderService got the legacy ITelecomLoader binder and system_server crashed on the first TelecomManager call.",
+    "codex": "Same mechanism, found independently (precheck installed legacy Telecom.apk; staging packaged both; PackageManager kept legacy Telecom).",
+    "evidence": [
+      "C:/XiaomiBuilds/debug/evox16/device-bootloop-20261014/logcat-all.txt: 'Failed to scan /system/priv-app/TelecomShim: Application package com.android.server.telecom already installed.  Skipping duplicate.'",
+      "C:/XiaomiBuilds/debug/evox16/rootcause/system-img-telecom.txt: debugfs listing of the shipped system.img (Telecom and TelecomShim both present)",
+      "C:/XiaomiBuilds/debug/evox16/rootcause/telecom-apks.txt: Telecom.apk dated 18:11 (precheck), TelecomShim.apk 19:20 (full build), same package and versionCode 37",
+      "C:/XiaomiBuilds/debug/evox16/rootcause/stray-staged-files.txt: staged files not in .installable_files = Telecom (3 files), system/bin/property_info_checker, kernel module trees",
+      "C:/XiaomiBuilds/compare/evox16/evox16-attempt01/rechecks/recheck02/image-apk-duplicate-packages.json: the verifier recorded the duplicate and passed",
+      "evox15 system.img has TelecomShim only"
+    ],
+    "upstream_at_fault": false,
+    "our_source_patches_at_fault": "Not directly: the Telecomm patch only touched Ringer.java, but it is the reason the precheck built the Telecom module."
+  },
+  "changes": [
+    {"id": "frameworks/base Sandbox per-user configuration", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "General ROM behaviour, no klimt need."},
+    {"id": "packages/apps/Sandbox (2 patches)", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "Goes with the framework change."},
+    {"id": "packages/apps/AppLocker permissions", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "Goes with the framework change."},
+    {"id": "packages/apps/ThemeStore (4 patches)", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "General app fixes, no klimt need."},
+    {"id": "packages/services/Telecomm call-flash torch (2 patches)", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "Optional feature rewrite; its build-time module goal is what polluted the image."},
+    {"id": "packages/modules/Bluetooth absent device class", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "Theoretical null dereference, no observed crash."},
+    {"id": "packages/apps/Seedvault WebDAV 507", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "Optional backup error classification."},
+    {"id": "libcore UnixFileSystem root hiding", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "Evolution X 12.3 moved libcore to plain AOSP on purpose."},
+    {"id": "system/sepolicy user-build su gating", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "Upstream deliberately makes su permissive on user builds (root solutions); evox17 follows upstream and reports it."},
+    {"id": "packages/apps/Settings carrier scan + fork", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "No observed MediaTek scan failure; upstream behaviour."},
+    {"id": "hardware/xiaomi UDFPS read + fork", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "Same upstream base as evox15 (af5766ac), which works; the patch fixed a theoretical parser issue."},
+    {"id": "device 1767eb4 TouchBridge doze double-tap", "claude": "REVERT", "codex": "REVERT", "final": "REVERT", "reason": "New feature for 12.3's separate doze setting; double tap to wake keeps working as in evox15."},
+    {"id": "device d8bc99b + libdmabufheap fork (legacy allocator)", "claude": "REVERT (after checking)", "codex": "REVERT", "final": "REVERT", "reason": "Upstream ION-free libdmabufheap keeps every BufferAllocator entry point for binary compatibility. The 15 symbols blobs can only resolve from libdmabufheap.so are all defined there; the 14 blobs that call ion_* NEED libion.so. evox17 gates the 15 exports on the packaged vendor library."},
+    {"id": "device 0590205 black AOD product overlay", "claude": "KEEP", "codex": "REVERT", "final": "KEEP", "reason": "config_dozeSupportsAodWallpaper is a device capability the klimt tree has set false since evox8 (AOD in the panel's doze mode, tested on the phone). Evolution X 12.3's common product overlay turns it on for every device and wins over device overlays, so without this the phone would change behaviour from evox15. Resource only."},
+    {"id": "frameworks/native SMPTE 2094-50 guard", "claude": "KEEP", "codex": "REVERT", "final": "KEEP", "reason": "Not an evox16 addition: it is the evox13 fix that ran on the phone through evox15 (SurfaceFlinger logged ~750 mapper errors a minute without it). Identical code; carried, not new."},
+    {"id": "build/soong MIUI boot jar allowance", "claude": "KEEP", "codex": "KEEP", "final": "KEEP", "reason": "Required: klimt puts miui-framework-stub on the boot class path."},
+    {"id": "hardware/interfaces lights (2 commits)", "claude": "KEEP", "codex": "KEEP", "final": "KEEP", "reason": "Required evox1/evox3 fixes; fork is up to date with upstream cnb (ahead 2, behind 0)."},
+    {"id": "Codex: build/soong base 1ac47f8 'BuildSystemDesc' and frameworks/native base 4968769 'always dmesg' are local", "claude": "REJECT", "codex": "REVERT", "final": "NO CHANGE", "reason": "Both bases are the current Evolution-X cnb heads (GitHub compare: identical); the commits are by Evolution X maintainers. They are upstream, not ours."},
+    {"id": "evox15 picks declared superseded", "claude": "CONFIRMED", "codex": "CONFIRMED", "final": "NO REPLAY", "reason": "Every evox15 patch reverse-applies on the 12.3 tree (content present)."},
+    {"id": "vendor_evolution back on upstream", "claude": "CONFIRMED", "codex": "CONFIRMED", "final": "UPSTREAM", "reason": "Both old cnb-klimt values are in 12.3."}
+  ],
+  "process": [
+    "No focused precheck: module goals install into the same staging the image is packed from.",
+    "build.sh runs m installclean before m updatepackage and refuses to continue if any staged partition survives.",
+    "New install_integrity image check: every staged file is in this attempt's .installable_files (kernel module trees excepted), the image APK set equals the staged APK set, no package identity is installed twice (only the two evox15 overlay pairs are allowed), and the Telecom app variant matches RELEASE_TELECOM_MAINLINE_MODULE. It fails on the evox16 output and image.",
+    "Checks that only proved our optional patches were packaged (su gating, libcore root hiding, legacy allocator, doze OR) were replaced by checks that the projects are the reviewed upstream commits.",
+    "The result marker says 'static image checks passed, NOT boot-tested'."
+  ],
+  "independent_review": "C:/Users/diogo/Documents/Codex/2026-10-14/ru/work/evox17/codex-review/EVOX16_INDEPENDENT_REVIEW.md (Codex CLI 0.162.0-alpha.17.2, gpt-6.1-sol, reasoning effort high, read-only)"
+}

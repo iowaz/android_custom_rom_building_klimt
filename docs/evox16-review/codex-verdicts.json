@@ -1,0 +1,3379 @@
+{
+  "root_cause": "Build-process packaging contamination. The focused precheck explicitly installed legacy Telecom.apk although the mainline product selected TelecomShim. Shared incremental staging packaged both as com.android.server.telecom. PackageManager selected legacy Telecom and skipped TelecomShim as duplicate. Mainline TelecomLoaderService registered its ITelecomLoader binder as telecom; getSimCallManager sent an ITelecomService token to ITelecomLoader.Stub, throwing SecurityException and killing system_server repeatedly. Local Ringer/AMS patches are off this path; pinned upstream mainline product pairing is coherent.",
+  "changes": [
+    {
+      "id": "patch:frameworks/base/0001-Sandbox-Enforce-privileged-per-user-configuration-mu.patch",
+      "project": "frameworks/base",
+      "verdict": "REVERT",
+      "reason": "Revert the eleven Sandbox mutation permission/user checks: general ROM security/API redesign, not a demonstrated Klimt dependency. Remove the companion application permission changes with it. No phone failure requires this adaptation.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/frameworks/base/0001-Sandbox-Enforce-privileged-per-user-configuration-mu.patch:1",
+        "frameworks/base@f60f8d1357b56a5f0b946926defe13deae943d31:services/core/java/com/android/server/am/ActivityManagerService.java:21348"
+      ],
+      "patch_sha256": "437a454d5588a2de282d6bd8c05349ff68f092b26e6320c2527ee29c19bb0e08",
+      "base": "d84fa40043bca5caddd86325e95a85f932d5e7b7",
+      "final_head": "f60f8d1357b56a5f0b946926defe13deae943d31"
+    },
+    {
+      "id": "patch:build/soong/0001-klimt-Retain-MIUI-boot-jar-package-allowance-on-Evox.patch",
+      "project": "build/soong",
+      "verdict": "KEEP",
+      "reason": "Keep only the miui package allowance. Klimt explicitly puts miui-framework-stub in PRODUCT_BOOT_JARS_EXTRA; upstream boot-jar package validation has no matching miui expression. Removing the allowance breaks the boot-jar package check while retaining the existing eSIM integration. This carries forward a required baseline fix.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/build/soong/0001-klimt-Retain-MIUI-boot-jar-package-allowance-on-Evox.patch:1",
+        "build/soong@ffe1ef057ccd96e9db801e3fb12860c67d9fb71f:scripts/check_boot_jars/package_allowed_list.txt:279"
+      ],
+      "patch_sha256": "473ca7c06363700fee7f108e4f6b68d251242905eed442c36291faca6c042026",
+      "base": "1ac47f839dbb998440f558d886ba03a61954cfe8",
+      "final_head": "ffe1ef057ccd96e9db801e3fb12860c67d9fb71f"
+    },
+    {
+      "id": "patch:frameworks/native/0001-libui-Preserve-the-supported-SMPTE2094_50-metadata-g.patch",
+      "project": "frameworks/native",
+      "verdict": "REVERT",
+      "reason": "Revert SMPTE2094_50 capability suppression. The unmodified getter already returns UNKNOWN_TRANSACTION when metadata cannot be fetched. The archived README identifies per-draw log noise, not a demonstrated graphics failure requiring this fork on 12.3.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/frameworks/native/0001-libui-Preserve-the-supported-SMPTE2094_50-metadata-g.patch:1",
+        "frameworks/native@2341752da7cc47dfb8ca54af82e8ae825bc53d5e:libs/ui/Gralloc5.cpp:333"
+      ],
+      "patch_sha256": "87b4d0cfd93c9fa56b44fe00c9c27be22db7d62f165596a61a4bc24c59033165",
+      "base": "49687694bd18a4a2df972f89b6717dbfce610721",
+      "final_head": "2341752da7cc47dfb8ca54af82e8ae825bc53d5e"
+    },
+    {
+      "id": "patch:libcore/0001-libcore-Preserve-the-current-Unix-file-visibility-po.patch",
+      "project": "libcore",
+      "verdict": "REVERT",
+      "reason": "Revert UnixFileSystem visibility filtering: it hides /system/addon.d and selected su/busybox/magisk paths using a RootBeer stack scan. This is generic detection policy, not necessary for Klimt build/hardware operation; no integrity verdict proves necessity.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/libcore/0001-libcore-Preserve-the-current-Unix-file-visibility-po.patch:1",
+        "libcore@77b7dba97fe8eb92d66654f2a7cf981ef75a1ca1:ojluni/src/main/java/java/io/UnixFileSystem.java:63"
+      ],
+      "patch_sha256": "a1ec73c04946667ec18a597b46b7a32e538061a436c9834aa7b2ba4caf210199",
+      "base": "4ebfb391ee0109d16abe6e2bc965724b940928c5",
+      "final_head": "77b7dba97fe8eb92d66654f2a7cf981ef75a1ca1"
+    },
+    {
+      "id": "patch:system/sepolicy/0001-sepolicy-Preserve-user-build-su-gating-and-root-poli.patch",
+      "project": "system/sepolicy",
+      "verdict": "REVERT",
+      "reason": "Revert the four-file su/root-policy rewrite under the upstream-first scope. Upstream explicitly permits su and exempts root-installed policy from this host check; changing that is general security policy, not a demonstrated Klimt build fix. This restores upstream permissive-su behavior, which must be reported honestly.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/system/sepolicy/0001-sepolicy-Preserve-user-build-su-gating-and-root-poli.patch:1",
+        "system/sepolicy@5bcb7c60218b3fe43d81520ff634ba4d949f5965:Android.bp:683",
+        "system/sepolicy@5bcb7c60218b3fe43d81520ff634ba4d949f5965:build/soong/policy.go:576",
+        "system/sepolicy@5bcb7c60218b3fe43d81520ff634ba4d949f5965:prebuilts/api/34.0/private/su.te:0",
+        "system/sepolicy@5bcb7c60218b3fe43d81520ff634ba4d949f5965:private/su.te:0"
+      ],
+      "patch_sha256": "8d64de1317efbd9a9b9bf4056399fff7f190a075e1ce486e68b553f38db45261",
+      "base": "c3997bf608b40a7217d0eb2257af887afa78617b",
+      "final_head": "5bcb7c60218b3fe43d81520ff634ba4d949f5965"
+    },
+    {
+      "id": "patch:packages/apps/Settings/0001-Settings-preserve-carrier-scan-error-and-cancellatio.patch",
+      "project": "packages/apps/Settings",
+      "verdict": "REVERT",
+      "reason": "Revert visible-cell fallback, error/cancellation and executor rewrite. No Klimt modem failure or 12.3 build dependency demonstrates necessity. Cached visible cells are not evidence of a full available-network scan.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/apps/Settings/0001-Settings-preserve-carrier-scan-error-and-cancellatio.patch:1",
+        "packages/apps/Settings@b0e5928b750c5493bff1b53b4b5dbe4959878070:src/com/android/settings/network/telephony/scan/NetworkScanRepository.kt:22"
+      ],
+      "patch_sha256": "be45806a347163aacb201e9e542120d252646b10c6f3c43a679cfbfde36a6d66",
+      "base": "bab27c819a81c53900d5fc4f7cc785c099324346",
+      "final_head": "b0e5928b750c5493bff1b53b4b5dbe4959878070"
+    },
+    {
+      "id": "patch:packages/modules/Bluetooth/0001-Bluetooth-tolerate-absent-accessory-device-class.patch",
+      "project": "packages/modules/Bluetooth",
+      "verdict": "REVERT",
+      "reason": "Revert absent-device-class guard in the accessory workaround: a possible generic null dereference, with no Klimt/accessory crash proving necessity. Distinct from the old AVRCP security fix already upstream.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/modules/Bluetooth/0001-Bluetooth-tolerate-absent-accessory-device-class.patch:1",
+        "packages/modules/Bluetooth@9f64386a675bc73bd2a34fe41da4e099338b8800:android/app/src/com/android/bluetooth/btservice/BondStateMachine.java:564"
+      ],
+      "patch_sha256": "aa3d52319dd4f6e30371e3fd740b19049b2f5451c913a4f1e74d6fbaded5208e",
+      "base": "9c3b6fb69cc0ba55ed6814fa04fd36744ca91547",
+      "final_head": "9f64386a675bc73bd2a34fe41da4e099338b8800"
+    },
+    {
+      "id": "patch:packages/services/Telecomm/0001-Telecomm-cancel-call-flash-by-session-and-retain-acc.patch",
+      "project": "packages/services/Telecomm",
+      "verdict": "REVERT",
+      "reason": "Revert incoming-call torch session/accessibility rewrite. It changes optional call-flash behavior, not TelecomService.onBind or TelecomLoaderService. Remove its logging-repair follow-up together with it; reverting only that repair recreates the observed javac failure.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/services/Telecomm/0001-Telecomm-cancel-call-flash-by-session-and-retain-acc.patch:1",
+        "packages/services/Telecomm@1029477e8adee7b35ca154e34b770fe61c5cf25d:src/com/android/server/telecom/Ringer.java:32"
+      ],
+      "patch_sha256": "05843bc84d59f710bd85f13ecc852bc4a7b25f9db611b8053d84562d331fd08b",
+      "base": "3be358b7a129fb6486913c8125e2301c906f7deb",
+      "final_head": "1029477e8adee7b35ca154e34b770fe61c5cf25d"
+    },
+    {
+      "id": "patch:packages/services/Telecomm/0002-Telecomm-use-android.telecom.Log-overloads-for-torch.patch",
+      "project": "packages/services/Telecomm",
+      "verdict": "REVERT",
+      "reason": "Revert together with 0001: this repairs Log.e/Log.w overloads introduced by the optional torch rewrite. Precheck04:34982-34988 proves the compile error, but removing the complete rewrite removes the need for this repair.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/services/Telecomm/0002-Telecomm-use-android.telecom.Log-overloads-for-torch.patch:1",
+        "packages/services/Telecomm@1029477e8adee7b35ca154e34b770fe61c5cf25d:src/com/android/server/telecom/Ringer.java:32"
+      ],
+      "patch_sha256": "15a301e32f17acbc6cbd07a9d04cc08ac29c3a96756cde1e3252d45614c56e39",
+      "base": "3be358b7a129fb6486913c8125e2301c906f7deb",
+      "final_head": "1029477e8adee7b35ca154e34b770fe61c5cf25d"
+    },
+    {
+      "id": "patch:system/memory/libdmabufheap/0001-libdmabufheap-select-allocator-compatibility-indepen.patch",
+      "project": "system/memory/libdmabufheap",
+      "verdict": "REVERT",
+      "reason": "Revert the independent legacy selector together with d8bc99b. Upstream default allocator and wrapper retain old binary entry points and the default header retains legacy data members. Vendor imports of those methods do not prove the fork necessary. Keep libion backend selection unchanged and validate graphics/media/camera on the eventual authorized test.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/system/memory/libdmabufheap/0001-libdmabufheap-select-allocator-compatibility-indepen.patch:1",
+        "system/memory/libdmabufheap@22d1435f67bda2c5f7a881b7671406c868c52603:Android.bp:24"
+      ],
+      "patch_sha256": "1c9c5cfb919a237942e855f823e1daf7dc9afef0c33ffa61046ce57fdc5fe4d3",
+      "base": "57925b760460430b1424bf0fa4cb0ffe001b9cfd",
+      "final_head": "22d1435f67bda2c5f7a881b7671406c868c52603"
+    },
+    {
+      "id": "patch:packages/apps/Sandbox/0001-Sandbox-Restore-app-configuration-for-the-saved-Andr.patch",
+      "project": "packages/apps/Sandbox",
+      "verdict": "REVERT",
+      "reason": "Revert saved-user restore and cross-user permission additions: general application behavior coupled to the local framework permission rewrite; no Klimt build/hardware requirement established.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/apps/Sandbox/0001-Sandbox-Restore-app-configuration-for-the-saved-Andr.patch:1",
+        "packages/apps/Sandbox@515ba24d62b89a795d31ca80033469ae5c2ec5c6:AndroidManifest.xml:14",
+        "packages/apps/Sandbox@515ba24d62b89a795d31ca80033469ae5c2ec5c6:src/com/android/axion/sandbox/io/BackupManager.kt:138"
+      ],
+      "patch_sha256": "48e68699ac5ab937878064504f84a845993d355bcd0438e7a7b3b9d719bfa71c",
+      "base": "fda7e163893dac66381594806cec1f80d00b146c",
+      "final_head": "515ba24d62b89a795d31ca80033469ae5c2ec5c6"
+    },
+    {
+      "id": "patch:packages/apps/Sandbox/0002-Sandbox-Declare-the-required-cross-user-administrati.patch",
+      "project": "packages/apps/Sandbox",
+      "verdict": "REVERT",
+      "reason": "Revert saved-user restore and cross-user permission additions: general application behavior coupled to the local framework permission rewrite; no Klimt build/hardware requirement established.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/apps/Sandbox/0002-Sandbox-Declare-the-required-cross-user-administrati.patch:1",
+        "packages/apps/Sandbox@515ba24d62b89a795d31ca80033469ae5c2ec5c6:AndroidManifest.xml:14",
+        "packages/apps/Sandbox@515ba24d62b89a795d31ca80033469ae5c2ec5c6:src/com/android/axion/sandbox/io/BackupManager.kt:138"
+      ],
+      "patch_sha256": "045772f8c1e90ff148233dd794cc0025c1f6a7cdc1c24036fb93adcda6936310",
+      "base": "fda7e163893dac66381594806cec1f80d00b146c",
+      "final_head": "515ba24d62b89a795d31ca80033469ae5c2ec5c6"
+    },
+    {
+      "id": "patch:packages/apps/ThemeStore/0001-ThemeStore-Wait-for-terminal-install-status-after-us.patch",
+      "project": "packages/apps/ThemeStore",
+      "verdict": "REVERT",
+      "reason": "Revert the four theme callback/icon-preservation adaptations: general application fixes without a Klimt dependency. Keep upstream ThemeStore supplied by 12.3.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/apps/ThemeStore/0001-ThemeStore-Wait-for-terminal-install-status-after-us.patch:1",
+        "packages/apps/ThemeStore@1c4ab6d86eab2f34617e1792825f547168dbd15f:src/com/android/axion/axthemestore/engine/ThemeEngineProxy.kt:86",
+        "packages/apps/ThemeStore@1c4ab6d86eab2f34617e1792825f547168dbd15f:src/com/android/axion/axthemestore/install/ThemeInstaller.kt:32"
+      ],
+      "patch_sha256": "44931b1668ec3d3d299415a0c5abe890abf9b480fccde873b83ed5360fffc766",
+      "base": "d96bfe6e6b52236ac5845ac4ed5ac4c93b5fad65",
+      "final_head": "1c4ab6d86eab2f34617e1792825f547168dbd15f"
+    },
+    {
+      "id": "patch:packages/apps/ThemeStore/0002-ThemeStore-Isolate-callbacks-for-concurrent-install-.patch",
+      "project": "packages/apps/ThemeStore",
+      "verdict": "REVERT",
+      "reason": "Revert the four theme callback/icon-preservation adaptations: general application fixes without a Klimt dependency. Keep upstream ThemeStore supplied by 12.3.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/apps/ThemeStore/0002-ThemeStore-Isolate-callbacks-for-concurrent-install-.patch:1",
+        "packages/apps/ThemeStore@1c4ab6d86eab2f34617e1792825f547168dbd15f:src/com/android/axion/axthemestore/engine/ThemeEngineProxy.kt:86",
+        "packages/apps/ThemeStore@1c4ab6d86eab2f34617e1792825f547168dbd15f:src/com/android/axion/axthemestore/install/ThemeInstaller.kt:32"
+      ],
+      "patch_sha256": "f619b8fb65ef28e3e119232f039e0c07450f78ca9f2f0f3a3574f358d07693c0",
+      "base": "d96bfe6e6b52236ac5845ac4ed5ac4c93b5fad65",
+      "final_head": "1c4ab6d86eab2f34617e1792825f547168dbd15f"
+    },
+    {
+      "id": "patch:packages/apps/ThemeStore/0003-ThemeStore-Preserve-per-app-icon-pack-assignments-du.patch",
+      "project": "packages/apps/ThemeStore",
+      "verdict": "REVERT",
+      "reason": "Revert the four theme callback/icon-preservation adaptations: general application fixes without a Klimt dependency. Keep upstream ThemeStore supplied by 12.3.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/apps/ThemeStore/0003-ThemeStore-Preserve-per-app-icon-pack-assignments-du.patch:1",
+        "packages/apps/ThemeStore@1c4ab6d86eab2f34617e1792825f547168dbd15f:src/com/android/axion/axthemestore/engine/ThemeEngineProxy.kt:86",
+        "packages/apps/ThemeStore@1c4ab6d86eab2f34617e1792825f547168dbd15f:src/com/android/axion/axthemestore/install/ThemeInstaller.kt:32"
+      ],
+      "patch_sha256": "220d50739e6605bc961268e7d7b9d3a2804acb2b95697508f7eb53f89a6cbe0f",
+      "base": "d96bfe6e6b52236ac5845ac4ed5ac4c93b5fad65",
+      "final_head": "1c4ab6d86eab2f34617e1792825f547168dbd15f"
+    },
+    {
+      "id": "patch:packages/apps/ThemeStore/0004-ThemeStore-Isolate-callbacks-for-each-uninstall-oper.patch",
+      "project": "packages/apps/ThemeStore",
+      "verdict": "REVERT",
+      "reason": "Revert the four theme callback/icon-preservation adaptations: general application fixes without a Klimt dependency. Keep upstream ThemeStore supplied by 12.3.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/apps/ThemeStore/0004-ThemeStore-Isolate-callbacks-for-each-uninstall-oper.patch:1",
+        "packages/apps/ThemeStore@1c4ab6d86eab2f34617e1792825f547168dbd15f:src/com/android/axion/axthemestore/engine/ThemeEngineProxy.kt:86",
+        "packages/apps/ThemeStore@1c4ab6d86eab2f34617e1792825f547168dbd15f:src/com/android/axion/axthemestore/install/ThemeInstaller.kt:32"
+      ],
+      "patch_sha256": "ff77f9acfdaf7f319fe859b44c99f5aff436b7e9899f5a097d6cc61e5c20626a",
+      "base": "d96bfe6e6b52236ac5845ac4ed5ac4c93b5fad65",
+      "final_head": "1c4ab6d86eab2f34617e1792825f547168dbd15f"
+    },
+    {
+      "id": "patch:packages/apps/AppLocker/0001-AppLocker-Declare-permissions-for-the-guarded-per-us.patch",
+      "project": "packages/apps/AppLocker",
+      "verdict": "REVERT",
+      "reason": "Revert WRITE_SECURE_SETTINGS/INTERACT_ACROSS_USERS_FULL additions with the local framework guards. They are not independently needed once those guards are removed.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/apps/AppLocker/0001-AppLocker-Declare-permissions-for-the-guarded-per-us.patch:1",
+        "packages/apps/AppLocker@34d03ec0a4c33d82079f1a4688575a061776f1dd:AndroidManifest.xml:15",
+        "packages/apps/AppLocker@34d03ec0a4c33d82079f1a4688575a061776f1dd:privapp_whitelist_com.android.applocker.xml:7"
+      ],
+      "patch_sha256": "6743581272104cf6519e42bad064f903e8b6a96dd6b9f13d63a191ea8ea8a736",
+      "base": "065f2f5553bcf297fe503b28ef15433447df92a5",
+      "final_head": "34d03ec0a4c33d82079f1a4688575a061776f1dd"
+    },
+    {
+      "id": "patch:hardware/xiaomi/0001-sensors-Terminate-bounded-UDFPS-status-reads.patch",
+      "project": "hardware/xiaomi",
+      "verdict": "REVERT",
+      "reason": "Revert bounded UDFPS sysfs read/terminator fix and the new fork. Defensible generic parser repair, but no malformed/full-read Klimt capture or 12.3 failure establishes necessity. Use previously working upstream af5766acc6d6.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/hardware/xiaomi/0001-sensors-Terminate-bounded-UDFPS-status-reads.patch:1",
+        "hardware/xiaomi@f8f00fcc11b8bf5a5ea82ddaae9a3c62b120861a:sensors/v2/Sensor.cpp:381"
+      ],
+      "patch_sha256": "bb388bb92ebe4be69f6c5f658844c685da031dcc88e65486850c2f1c1533f919",
+      "base": "af5766acc6d6766eddeb52574996247128428ff6",
+      "final_head": "f8f00fcc11b8bf5a5ea82ddaae9a3c62b120861a"
+    },
+    {
+      "id": "patch:packages/apps/Seedvault/0001-Seedvault-Classify-WebDAV-out-of-space-errors-from-t.patch",
+      "project": "packages/apps/Seedvault",
+      "verdict": "REVERT",
+      "reason": "Revert WebDAV HttpException import change. It corrects 507 classification for okhttp, but both ktor/okhttp exception classes exist in the pinned dav4jvm jar, so it is not a compile fix. Optional remote-backup classification is outside the Klimt minimum.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/packages/apps/Seedvault/0001-Seedvault-Classify-WebDAV-out-of-space-errors-from-t.patch:1",
+        "packages/apps/Seedvault@30c6534aa6c2fd5974c5b00d5273491e9e0b6afb:core/src/main/java/org/calyxos/seedvault/core/backends/BackendProperties.kt:12"
+      ],
+      "patch_sha256": "2d665d8fe1e052e829f42918609fcf1f53e46cd7ed26515d20402e6ebe7fa0a3",
+      "base": "f47750d208dc69bdd65744e49ceb287b43aa5c00",
+      "final_head": "30c6534aa6c2fd5974c5b00d5273491e9e0b6afb"
+    },
+    {
+      "id": "base:build_soong:BuildSystemDesc",
+      "project": "build/soong",
+      "verdict": "REVERT",
+      "reason": "BASES 1ac47f8 carries gen_build_prop.py changes relative to upstream ce8adbbb: preserve generated BuildSystemDesc and use it for system while other partitions use BuildDesc. Klimt sets BuildDesc, not BuildSystemDesc. This is identity policy, not required compile/boot repair.",
+      "evidence": [
+        "build/soong@1ac47f839dbb998440f558d886ba03a61954cfe8:scripts/gen_build_prop.py:125",
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:lineage_klimt.mk:42"
+      ],
+      "upstream": "ce8adbbbafd7376385a1fbcb5176563907e8010f"
+    },
+    {
+      "id": "base:frameworks_native:always-dmesg",
+      "project": "frameworks/native",
+      "verdict": "REVERT",
+      "reason": "BASES 4968769 contains an extra dumpstate change on top of upstream ddf96e8: always run do_dmesg even with kernel logcat enabled. Generic diagnostic change, not a Klimt requirement.",
+      "evidence": [
+        "frameworks/native@49687694bd18a4a2df972f89b6717dbfce610721:cmds/dumpstate/dumpstate.cpp:1813"
+      ],
+      "upstream": "ddf96e8644294cacbd955dd6358f4f3cd84f5ccd"
+    },
+    {
+      "id": "device:1767eb4",
+      "project": "device/xiaomi/klimt",
+      "verdict": "REVERT",
+      "reason": "Revert independent doze double-tap support: observing DOZE_TRIGGER_DOUBLETAP and OR-ing it with wake expands panel activation policy. New unvalidated feature; working baseline TouchBridge can build 12.3.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:apps/TouchBridge/src/org/lineageos/klimt/touchbridge/TouchBridgeApp.java:43"
+      ],
+      "commit": "1767eb402f93d63bd66a7c58c1e33b89af02e890"
+    },
+    {
+      "id": "device:d8bc99b",
+      "project": "device/xiaomi/klimt",
+      "verdict": "REVERT",
+      "reason": "Revert with the allocator fork: it selects libdmabufheap.legacy_impl=true without a demonstrated failing caller on the upstream compatibility implementation.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:BoardConfig.mk:41"
+      ],
+      "commit": "d8bc99b2b86ac2eee58d9507747838a30dffb4d9"
+    },
+    {
+      "id": "device:0590205",
+      "project": "device/xiaomi/klimt",
+      "verdict": "REVERT",
+      "reason": "Revert product-overlay priority insertion and config_dozeSupportsAodWallpaper=false: preserving a visual preference against the new common overlay is not a build/boot/hardware requirement.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:lineage_klimt.mk:28"
+      ],
+      "commit": "0590205b06a2aaa9fc68f317e3306a2bcd4520ce"
+    },
+    {
+      "id": "device:c2ff11b",
+      "project": "device/xiaomi/klimt",
+      "verdict": "REVERT",
+      "reason": "Replace this export content with a regenerated minimal bundle rather than replaying all evox16 adaptations. Export machinery is provenance, not a runtime repair. Preserve historical content in existing Git history; do not blindly revert commits in an actively changing tree.",
+      "evidence": [
+        "device/xiaomi/klimt@c2ff11bcd784b8dac3954db4eca356ad2cd49a4c:patches/tree/PATCHES.json:1",
+        "device/xiaomi/klimt@c2ff11bcd784b8dac3954db4eca356ad2cd49a4c:patches/tree/BASES:1"
+      ],
+      "commit": "c2ff11bcd784b8dac3954db4eca356ad2cd49a4c"
+    },
+    {
+      "id": "device:ddd3d12",
+      "project": "device/xiaomi/klimt",
+      "verdict": "REVERT",
+      "reason": "Replace this export content with a regenerated minimal bundle rather than replaying all evox16 adaptations. Export machinery is provenance, not a runtime repair. Preserve historical content in existing Git history; do not blindly revert commits in an actively changing tree.",
+      "evidence": [
+        "device/xiaomi/klimt@ddd3d125eba2fc1ae08e332cff67d902f07260fd:patches/tree/PATCHES.json:1",
+        "device/xiaomi/klimt@ddd3d125eba2fc1ae08e332cff67d902f07260fd:patches/tree/BASES:1"
+      ],
+      "commit": "ddd3d125eba2fc1ae08e332cff67d902f07260fd"
+    },
+    {
+      "id": "device:a80d3d1",
+      "project": "device/xiaomi/klimt",
+      "verdict": "REVERT",
+      "reason": "Replace this export content with a regenerated minimal bundle rather than replaying all evox16 adaptations. Export machinery is provenance, not a runtime repair. Preserve historical content in existing Git history; do not blindly revert commits in an actively changing tree.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/PATCHES.json:1",
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/BASES:1"
+      ],
+      "commit": "a80d3d101e7d19f6f5460c36cfeabc7b980b5886"
+    },
+    {
+      "id": "baseline-lights:c9498a7",
+      "project": "hardware/interfaces",
+      "verdict": "KEEP",
+      "reason": "Keep source light@2.0 removal for existing vendor-prebuilt integration. Upstream declares a system HIDL interface with the same name as the preferred vendor prebuilt; partition/variant conflict prevents using both unchanged. Existing evox15 compatibility.",
+      "evidence": [
+        "hardware/interfaces@c9498a7e9095af013de1fa31b94480ca538fcc95:light/utils/Android.bp:25",
+        "vendor/xiaomi/klimt@74d378be9f0b832f2c83284474a0f5da72062ca2:Android.bp:524",
+        "hardware/interfaces@51053bbf834e3468ada97010cfa42e9b942b94b3:light/2.0/Android.bp:15"
+      ],
+      "commit": "c9498a7e9095af013de1fa31b94480ca538fcc95"
+    },
+    {
+      "id": "baseline-lights:11087c5",
+      "project": "hardware/interfaces",
+      "verdict": "KEEP",
+      "reason": "Keep AIDL-only blank_screen with the source HIDL removal. Otherwise the utility requests a system HIDL light@2.0 dependency that the retained vendor-only prebuilt cannot supply. Existing working lights route.",
+      "evidence": [
+        "hardware/interfaces@11087c5b9457e65346d0324f5452c647fc080a7c:light/utils/Android.bp:25",
+        "vendor/xiaomi/klimt@74d378be9f0b832f2c83284474a0f5da72062ca2:Android.bp:524",
+        "hardware/interfaces@51053bbf834e3468ada97010cfa42e9b942b94b3:light/2.0/Android.bp:15"
+      ],
+      "commit": "11087c5b9457e65346d0324f5452c647fc080a7c"
+    },
+    {
+      "id": "fork:iowaz/android_hardware_xiaomi:evox16",
+      "project": "hardware/xiaomi",
+      "verdict": "REVERT",
+      "reason": "Revert the new fork; only the optional sensor-read repair differs.",
+      "evidence": [
+        "FINAL_SOURCE.json:derived_heads[hardware/xiaomi]",
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/BASES:1"
+      ],
+      "evox17_target": "af5766acc6d6766eddeb52574996247128428ff6"
+    },
+    {
+      "id": "fork:iowaz/packages_apps_Settings:evox16",
+      "project": "packages/apps/Settings",
+      "verdict": "REVERT",
+      "reason": "Revert the new fork; use upstream carrier-scan behavior.",
+      "evidence": [
+        "FINAL_SOURCE.json:derived_heads[packages/apps/Settings]",
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/BASES:1"
+      ],
+      "evox17_target": "bab27c819a81c53900d5fc4f7cc785c099324346"
+    },
+    {
+      "id": "fork:iowaz/android_system_memory_libdmabufheap:evox16",
+      "project": "system/memory/libdmabufheap",
+      "verdict": "REVERT",
+      "reason": "Revert the fork and d8bc99b together; use the Lineage source with its default allocator, keeping libion selection unchanged.",
+      "evidence": [
+        "FINAL_SOURCE.json:derived_heads[system/memory/libdmabufheap]",
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/BASES:1"
+      ],
+      "evox17_target": "57925b760460430b1424bf0fa4cb0ffe001b9cfd"
+    },
+    {
+      "id": "fork:iowaz/build_soong:evox16",
+      "project": "build/soong",
+      "verdict": "REVERT",
+      "reason": "Replace the aggregate evox16 branch with upstream plus MIUI allowance only; drop gen_build_prop.py policy.",
+      "evidence": [
+        "FINAL_SOURCE.json:derived_heads[build/soong]",
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/BASES:1"
+      ],
+      "evox17_target": "ce8adbbbafd7376385a1fbcb5176563907e8010f + miui allowance"
+    },
+    {
+      "id": "fork:iowaz/frameworks_native:evox16",
+      "project": "frameworks/native",
+      "verdict": "REVERT",
+      "reason": "Revert aggregate fork: remove Gralloc logging guard and extra dumpstate change.",
+      "evidence": [
+        "FINAL_SOURCE.json:derived_heads[frameworks/native]",
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree/BASES:1"
+      ],
+      "evox17_target": "ddf96e8644294cacbd955dd6358f4f3cd84f5ccd"
+    },
+    {
+      "id": "old-pick:bionic/0001-evox9-Sync-custom_rom_hide-from-upstream-zygote-exem.patch",
+      "project": "bionic",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/bionic/0001-evox9-Sync-custom_rom_hide-from-upstream-zygote-exem.patch:1",
+        "bionic@3d4169372eaccc2e1ebf5467e1da8bc1d0e31fca:libc/bionic/custom_rom_hide.cpp"
+      ],
+      "upstream_present": true,
+      "upstream": "3d4169372eaccc2e1ebf5467e1da8bc1d0e31fca",
+      "blob_checks": [
+        {
+          "file": "libc/bionic/custom_rom_hide.cpp",
+          "upstream_blob": "fc87302da670263c101c929403ebfb15a0ae7fc8",
+          "old_patch_postimage": "fc87302",
+          "added_lines": 176,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:bionic/0002-evox9-Complete-the-custom_rom_hide-sync-statfs-hooks.patch",
+      "project": "bionic",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/bionic/0002-evox9-Complete-the-custom_rom_hide-sync-statfs-hooks.patch:1",
+        "bionic@3d4169372eaccc2e1ebf5467e1da8bc1d0e31fca:libc/bionic/custom_rom_hide.h",
+        "bionic@3d4169372eaccc2e1ebf5467e1da8bc1d0e31fca:libc/bionic/sys_statfs.cpp"
+      ],
+      "upstream_present": true,
+      "upstream": "3d4169372eaccc2e1ebf5467e1da8bc1d0e31fca",
+      "blob_checks": [
+        {
+          "file": "libc/bionic/custom_rom_hide.h",
+          "upstream_blob": "6d116aa20321d1f52910f8f4a2ead625db425541",
+          "old_patch_postimage": "6d116aa",
+          "added_lines": 1,
+          "missing_added_lines": []
+        },
+        {
+          "file": "libc/bionic/sys_statfs.cpp",
+          "upstream_blob": "3594daee5011846c09ae498665631dd2493504f3",
+          "old_patch_postimage": "3594dae",
+          "added_lines": 6,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:frameworks/av/0001-stagefright-Hide-emitting-non-AOSP-symbol.patch",
+      "project": "frameworks/av",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/frameworks/av/0001-stagefright-Hide-emitting-non-AOSP-symbol.patch:1",
+        "frameworks/av@7eaa22020c6a7196de4c5d1004651ea7498bb0f0:media/libstagefright/include/media/stagefright/ANetworkSession.h"
+      ],
+      "upstream_present": true,
+      "upstream": "7eaa22020c6a7196de4c5d1004651ea7498bb0f0",
+      "blob_checks": [
+        {
+          "file": "media/libstagefright/include/media/stagefright/ANetworkSession.h",
+          "upstream_blob": "401c529f874b98051b4525d07709333044fe71b4",
+          "old_patch_postimage": "401c529",
+          "added_lines": 2,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:frameworks/base/0001-evox9-Sync-spoof-profile-repo-and-default-PIF-select.patch",
+      "project": "frameworks/base",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/frameworks/base/0001-evox9-Sync-spoof-profile-repo-and-default-PIF-select.patch:1",
+        "frameworks/base@d84fa40043bca5caddd86325e95a85f932d5e7b7:core/java/com/android/internal/util/evolution/PixelDeviceRepository.java",
+        "frameworks/base@d84fa40043bca5caddd86325e95a85f932d5e7b7:services/core/java/com/android/server/spoof/AxSpoofManager.java"
+      ],
+      "upstream_present": true,
+      "upstream": "d84fa40043bca5caddd86325e95a85f932d5e7b7",
+      "blob_checks": [
+        {
+          "file": "core/java/com/android/internal/util/evolution/PixelDeviceRepository.java",
+          "upstream_blob": "885f6c8e6b2380439be5f5877a84205522c48e95",
+          "old_patch_postimage": "885f6c8e6",
+          "added_lines": 42,
+          "missing_added_lines": []
+        },
+        {
+          "file": "services/core/java/com/android/server/spoof/AxSpoofManager.java",
+          "upstream_blob": "62dfde61b0828c2c96f131ded9900388bb76475d",
+          "old_patch_postimage": "62dfde61b",
+          "added_lines": 1,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:frameworks/base/0002-Fix-security-vulnerabilities-in-PduParser.java.patch",
+      "project": "frameworks/base",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/frameworks/base/0002-Fix-security-vulnerabilities-in-PduParser.java.patch:1",
+        "frameworks/base@d84fa40043bca5caddd86325e95a85f932d5e7b7:telephony/common/com/google/android/mms/pdu/PduParser.java"
+      ],
+      "upstream_present": true,
+      "upstream": "d84fa40043bca5caddd86325e95a85f932d5e7b7",
+      "blob_checks": [
+        {
+          "file": "telephony/common/com/google/android/mms/pdu/PduParser.java",
+          "upstream_blob": "3ad9cb93f9eb2c9b7b21e14b27c2c0d749d760a0",
+          "old_patch_postimage": "d2f23026e",
+          "added_lines": 22,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:frameworks/base/0003-Fix-potential-OOM-in-PduParser-by-using-stream-skip.patch",
+      "project": "frameworks/base",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/frameworks/base/0003-Fix-potential-OOM-in-PduParser-by-using-stream-skip.patch:1",
+        "frameworks/base@d84fa40043bca5caddd86325e95a85f932d5e7b7:telephony/common/com/google/android/mms/pdu/PduParser.java"
+      ],
+      "upstream_present": true,
+      "upstream": "d84fa40043bca5caddd86325e95a85f932d5e7b7",
+      "blob_checks": [
+        {
+          "file": "telephony/common/com/google/android/mms/pdu/PduParser.java",
+          "upstream_blob": "3ad9cb93f9eb2c9b7b21e14b27c2c0d749d760a0",
+          "old_patch_postimage": "3ad9cb93f",
+          "added_lines": 38,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:frameworks/base/0004-custom_rom_hide-Hide-ROM-packages-on-core-UIDs-from-.patch",
+      "project": "frameworks/base",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/frameworks/base/0004-custom_rom_hide-Hide-ROM-packages-on-core-UIDs-from-.patch:1",
+        "frameworks/base@d84fa40043bca5caddd86325e95a85f932d5e7b7:services/core/java/com/android/server/pm/AppsFilterBase.java",
+        "frameworks/base@d84fa40043bca5caddd86325e95a85f932d5e7b7:services/core/java/com/android/server/pm/ComputerEngine.java"
+      ],
+      "upstream_present": true,
+      "upstream": "d84fa40043bca5caddd86325e95a85f932d5e7b7",
+      "blob_checks": [
+        {
+          "file": "services/core/java/com/android/server/pm/AppsFilterBase.java",
+          "upstream_blob": "02e7af4416eef17d08ce20385691e64de282bacd",
+          "old_patch_postimage": "02e7af441",
+          "added_lines": 90,
+          "missing_added_lines": []
+        },
+        {
+          "file": "services/core/java/com/android/server/pm/ComputerEngine.java",
+          "upstream_blob": "3517f542b347f0c6b6edccf4de99dba2710aed41",
+          "old_patch_postimage": "bc6987c75",
+          "added_lines": 19,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:frameworks/native/0001-libui-Skip-SMPTE-2094-50-on-mappers-that-don-t-list-.patch",
+      "project": "frameworks/native",
+      "verdict": "REVERT",
+      "reason": "Not upstream: the native metadata guard is reintroduced by the evox16 patch. Drop it as nonessential logging behavior, not as superseded.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/frameworks/native/0001-libui-Skip-SMPTE-2094-50-on-mappers-that-don-t-list-.patch:1",
+        "frameworks/native@49687694bd18a4a2df972f89b6717dbfce610721:libs/ui/Gralloc5.cpp"
+      ],
+      "upstream_present": false,
+      "upstream": "49687694bd18a4a2df972f89b6717dbfce610721",
+      "blob_checks": [
+        {
+          "file": "libs/ui/Gralloc5.cpp",
+          "upstream_blob": "d4ec87d53536393def1a62aeba0148ffa7997435",
+          "old_patch_postimage": "91ec9da",
+          "added_lines": 22,
+          "missing_added_lines": [
+            "static bool isStandardMetadataGettable(AIMapper* mapper, StandardMetadataType type) {",
+            "    const AIMapper_MetadataTypeDescription* descriptions = nullptr;",
+            "    size_t count = 0;",
+            "    if (mapper->v5.listSupportedMetadataTypes(&descriptions, &count) != AIMAPPER_ERROR_NONE) {",
+            "        // Can't tell, so keep asking.",
+            "        return true;",
+            "    for (size_t i = 0; i < count; i++) {",
+            "        if (isStandardMetadata(descriptions[i].metadataType) &&",
+            "            descriptions[i].metadataType.value == static_cast<int64_t>(type)) {",
+            "            return descriptions[i].isGettable;",
+            "    return false;",
+            "    // RenderEngine asks for this on every buffer it draws. Mappers older than the type don't",
+            "    // list it and answer UNSUPPORTED, and some (MediaTek's) log an error each time.",
+            "    static const bool kGettable =",
+            "            isStandardMetadataGettable(mMapper, StandardMetadataType::SMPTE2094_50);",
+            "    if (!kGettable) {"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "old-pick:frameworks/opt/telephony/0001-RESTRICT-AUTOMERGE-Fix-remote-DoS-in-decodeWapPdu-b-.patch",
+      "project": "frameworks/opt/telephony",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/frameworks/opt/telephony/0001-RESTRICT-AUTOMERGE-Fix-remote-DoS-in-decodeWapPdu-b-.patch:1",
+        "frameworks/opt/telephony@2a7c5f7541a1b286ff967eb67a34c7c984d01458:src/java/com/android/internal/telephony/InboundSmsHandler.java",
+        "frameworks/opt/telephony@2a7c5f7541a1b286ff967eb67a34c7c984d01458:src/java/com/android/internal/telephony/WapPushOverSms.java",
+        "frameworks/opt/telephony@2a7c5f7541a1b286ff967eb67a34c7c984d01458:tests/telephonytests/src/com/android/internal/telephony/WapPushOverSmsTest.java",
+        "frameworks/opt/telephony@2a7c5f7541a1b286ff967eb67a34c7c984d01458:tests/telephonytests/src/com/android/internal/telephony/gsm/GsmInboundSmsHandlerTest.java"
+      ],
+      "upstream_present": true,
+      "upstream": "2a7c5f7541a1b286ff967eb67a34c7c984d01458",
+      "blob_checks": [
+        {
+          "file": "src/java/com/android/internal/telephony/InboundSmsHandler.java",
+          "upstream_blob": "9ddee30ff4833df99b10fac4b0bd59bfb5b455e7",
+          "old_patch_postimage": "9ddee30",
+          "added_lines": 13,
+          "missing_added_lines": []
+        },
+        {
+          "file": "src/java/com/android/internal/telephony/WapPushOverSms.java",
+          "upstream_blob": "ef692a9dc610d0eccefb8b488e8af45404f4b1f9",
+          "old_patch_postimage": "ef692a9",
+          "added_lines": 2,
+          "missing_added_lines": []
+        },
+        {
+          "file": "tests/telephonytests/src/com/android/internal/telephony/WapPushOverSmsTest.java",
+          "upstream_blob": "23b11266d47ee3ebe6e51010f26ff12b44c81900",
+          "old_patch_postimage": "23b1126",
+          "added_lines": 58,
+          "missing_added_lines": []
+        },
+        {
+          "file": "tests/telephonytests/src/com/android/internal/telephony/gsm/GsmInboundSmsHandlerTest.java",
+          "upstream_blob": "77121d9fc8e6ad1796b772ab86b2c558aaddd6c4",
+          "old_patch_postimage": "77121d9",
+          "added_lines": 66,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:packages/apps/Evolver/0001-evox9-Follow-the-frameworks-PIF-default-in-PlayInteg.patch",
+      "project": "packages/apps/Evolver",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/packages/apps/Evolver/0001-evox9-Follow-the-frameworks-PIF-default-in-PlayInteg.patch:1",
+        "packages/apps/Evolver@a6d361fb258460466c9bd62b548034247333692a:src/org/evolution/settings/fragments/miscellaneous/PlayIntegrityFix.kt"
+      ],
+      "upstream_present": true,
+      "upstream": "a6d361fb258460466c9bd62b548034247333692a",
+      "blob_checks": [
+        {
+          "file": "src/org/evolution/settings/fragments/miscellaneous/PlayIntegrityFix.kt",
+          "upstream_blob": "17b3caf565a3bbbae14a3b5d0a0360c2a176b7aa",
+          "old_patch_postimage": "17b3caf",
+          "added_lines": 9,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:packages/modules/Bluetooth/0001-Remove-unused-ext_attrs-from-playerapplicationsettin.patch",
+      "project": "packages/modules/Bluetooth",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/packages/modules/Bluetooth/0001-Remove-unused-ext_attrs-from-playerapplicationsettin.patch:1",
+        "packages/modules/Bluetooth@9c3b6fb69cc0ba55ed6814fa04fd36744ca91547:android/app/jni/com_android_bluetooth_avrcp_controller.cpp",
+        "packages/modules/Bluetooth@9c3b6fb69cc0ba55ed6814fa04fd36744ca91547:system/btif/src/btif_rc.cc",
+        "packages/modules/Bluetooth@9c3b6fb69cc0ba55ed6814fa04fd36744ca91547:system/btif/test/btif_rc_test.cc",
+        "packages/modules/Bluetooth@9c3b6fb69cc0ba55ed6814fa04fd36744ca91547:system/include/hardware/bt_rc.h"
+      ],
+      "upstream_present": true,
+      "upstream": "9c3b6fb69cc0ba55ed6814fa04fd36744ca91547",
+      "blob_checks": [
+        {
+          "file": "android/app/jni/com_android_bluetooth_avrcp_controller.cpp",
+          "upstream_blob": "22a236d44dfff82164dc00d6f0991cf4bde0a947",
+          "old_patch_postimage": "22a236d",
+          "added_lines": 1,
+          "missing_added_lines": []
+        },
+        {
+          "file": "system/btif/src/btif_rc.cc",
+          "upstream_blob": "c9ef573c6d05a5e7f02c64997ecd5e1a67f14c15",
+          "old_patch_postimage": "c9ef573",
+          "added_lines": 5,
+          "missing_added_lines": []
+        },
+        {
+          "file": "system/btif/test/btif_rc_test.cc",
+          "upstream_blob": "2fb6b81e200daa509f7abf375f18e31b8cb18434",
+          "old_patch_postimage": "2fb6b81",
+          "added_lines": 21,
+          "missing_added_lines": []
+        },
+        {
+          "file": "system/include/hardware/bt_rc.h",
+          "upstream_blob": "dee592a3da04caf028d2d23902b709050a1411ca",
+          "old_patch_postimage": "dee592a",
+          "added_lines": 1,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-pick:system/core/0001-init-Remove-sys-property-triggering-custom-rom-detec.patch",
+      "project": "system/core",
+      "verdict": "KEEP",
+      "reason": "Keep omission of separate replay: additions are present in the pinned upstream content (or the removed init assignment remains absent). Content equivalence, not a commit-ancestry claim.",
+      "evidence": [
+        "device/xiaomi/klimt@a80d3d101e7d19f6f5460c36cfeabc7b980b5886:patches/tree-evox15/system/core/0001-init-Remove-sys-property-triggering-custom-rom-detec.patch:1",
+        "system/core@ee96af1583278d5c4a32b7ddc6665d0e81e04090:init/property_service.cpp"
+      ],
+      "upstream_present": true,
+      "upstream": "ee96af1583278d5c4a32b7ddc6665d0e81e04090",
+      "blob_checks": [
+        {
+          "file": "init/property_service.cpp",
+          "upstream_blob": "40a76b0cd3c7ea89033e88319b04819ef41d15cb",
+          "old_patch_postimage": "40a76b0",
+          "added_lines": 0,
+          "missing_added_lines": []
+        }
+      ]
+    },
+    {
+      "id": "old-vendor:aea608c6",
+      "project": "vendor/lineage",
+      "verdict": "KEEP",
+      "reason": "Keep upstream vendor/lineage and retire the old fork: the exact security-patch/fingerprint value is present upstream, although the old local commit is not an ancestor.",
+      "evidence": [
+        "vendor/lineage@12eed86fe35dfac19e229bd6c383031e304311e0:release/flag_values/cp2a/RELEASE_PLATFORM_SECURITY_PATCH.textproto:3"
+      ],
+      "commit_ancestor_of_upstream": false,
+      "content_superseded": true
+    },
+    {
+      "id": "old-vendor:538db33e",
+      "project": "vendor/lineage",
+      "verdict": "KEEP",
+      "reason": "Keep upstream vendor/lineage and retire the old fork: the exact security-patch/fingerprint value is present upstream, although the old local commit is not an ancestor.",
+      "evidence": [
+        "vendor/lineage@12eed86fe35dfac19e229bd6c383031e304311e0:config/evolution.mk:13"
+      ],
+      "commit_ancestor_of_upstream": false,
+      "content_superseded": true
+    },
+    {
+      "id": "manifest:bionic",
+      "project": "bionic",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=bionic]",
+        "manifest-final-source.xml:project[path=bionic]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "bionic",
+        "remote": "evo",
+        "revision": "cf6e2a93fe4a38d3ab76d99d6c01ef90398b9d8f",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "bionic",
+        "remote": "evo",
+        "revision": "3d4169372eaccc2e1ebf5467e1da8bc1d0e31fca",
+        "groups": "pdk"
+      },
+      "evox17_target": "3d4169372eaccc2e1ebf5467e1da8bc1d0e31fca"
+    },
+    {
+      "id": "manifest:bootable/recovery",
+      "project": "bootable/recovery",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=bootable/recovery]",
+        "manifest-final-source.xml:project[path=bootable/recovery]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "bootable_recovery",
+        "path": "bootable/recovery",
+        "remote": "evo",
+        "revision": "9f1765955e4d0b69c17c98ba571238a054522c3a",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "bootable_recovery",
+        "path": "bootable/recovery",
+        "remote": "evo",
+        "revision": "7f7a7931ed6e5d1eda50a096917f766b17d59f6b",
+        "groups": "pdk"
+      },
+      "evox17_target": "7f7a7931ed6e5d1eda50a096917f766b17d59f6b"
+    },
+    {
+      "id": "manifest:build/make",
+      "project": "build/make",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=build/make]",
+        "manifest-final-source.xml:project[path=build/make]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "build",
+        "path": "build/make",
+        "remote": "evo",
+        "revision": "2fa923193db876e5be71f6094761600e7ade8b9f",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox16": {
+        "name": "build",
+        "path": "build/make",
+        "remote": "evo",
+        "revision": "646e5671fe2617107d12ec56b1ef11ad12bc087f",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox17_target": "646e5671fe2617107d12ec56b1ef11ad12bc087f"
+    },
+    {
+      "id": "manifest:build/soong",
+      "project": "build/soong",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=build/soong]",
+        "manifest-final-source.xml:project[path=build/soong]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "build_soong",
+        "path": "build/soong",
+        "remote": "iowaz",
+        "revision": "8babfb68d80f58ed6becd132d5b5f9b29fb5ae2b",
+        "upstream": "cnb-klimt",
+        "dest-branch": "cnb-klimt",
+        "groups": "pdk,tradefed"
+      },
+      "evox16": {
+        "name": "build_soong",
+        "path": "build/soong",
+        "remote": "iowaz",
+        "revision": "ffe1ef057ccd96e9db801e3fb12860c67d9fb71f",
+        "upstream": "1ac47f839dbb998440f558d886ba03a61954cfe8",
+        "dest-branch": "1ac47f839dbb998440f558d886ba03a61954cfe8",
+        "groups": "pdk,tradefed"
+      },
+      "evox17_target": "ce8adbbbafd7376385a1fbcb5176563907e8010f + MIUI allowance"
+    },
+    {
+      "id": "manifest:device/lineage/sepolicy",
+      "project": "device/lineage/sepolicy",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=device/lineage/sepolicy]",
+        "manifest-final-source.xml:project[path=device/lineage/sepolicy]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "device_evolution_sepolicy",
+        "path": "device/lineage/sepolicy",
+        "remote": "evo",
+        "revision": "ce2dd8f40f181f7c23db5eaec325fbe825356d2a",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "device_evolution_sepolicy",
+        "path": "device/lineage/sepolicy",
+        "remote": "evo",
+        "revision": "fe4d5dd55e30bc68cc56b7b9b3fa295389640691"
+      },
+      "evox17_target": "fe4d5dd55e30bc68cc56b7b9b3fa295389640691"
+    },
+    {
+      "id": "manifest:device/xiaomi/klimt",
+      "project": "device/xiaomi/klimt",
+      "verdict": "REVERT",
+      "reason": "Revert the aggregate evox16 device changes to baseline plus regenerated minimal export; individual device/compatibility decisions are separate.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=device/xiaomi/klimt]",
+        "manifest-final-source.xml:project[path=device/xiaomi/klimt]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "android_device_xiaomi_klimt",
+        "path": "device/xiaomi/klimt",
+        "remote": "iowaz",
+        "revision": "a528622c4f52e603a1f3cfa4d998b60da6e0e5c9",
+        "upstream": "evox",
+        "dest-branch": "evox",
+        "groups": "local::klimt"
+      },
+      "evox16": {
+        "name": "android_device_xiaomi_klimt",
+        "path": "device/xiaomi/klimt",
+        "remote": "iowaz",
+        "revision": "a80d3d101e7d19f6f5460c36cfeabc7b980b5886",
+        "upstream": "1767eb402f93d63bd66a7c58c1e33b89af02e890",
+        "dest-branch": "1767eb402f93d63bd66a7c58c1e33b89af02e890",
+        "groups": "local::klimt"
+      },
+      "evox17_target": "a528622c4f52e603a1f3cfa4d998b60da6e0e5c9 + regenerated minimal patch metadata"
+    },
+    {
+      "id": "manifest:evolution/OTA",
+      "project": "evolution/OTA",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=evolution/OTA]",
+        "manifest-final-source.xml:project[path=evolution/OTA]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "OTA",
+        "path": "evolution/OTA",
+        "remote": "evo",
+        "revision": "d8882bf1b63eedd520d754190e5478402fc0debf",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "OTA",
+        "path": "evolution/OTA",
+        "remote": "evo",
+        "revision": "3885ccff33f8ac1ad5771b482dc6f6464ac3c17d"
+      },
+      "evox17_target": "3885ccff33f8ac1ad5771b482dc6f6464ac3c17d"
+    },
+    {
+      "id": "manifest:evolution/manifest",
+      "project": "evolution/manifest",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=evolution/manifest]",
+        "manifest-final-source.xml:project[path=evolution/manifest]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "manifest",
+        "path": "evolution/manifest",
+        "remote": "evo",
+        "revision": "b3001cf680bf348f47bc3d5a76362eb93efcc8a9",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "manifest",
+        "path": "evolution/manifest",
+        "remote": "evo",
+        "revision": "bc6d0f9172fec886ef2a60d559a2516fd24499ef"
+      },
+      "evox17_target": "bc6d0f9172fec886ef2a60d559a2516fd24499ef"
+    },
+    {
+      "id": "manifest:external/bash",
+      "project": "external/bash",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/bash]",
+        "manifest-final-source.xml:project[path=external/bash]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_external_bash",
+        "path": "external/bash",
+        "revision": "1094f161361ad75af92c968da680f2f5b3cf752b",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_bash",
+        "path": "external/bash",
+        "revision": "1094f161361ad75af92c968da680f2f5b3cf752b"
+      },
+      "evox17_target": "1094f161361ad75af92c968da680f2f5b3cf752b"
+    },
+    {
+      "id": "manifest:external/exfatprogs",
+      "project": "external/exfatprogs",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/exfatprogs]",
+        "manifest-final-source.xml:project[path=external/exfatprogs]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_external_exfatprogs",
+        "path": "external/exfatprogs",
+        "revision": "2914cbb8e7514e824a4792dc3389913c1c4a76ac",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_exfatprogs",
+        "path": "external/exfatprogs",
+        "revision": "3379ed50f76459f84e3859aa679942e9daced46c"
+      },
+      "evox17_target": "3379ed50f76459f84e3859aa679942e9daced46c"
+    },
+    {
+      "id": "manifest:external/htop",
+      "project": "external/htop",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/htop]",
+        "manifest-final-source.xml:project[path=external/htop]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_external_htop",
+        "path": "external/htop",
+        "revision": "ff411eb6f0b716294440dbb5b24a090a1ad67af9",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_htop",
+        "path": "external/htop",
+        "revision": "ff411eb6f0b716294440dbb5b24a090a1ad67af9"
+      },
+      "evox17_target": "ff411eb6f0b716294440dbb5b24a090a1ad67af9"
+    },
+    {
+      "id": "manifest:external/libncurses",
+      "project": "external/libncurses",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/libncurses]",
+        "manifest-final-source.xml:project[path=external/libncurses]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_external_libncurses",
+        "path": "external/libncurses",
+        "revision": "cf8d1a3f3b0ab6f9385c3361e1aada7ecc635ad6",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_libncurses",
+        "path": "external/libncurses",
+        "revision": "cf8d1a3f3b0ab6f9385c3361e1aada7ecc635ad6"
+      },
+      "evox17_target": "cf8d1a3f3b0ab6f9385c3361e1aada7ecc635ad6"
+    },
+    {
+      "id": "manifest:external/nano",
+      "project": "external/nano",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/nano]",
+        "manifest-final-source.xml:project[path=external/nano]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_external_nano",
+        "path": "external/nano",
+        "revision": "b83fc23d564c5377fc7c3322e5f75e81d8dad37e",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_nano",
+        "path": "external/nano",
+        "revision": "b83fc23d564c5377fc7c3322e5f75e81d8dad37e"
+      },
+      "evox17_target": "b83fc23d564c5377fc7c3322e5f75e81d8dad37e"
+    },
+    {
+      "id": "manifest:external/ntfs-3g",
+      "project": "external/ntfs-3g",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/ntfs-3g]",
+        "manifest-final-source.xml:project[path=external/ntfs-3g]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_external_ntfs-3g",
+        "path": "external/ntfs-3g",
+        "revision": "e2415df401538976fb89aa20370903e0c46e51ff",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_ntfs-3g",
+        "path": "external/ntfs-3g",
+        "revision": "e2415df401538976fb89aa20370903e0c46e51ff"
+      },
+      "evox17_target": "e2415df401538976fb89aa20370903e0c46e51ff"
+    },
+    {
+      "id": "manifest:external/openssh",
+      "project": "external/openssh",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/openssh]",
+        "manifest-final-source.xml:project[path=external/openssh]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_external_openssh",
+        "path": "external/openssh",
+        "revision": "60ca88651d39f699932f63d41409facc18c5ad19",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_openssh",
+        "path": "external/openssh",
+        "revision": "60ca88651d39f699932f63d41409facc18c5ad19",
+        "groups": "pdk"
+      },
+      "evox17_target": "60ca88651d39f699932f63d41409facc18c5ad19"
+    },
+    {
+      "id": "manifest:external/rsync",
+      "project": "external/rsync",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/rsync]",
+        "manifest-final-source.xml:project[path=external/rsync]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_external_rsync",
+        "path": "external/rsync",
+        "revision": "6a2e628ca95b172243abfdad1e86b88fb895fb3f",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_rsync",
+        "path": "external/rsync",
+        "revision": "6a2e628ca95b172243abfdad1e86b88fb895fb3f"
+      },
+      "evox17_target": "6a2e628ca95b172243abfdad1e86b88fb895fb3f"
+    },
+    {
+      "id": "manifest:external/unrar",
+      "project": "external/unrar",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/unrar]",
+        "manifest-final-source.xml:project[path=external/unrar]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_external_unrar",
+        "path": "external/unrar",
+        "revision": "140cfb9e8fc984cab5060cd09983e6d33a2fae41",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_unrar",
+        "path": "external/unrar",
+        "revision": "140cfb9e8fc984cab5060cd09983e6d33a2fae41"
+      },
+      "evox17_target": "140cfb9e8fc984cab5060cd09983e6d33a2fae41"
+    },
+    {
+      "id": "manifest:external/vim",
+      "project": "external/vim",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=external/vim]",
+        "manifest-final-source.xml:project[path=external/vim]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_external_vim",
+        "path": "external/vim",
+        "revision": "f31199df8fca8148b61ae94bbfcb834021f5bdd9",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_external_vim",
+        "path": "external/vim",
+        "revision": "f31199df8fca8148b61ae94bbfcb834021f5bdd9"
+      },
+      "evox17_target": "f31199df8fca8148b61ae94bbfcb834021f5bdd9"
+    },
+    {
+      "id": "manifest:frameworks/av",
+      "project": "frameworks/av",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=frameworks/av]",
+        "manifest-final-source.xml:project[path=frameworks/av]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "frameworks_av",
+        "path": "frameworks/av",
+        "remote": "evo",
+        "revision": "c4c4dc7608a3fe0d6a5f18df551a6ad6edf8730e",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox16": {
+        "name": "frameworks_av",
+        "path": "frameworks/av",
+        "remote": "evo",
+        "revision": "7eaa22020c6a7196de4c5d1004651ea7498bb0f0",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox17_target": "7eaa22020c6a7196de4c5d1004651ea7498bb0f0"
+    },
+    {
+      "id": "manifest:frameworks/base",
+      "project": "frameworks/base",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=frameworks/base]",
+        "manifest-final-source.xml:project[path=frameworks/base]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "frameworks_base",
+        "path": "frameworks/base",
+        "remote": "evo",
+        "revision": "5f381df28726f865acd0333cb436d17419ab6265",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk-cw-fs,pdk-fs,sysui-studio"
+      },
+      "evox16": {
+        "name": "frameworks_base",
+        "path": "frameworks/base",
+        "remote": "evo",
+        "revision": "f60f8d1357b56a5f0b946926defe13deae943d31",
+        "upstream": "d84fa40043bca5caddd86325e95a85f932d5e7b7",
+        "dest-branch": "d84fa40043bca5caddd86325e95a85f932d5e7b7",
+        "groups": "pdk-cw-fs,pdk-fs,sysui-studio"
+      },
+      "evox17_target": "d84fa40043bca5caddd86325e95a85f932d5e7b7"
+    },
+    {
+      "id": "manifest:frameworks/hardware/interfaces",
+      "project": "frameworks/hardware/interfaces",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=frameworks/hardware/interfaces]",
+        "manifest-final-source.xml:project[path=frameworks/hardware/interfaces]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "platform/frameworks/hardware/interfaces",
+        "path": "frameworks/hardware/interfaces",
+        "remote": "aosp",
+        "revision": "9de6d032a248523c22d0bd86e224d1762355c41e",
+        "upstream": "refs/tags/android-17.0.0_r1",
+        "dest-branch": "refs/tags/android-17.0.0_r1",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox16": {
+        "name": "LineageOS/android_frameworks_hardware_interfaces",
+        "path": "frameworks/hardware/interfaces",
+        "revision": "9de6d032a248523c22d0bd86e224d1762355c41e",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox17_target": "9de6d032a248523c22d0bd86e224d1762355c41e"
+    },
+    {
+      "id": "manifest:frameworks/libs/systemui",
+      "project": "frameworks/libs/systemui",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=frameworks/libs/systemui]",
+        "manifest-final-source.xml:project[path=frameworks/libs/systemui]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "frameworks_libs_systemui",
+        "path": "frameworks/libs/systemui",
+        "remote": "evo",
+        "revision": "bbdabb45579be65fe802330f6cf4651333b967ae",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk-cw-fs,pdk-fs,sysui-studio"
+      },
+      "evox16": {
+        "name": "frameworks_libs_systemui",
+        "path": "frameworks/libs/systemui",
+        "remote": "evo",
+        "revision": "25fdfb3dc77cbe9876c43656b75d297a6da08054",
+        "groups": "pdk-cw-fs,pdk-fs,sysui-studio"
+      },
+      "evox17_target": "25fdfb3dc77cbe9876c43656b75d297a6da08054"
+    },
+    {
+      "id": "manifest:frameworks/native",
+      "project": "frameworks/native",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=frameworks/native]",
+        "manifest-final-source.xml:project[path=frameworks/native]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "frameworks_native",
+        "path": "frameworks/native",
+        "remote": "evo",
+        "revision": "75e2cc6363936395299f10577e765a2425509316",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "frameworks_native",
+        "path": "frameworks/native",
+        "remote": "evo",
+        "revision": "2341752da7cc47dfb8ca54af82e8ae825bc53d5e",
+        "upstream": "49687694bd18a4a2df972f89b6717dbfce610721",
+        "dest-branch": "49687694bd18a4a2df972f89b6717dbfce610721",
+        "groups": "pdk"
+      },
+      "evox17_target": "ddf96e8644294cacbd955dd6358f4f3cd84f5ccd"
+    },
+    {
+      "id": "manifest:frameworks/opt/telephony",
+      "project": "frameworks/opt/telephony",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=frameworks/opt/telephony]",
+        "manifest-final-source.xml:project[path=frameworks/opt/telephony]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "frameworks_opt_telephony",
+        "path": "frameworks/opt/telephony",
+        "remote": "evo",
+        "revision": "a0aa60e8014152a704dd64f84f78e2dc0b87a5ae",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox16": {
+        "name": "frameworks_opt_telephony",
+        "path": "frameworks/opt/telephony",
+        "remote": "evo",
+        "revision": "2a7c5f7541a1b286ff967eb67a34c7c984d01458",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox17_target": "2a7c5f7541a1b286ff967eb67a34c7c984d01458"
+    },
+    {
+      "id": "manifest:hardware/google/interfaces",
+      "project": "hardware/google/interfaces",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=hardware/google/interfaces]",
+        "manifest-final-source.xml:project[path=hardware/google/interfaces]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "platform/hardware/google/interfaces",
+        "path": "hardware/google/interfaces",
+        "remote": "aosp",
+        "revision": "a36774a8665b72a64cb495501984e8fa0cbb0e53",
+        "upstream": "refs/tags/android-17.0.0_r1",
+        "dest-branch": "refs/tags/android-17.0.0_r1",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox16": {
+        "name": "LineageOS/android_hardware_google_interfaces",
+        "path": "hardware/google/interfaces",
+        "revision": "a36774a8665b72a64cb495501984e8fa0cbb0e53",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox17_target": "a36774a8665b72a64cb495501984e8fa0cbb0e53"
+    },
+    {
+      "id": "manifest:hardware/interfaces",
+      "project": "hardware/interfaces",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=hardware/interfaces]",
+        "manifest-final-source.xml:project[path=hardware/interfaces]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "hardware_interfaces",
+        "path": "hardware/interfaces",
+        "remote": "iowaz",
+        "revision": "11087c5b9457e65346d0324f5452c647fc080a7c",
+        "upstream": "cnb-klimt",
+        "dest-branch": "cnb-klimt",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox16": {
+        "name": "hardware_interfaces",
+        "path": "hardware/interfaces",
+        "remote": "iowaz",
+        "revision": "11087c5b9457e65346d0324f5452c647fc080a7c",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox17_target": "11087c5b9457e65346d0324f5452c647fc080a7c"
+    },
+    {
+      "id": "manifest:hardware/lineage/compat",
+      "project": "hardware/lineage/compat",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=hardware/lineage/compat]",
+        "manifest-final-source.xml:project[path=hardware/lineage/compat]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "hardware_lineage_compat",
+        "path": "hardware/lineage/compat",
+        "remote": "evo",
+        "revision": "9a7a916bb5d88514d66014bb3f753fa834a16b31",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "hardware_lineage_compat",
+        "path": "hardware/lineage/compat",
+        "remote": "evo",
+        "revision": "1f286a02837632c4ed352c50c0ff3c1cf00368fe"
+      },
+      "evox17_target": "1f286a02837632c4ed352c50c0ff3c1cf00368fe"
+    },
+    {
+      "id": "manifest:hardware/qcom/sm7250/display",
+      "project": "hardware/qcom/sm7250/display",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=hardware/qcom/sm7250/display]",
+        "manifest-final-source.xml:project[path=hardware/qcom/sm7250/display]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_hardware_qcom_sm7250_display",
+        "path": "hardware/qcom/sm7250/display",
+        "revision": "d3fae6913731a30c135a6cd1fab803913da06998",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2",
+        "groups": "qcom,qcom_sm7250"
+      },
+      "evox16": {
+        "name": "LineageOS/android_hardware_qcom_sm7250_display",
+        "path": "hardware/qcom/sm7250/display",
+        "revision": "d3fae6913731a30c135a6cd1fab803913da06998",
+        "groups": "qcom,qcom_sm7250"
+      },
+      "evox17_target": "d3fae6913731a30c135a6cd1fab803913da06998"
+    },
+    {
+      "id": "manifest:hardware/qcom/sm7250/gps",
+      "project": "hardware/qcom/sm7250/gps",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=hardware/qcom/sm7250/gps]",
+        "manifest-final-source.xml:project[path=hardware/qcom/sm7250/gps]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_hardware_qcom_sm7250_gps",
+        "path": "hardware/qcom/sm7250/gps",
+        "revision": "c0e0375f06c0335062f19e3d87cb84d3c27cbc57",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2",
+        "groups": "qcom,qcom_sm7250"
+      },
+      "evox16": {
+        "name": "LineageOS/android_hardware_qcom_sm7250_gps",
+        "path": "hardware/qcom/sm7250/gps",
+        "revision": "c0e0375f06c0335062f19e3d87cb84d3c27cbc57",
+        "groups": "qcom,qcom_sm7250"
+      },
+      "evox17_target": "c0e0375f06c0335062f19e3d87cb84d3c27cbc57"
+    },
+    {
+      "id": "manifest:hardware/xiaomi",
+      "project": "hardware/xiaomi",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=hardware/xiaomi]",
+        "manifest-final-source.xml:project[path=hardware/xiaomi]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_hardware_xiaomi",
+        "path": "hardware/xiaomi",
+        "revision": "af5766acc6d6766eddeb52574996247128428ff6",
+        "upstream": "lineage-24.0",
+        "dest-branch": "lineage-24.0",
+        "groups": "local::klimt"
+      },
+      "evox16": {
+        "name": "LineageOS/android_hardware_xiaomi",
+        "path": "hardware/xiaomi",
+        "revision": "f8f00fcc11b8bf5a5ea82ddaae9a3c62b120861a",
+        "upstream": "lineage-24.0",
+        "dest-branch": "lineage-24.0",
+        "groups": "local::klimt"
+      },
+      "evox17_target": "af5766acc6d6766eddeb52574996247128428ff6"
+    },
+    {
+      "id": "manifest:kernel/xiaomi/klimt",
+      "project": "kernel/xiaomi/klimt",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=kernel/xiaomi/klimt]",
+        "manifest-final-source.xml:project[path=kernel/xiaomi/klimt]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "android_kernel_xiaomi_klimt",
+        "path": "kernel/xiaomi/klimt",
+        "remote": "iowaz",
+        "revision": "b13ac15b32e25368f70859fff986e07c18d9d5a5",
+        "upstream": "17.0",
+        "dest-branch": "17.0",
+        "groups": "local::klimt",
+        "clone-depth": "1"
+      },
+      "evox16": {
+        "name": "android_kernel_xiaomi_klimt",
+        "path": "kernel/xiaomi/klimt",
+        "remote": "iowaz",
+        "revision": "b13ac15b32e25368f70859fff986e07c18d9d5a5",
+        "groups": "local::klimt",
+        "clone-depth": "1"
+      },
+      "evox17_target": "b13ac15b32e25368f70859fff986e07c18d9d5a5"
+    },
+    {
+      "id": "manifest:libcore",
+      "project": "libcore",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=libcore]",
+        "manifest-final-source.xml:project[path=libcore]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "libcore",
+        "remote": "evo",
+        "revision": "015f87dfc4ed76b269374f4ed375de7a67d4400b",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox16": {
+        "name": "platform/libcore",
+        "path": "libcore",
+        "remote": "aosp",
+        "revision": "77b7dba97fe8eb92d66654f2a7cf981ef75a1ca1",
+        "upstream": "4ebfb391ee0109d16abe6e2bc965724b940928c5",
+        "dest-branch": "4ebfb391ee0109d16abe6e2bc965724b940928c5",
+        "groups": "pdk,sysui-studio"
+      },
+      "evox17_target": "4ebfb391ee0109d16abe6e2bc965724b940928c5"
+    },
+    {
+      "id": "manifest:lineage-sdk",
+      "project": "lineage-sdk",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=lineage-sdk]",
+        "manifest-final-source.xml:project[path=lineage-sdk]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "lineage-sdk",
+        "remote": "evo",
+        "revision": "c3efc4ee11e2348a058f71b021e2ab4c403fdc64",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "lineage-sdk",
+        "remote": "evo",
+        "revision": "2be2443660a55a6d7534e6bd622422a72f758aa5"
+      },
+      "evox17_target": "2be2443660a55a6d7534e6bd622422a72f758aa5"
+    },
+    {
+      "id": "manifest:packages/apps/Aperture",
+      "project": "packages/apps/Aperture",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Aperture]",
+        "manifest-final-source.xml:project[path=packages/apps/Aperture]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Aperture",
+        "path": "packages/apps/Aperture",
+        "revision": "f7c0a93f787cc9e0db4193b6094bd51575567898",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Aperture",
+        "path": "packages/apps/Aperture",
+        "revision": "36b3be3487b5154b1950ed2120225acdca6c51de"
+      },
+      "evox17_target": "36b3be3487b5154b1950ed2120225acdca6c51de"
+    },
+    {
+      "id": "manifest:packages/apps/AppLocker",
+      "project": "packages/apps/AppLocker",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/AppLocker]",
+        "manifest-final-source.xml:project[path=packages/apps/AppLocker]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_apps_AppLocker",
+        "path": "packages/apps/AppLocker",
+        "remote": "evo",
+        "revision": "93f26734c6720de000db1e9168fedf9dd8903115",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "packages_apps_AppLocker",
+        "path": "packages/apps/AppLocker",
+        "remote": "evo",
+        "revision": "34d03ec0a4c33d82079f1a4688575a061776f1dd",
+        "upstream": "065f2f5553bcf297fe503b28ef15433447df92a5",
+        "dest-branch": "065f2f5553bcf297fe503b28ef15433447df92a5"
+      },
+      "evox17_target": "065f2f5553bcf297fe503b28ef15433447df92a5"
+    },
+    {
+      "id": "manifest:packages/apps/AudioFX",
+      "project": "packages/apps/AudioFX",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/AudioFX]",
+        "manifest-final-source.xml:project[path=packages/apps/AudioFX]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_AudioFX",
+        "path": "packages/apps/AudioFX",
+        "revision": "2dbd5919f5736d0737f8d95a2618f0f05b835a4e",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_AudioFX",
+        "path": "packages/apps/AudioFX",
+        "revision": "193fdf7d81eccfefa0f438e1d18386a7fd92f572"
+      },
+      "evox17_target": "193fdf7d81eccfefa0f438e1d18386a7fd92f572"
+    },
+    {
+      "id": "manifest:packages/apps/Backgrounds",
+      "project": "packages/apps/Backgrounds",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Backgrounds]",
+        "manifest-final-source.xml:project[path=packages/apps/Backgrounds]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Backgrounds",
+        "path": "packages/apps/Backgrounds",
+        "revision": "b087d2df6601aa25939e654028321bb59857d12e",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Backgrounds",
+        "path": "packages/apps/Backgrounds",
+        "revision": "b087d2df6601aa25939e654028321bb59857d12e"
+      },
+      "evox17_target": "b087d2df6601aa25939e654028321bb59857d12e"
+    },
+    {
+      "id": "manifest:packages/apps/Camelot",
+      "project": "packages/apps/Camelot",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Camelot]",
+        "manifest-final-source.xml:project[path=packages/apps/Camelot]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Camelot",
+        "path": "packages/apps/Camelot",
+        "revision": "ef9cfc2fcced48ff46f6be580f3f653b05bae08e",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Camelot",
+        "path": "packages/apps/Camelot",
+        "revision": "ef9cfc2fcced48ff46f6be580f3f653b05bae08e"
+      },
+      "evox17_target": "ef9cfc2fcced48ff46f6be580f3f653b05bae08e"
+    },
+    {
+      "id": "manifest:packages/apps/Canvas",
+      "project": "packages/apps/Canvas",
+      "verdict": "KEEP",
+      "reason": "Keep upstream 12.3 manifest member; actual inclusion follows product graph. Canvas remains excluded in this GMS configuration.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Canvas]",
+        "manifest-final-source.xml:project[path=packages/apps/Canvas]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "added",
+      "evox15": null,
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Canvas",
+        "path": "packages/apps/Canvas",
+        "revision": "115bed958a82fb9bcc3a770e23eedf40a3442978"
+      },
+      "evox17_target": "115bed958a82fb9bcc3a770e23eedf40a3442978"
+    },
+    {
+      "id": "manifest:packages/apps/Catapult",
+      "project": "packages/apps/Catapult",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Catapult]",
+        "manifest-final-source.xml:project[path=packages/apps/Catapult]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Catapult",
+        "path": "packages/apps/Catapult",
+        "revision": "922ab7ddee9b3ed0106b148feaf3ff1ad88db727",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Catapult",
+        "path": "packages/apps/Catapult",
+        "revision": "554ba69fc5aed8bac353a2d226fa2871918552b1"
+      },
+      "evox17_target": "554ba69fc5aed8bac353a2d226fa2871918552b1"
+    },
+    {
+      "id": "manifest:packages/apps/ColumbusService",
+      "project": "packages/apps/ColumbusService",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/ColumbusService]",
+        "manifest-final-source.xml:project[path=packages/apps/ColumbusService]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_apps_ColumbusService",
+        "path": "packages/apps/ColumbusService",
+        "remote": "evo",
+        "revision": "a37be7db6fe0260cf2a137975df447e55261144e",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "packages_apps_ColumbusService",
+        "path": "packages/apps/ColumbusService",
+        "remote": "evo",
+        "revision": "b8167ad9c86adebdf54fe3bba0e03f37ee112ed6"
+      },
+      "evox17_target": "b8167ad9c86adebdf54fe3bba0e03f37ee112ed6"
+    },
+    {
+      "id": "manifest:packages/apps/DeskClock",
+      "project": "packages/apps/DeskClock",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/DeskClock]",
+        "manifest-final-source.xml:project[path=packages/apps/DeskClock]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_DeskClock",
+        "path": "packages/apps/DeskClock",
+        "revision": "616807bba7008e460a714bc4e122b842c12dd0e1",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2",
+        "groups": "pdk-fs"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_DeskClock",
+        "path": "packages/apps/DeskClock",
+        "revision": "5e49fdf15c5fae64cc6c23f6ab4a66d62b0a7a73",
+        "groups": "pdk-fs"
+      },
+      "evox17_target": "5e49fdf15c5fae64cc6c23f6ab4a66d62b0a7a73"
+    },
+    {
+      "id": "manifest:packages/apps/Dialer",
+      "project": "packages/apps/Dialer",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Dialer]",
+        "manifest-final-source.xml:project[path=packages/apps/Dialer]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Dialer",
+        "path": "packages/apps/Dialer",
+        "revision": "6da8042323a97d5b3cba1fd975709cc42f29916f",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2",
+        "groups": "pdk-fs"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Dialer",
+        "path": "packages/apps/Dialer",
+        "revision": "3f51f16031ea82f82606a080f418d924b87b7966",
+        "groups": "pdk-fs"
+      },
+      "evox17_target": "3f51f16031ea82f82606a080f418d924b87b7966"
+    },
+    {
+      "id": "manifest:packages/apps/Etar",
+      "project": "packages/apps/Etar",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Etar]",
+        "manifest-final-source.xml:project[path=packages/apps/Etar]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Etar",
+        "path": "packages/apps/Etar",
+        "revision": "3cda65da396e64c3ac936512816ad4c35c9a4958",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Etar",
+        "path": "packages/apps/Etar",
+        "revision": "8173ec802ed046d1670ec03962e686e393a85335"
+      },
+      "evox17_target": "8173ec802ed046d1670ec03962e686e393a85335"
+    },
+    {
+      "id": "manifest:packages/apps/EuiccPolicy",
+      "project": "packages/apps/EuiccPolicy",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/EuiccPolicy]",
+        "manifest-final-source.xml:project[path=packages/apps/EuiccPolicy]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_EuiccPolicy",
+        "path": "packages/apps/EuiccPolicy",
+        "revision": "7232f94f1a908272d4b72bf13277a54c889f9f2c",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_EuiccPolicy",
+        "path": "packages/apps/EuiccPolicy",
+        "revision": "3b3c28e8e537ffd182def2dedde3987b01a60f0f"
+      },
+      "evox17_target": "3b3c28e8e537ffd182def2dedde3987b01a60f0f"
+    },
+    {
+      "id": "manifest:packages/apps/Evolver",
+      "project": "packages/apps/Evolver",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Evolver]",
+        "manifest-final-source.xml:project[path=packages/apps/Evolver]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_apps_Evolver",
+        "path": "packages/apps/Evolver",
+        "remote": "evo",
+        "revision": "1b4360f1fb666a9951aad0679eea5c881edd1af1",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "packages_apps_Evolver",
+        "path": "packages/apps/Evolver",
+        "remote": "evo",
+        "revision": "a6d361fb258460466c9bd62b548034247333692a"
+      },
+      "evox17_target": "a6d361fb258460466c9bd62b548034247333692a"
+    },
+    {
+      "id": "manifest:packages/apps/ExactCalculator",
+      "project": "packages/apps/ExactCalculator",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/ExactCalculator]",
+        "manifest-final-source.xml:project[path=packages/apps/ExactCalculator]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_ExactCalculator",
+        "path": "packages/apps/ExactCalculator",
+        "revision": "153847a298160cbf10c50bdbcdfbc956ae9400c9",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_ExactCalculator",
+        "path": "packages/apps/ExactCalculator",
+        "revision": "108f08bd85aadab42c231a7df94770370aea9d08"
+      },
+      "evox17_target": "108f08bd85aadab42c231a7df94770370aea9d08"
+    },
+    {
+      "id": "manifest:packages/apps/FMRadio",
+      "project": "packages/apps/FMRadio",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/FMRadio]",
+        "manifest-final-source.xml:project[path=packages/apps/FMRadio]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_FMRadio",
+        "path": "packages/apps/FMRadio",
+        "revision": "095ae21580f2893b1f00f0bd9b503dc766899ad1",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_FMRadio",
+        "path": "packages/apps/FMRadio",
+        "revision": "095ae21580f2893b1f00f0bd9b503dc766899ad1"
+      },
+      "evox17_target": "095ae21580f2893b1f00f0bd9b503dc766899ad1"
+    },
+    {
+      "id": "manifest:packages/apps/FlipFlap",
+      "project": "packages/apps/FlipFlap",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/FlipFlap]",
+        "manifest-final-source.xml:project[path=packages/apps/FlipFlap]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_FlipFlap",
+        "path": "packages/apps/FlipFlap",
+        "revision": "0e9b6f6bc7991e3689348bc295ebd12e4b2e78ea",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_FlipFlap",
+        "path": "packages/apps/FlipFlap",
+        "revision": "0e9b6f6bc7991e3689348bc295ebd12e4b2e78ea"
+      },
+      "evox17_target": "0e9b6f6bc7991e3689348bc295ebd12e4b2e78ea"
+    },
+    {
+      "id": "manifest:packages/apps/Gallery2",
+      "project": "packages/apps/Gallery2",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Gallery2]",
+        "manifest-final-source.xml:project[path=packages/apps/Gallery2]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Gallery2",
+        "path": "packages/apps/Gallery2",
+        "revision": "73803da5c066e0d6f67319d28087c965234b7850",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2",
+        "groups": "pdk-fs"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Gallery2",
+        "path": "packages/apps/Gallery2",
+        "revision": "73803da5c066e0d6f67319d28087c965234b7850",
+        "groups": "pdk-fs"
+      },
+      "evox17_target": "73803da5c066e0d6f67319d28087c965234b7850"
+    },
+    {
+      "id": "manifest:packages/apps/Glimpse",
+      "project": "packages/apps/Glimpse",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Glimpse]",
+        "manifest-final-source.xml:project[path=packages/apps/Glimpse]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Glimpse",
+        "path": "packages/apps/Glimpse",
+        "revision": "c7b5e8cfbb4e941473f3179322ec8513d83b4ca9",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Glimpse",
+        "path": "packages/apps/Glimpse",
+        "revision": "8caac09fe1fe0cadb2fa828ac5755c8fb9481eb5"
+      },
+      "evox17_target": "8caac09fe1fe0cadb2fa828ac5755c8fb9481eb5"
+    },
+    {
+      "id": "manifest:packages/apps/Jelly",
+      "project": "packages/apps/Jelly",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Jelly]",
+        "manifest-final-source.xml:project[path=packages/apps/Jelly]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Jelly",
+        "path": "packages/apps/Jelly",
+        "revision": "1bb5edd564f2adb475fb565373426166f3ca252a",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Jelly",
+        "path": "packages/apps/Jelly",
+        "revision": "8ba5afd7b9d4319f263dfeb9ce744924ad137812"
+      },
+      "evox17_target": "8ba5afd7b9d4319f263dfeb9ce744924ad137812"
+    },
+    {
+      "id": "manifest:packages/apps/LineageCustomizer",
+      "project": "packages/apps/LineageCustomizer",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/LineageCustomizer]",
+        "manifest-final-source.xml:project[path=packages/apps/LineageCustomizer]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_LineageCustomizer",
+        "path": "packages/apps/LineageCustomizer",
+        "revision": "84b03919bfb15aa3c72bacdd28c1f900df9385db",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_LineageCustomizer",
+        "path": "packages/apps/LineageCustomizer",
+        "revision": "84b03919bfb15aa3c72bacdd28c1f900df9385db"
+      },
+      "evox17_target": "84b03919bfb15aa3c72bacdd28c1f900df9385db"
+    },
+    {
+      "id": "manifest:packages/apps/LineageParts",
+      "project": "packages/apps/LineageParts",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/LineageParts]",
+        "manifest-final-source.xml:project[path=packages/apps/LineageParts]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_apps_LineageParts",
+        "path": "packages/apps/LineageParts",
+        "remote": "evo",
+        "revision": "e08d880bc4bab9e0ac690867e27b0dfb060b78c3",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "packages_apps_LineageParts",
+        "path": "packages/apps/LineageParts",
+        "remote": "evo",
+        "revision": "7a094594a77e06396f97396316dfa46e6c6c33c9"
+      },
+      "evox17_target": "7a094594a77e06396f97396316dfa46e6c6c33c9"
+    },
+    {
+      "id": "manifest:packages/apps/Messaging",
+      "project": "packages/apps/Messaging",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Messaging]",
+        "manifest-final-source.xml:project[path=packages/apps/Messaging]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Messaging",
+        "path": "packages/apps/Messaging",
+        "revision": "6d131ed8e7249b0ece41169e17d8d0162beae7e0",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2",
+        "groups": "pdk-fs"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Messaging",
+        "path": "packages/apps/Messaging",
+        "revision": "e8d54f169338b16d545d175868645ead8c83e979",
+        "groups": "pdk-fs"
+      },
+      "evox17_target": "e8d54f169338b16d545d175868645ead8c83e979"
+    },
+    {
+      "id": "manifest:packages/apps/Profiles",
+      "project": "packages/apps/Profiles",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Profiles]",
+        "manifest-final-source.xml:project[path=packages/apps/Profiles]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Profiles",
+        "path": "packages/apps/Profiles",
+        "revision": "0abb3a177f1532b6b85621a7250a6431027f02a6",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Profiles",
+        "path": "packages/apps/Profiles",
+        "revision": "0abb3a177f1532b6b85621a7250a6431027f02a6"
+      },
+      "evox17_target": "0abb3a177f1532b6b85621a7250a6431027f02a6"
+    },
+    {
+      "id": "manifest:packages/apps/Recorder",
+      "project": "packages/apps/Recorder",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Recorder]",
+        "manifest-final-source.xml:project[path=packages/apps/Recorder]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Recorder",
+        "path": "packages/apps/Recorder",
+        "revision": "4650818fbc158d996263b4a21b378af4deb9970a",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Recorder",
+        "path": "packages/apps/Recorder",
+        "revision": "624957ca18496e7b63df3d5e4e040f8c99ca72b7"
+      },
+      "evox17_target": "624957ca18496e7b63df3d5e4e040f8c99ca72b7"
+    },
+    {
+      "id": "manifest:packages/apps/Sandbox",
+      "project": "packages/apps/Sandbox",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Sandbox]",
+        "manifest-final-source.xml:project[path=packages/apps/Sandbox]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_apps_Sandbox",
+        "path": "packages/apps/Sandbox",
+        "remote": "evo",
+        "revision": "8c1e9fdb0d9965f4c0c5e48df8e147f8888da093",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "packages_apps_Sandbox",
+        "path": "packages/apps/Sandbox",
+        "remote": "evo",
+        "revision": "515ba24d62b89a795d31ca80033469ae5c2ec5c6",
+        "upstream": "fda7e163893dac66381594806cec1f80d00b146c",
+        "dest-branch": "fda7e163893dac66381594806cec1f80d00b146c"
+      },
+      "evox17_target": "fda7e163893dac66381594806cec1f80d00b146c"
+    },
+    {
+      "id": "manifest:packages/apps/Seedvault",
+      "project": "packages/apps/Seedvault",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Seedvault]",
+        "manifest-final-source.xml:project[path=packages/apps/Seedvault]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Seedvault",
+        "path": "packages/apps/Seedvault",
+        "revision": "29301617a99030c3ae0e14de64eadbc73bd2bd63",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Seedvault",
+        "path": "packages/apps/Seedvault",
+        "revision": "30c6534aa6c2fd5974c5b00d5273491e9e0b6afb",
+        "upstream": "f47750d208dc69bdd65744e49ceb287b43aa5c00",
+        "dest-branch": "f47750d208dc69bdd65744e49ceb287b43aa5c00"
+      },
+      "evox17_target": "f47750d208dc69bdd65744e49ceb287b43aa5c00"
+    },
+    {
+      "id": "manifest:packages/apps/Settings",
+      "project": "packages/apps/Settings",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Settings]",
+        "manifest-final-source.xml:project[path=packages/apps/Settings]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_apps_Settings",
+        "path": "packages/apps/Settings",
+        "remote": "evo",
+        "revision": "9ea49ef11849ad2f4c64c380010b36c04cdd6620",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk-cw-tvc,pdk-fs,sysui-studio"
+      },
+      "evox16": {
+        "name": "packages_apps_Settings",
+        "path": "packages/apps/Settings",
+        "remote": "evo",
+        "revision": "b0e5928b750c5493bff1b53b4b5dbe4959878070",
+        "upstream": "bab27c819a81c53900d5fc4f7cc785c099324346",
+        "dest-branch": "bab27c819a81c53900d5fc4f7cc785c099324346",
+        "groups": "pdk-cw-tvc,pdk-fs,sysui-studio"
+      },
+      "evox17_target": "bab27c819a81c53900d5fc4f7cc785c099324346"
+    },
+    {
+      "id": "manifest:packages/apps/SimpleDeviceConfig",
+      "project": "packages/apps/SimpleDeviceConfig",
+      "verdict": "KEEP",
+      "reason": "Keep upstream retirement; do not revive the project. Prove obsolete installed outputs absent from the final image.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/SimpleDeviceConfig]",
+        "manifest-final-source.xml:project[path=packages/apps/SimpleDeviceConfig]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "removed",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_SimpleDeviceConfig",
+        "path": "packages/apps/SimpleDeviceConfig",
+        "revision": "a3f56e8b82558fecbea96137c092f22b051199ad",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": null,
+      "evox17_target": null
+    },
+    {
+      "id": "manifest:packages/apps/SimpleSettingsConfig",
+      "project": "packages/apps/SimpleSettingsConfig",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/SimpleSettingsConfig]",
+        "manifest-final-source.xml:project[path=packages/apps/SimpleSettingsConfig]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_SimpleSettingsConfig",
+        "path": "packages/apps/SimpleSettingsConfig",
+        "revision": "4e6f18165761c7833967597bfe02d0f43273f91a",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_SimpleSettingsConfig",
+        "path": "packages/apps/SimpleSettingsConfig",
+        "revision": "4e6f18165761c7833967597bfe02d0f43273f91a"
+      },
+      "evox17_target": "4e6f18165761c7833967597bfe02d0f43273f91a"
+    },
+    {
+      "id": "manifest:packages/apps/ThemeStore",
+      "project": "packages/apps/ThemeStore",
+      "verdict": "KEEP",
+      "reason": "Keep upstream 12.3 manifest member; actual inclusion follows product graph. Canvas remains excluded in this GMS configuration. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/ThemeStore]",
+        "manifest-final-source.xml:project[path=packages/apps/ThemeStore]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "added",
+      "evox15": null,
+      "evox16": {
+        "name": "packages_apps_ThemeStore",
+        "path": "packages/apps/ThemeStore",
+        "remote": "evo",
+        "revision": "1c4ab6d86eab2f34617e1792825f547168dbd15f",
+        "upstream": "d96bfe6e6b52236ac5845ac4ed5ac4c93b5fad65",
+        "dest-branch": "d96bfe6e6b52236ac5845ac4ed5ac4c93b5fad65"
+      },
+      "evox17_target": "d96bfe6e6b52236ac5845ac4ed5ac4c93b5fad65"
+    },
+    {
+      "id": "manifest:packages/apps/Twelve",
+      "project": "packages/apps/Twelve",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/apps/Twelve]",
+        "manifest-final-source.xml:project[path=packages/apps/Twelve]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_apps_Twelve",
+        "path": "packages/apps/Twelve",
+        "revision": "45dc00e20ba4ee560a1dabd60b72e5a788747aec",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_apps_Twelve",
+        "path": "packages/apps/Twelve",
+        "revision": "de4ff1b687f9bb53a229d60e61bfd563f3bad383"
+      },
+      "evox17_target": "de4ff1b687f9bb53a229d60e61bfd563f3bad383"
+    },
+    {
+      "id": "manifest:packages/modules/Bluetooth",
+      "project": "packages/modules/Bluetooth",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/modules/Bluetooth]",
+        "manifest-final-source.xml:project[path=packages/modules/Bluetooth]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_modules_Bluetooth",
+        "path": "packages/modules/Bluetooth",
+        "remote": "evo",
+        "revision": "2daafd384d5985cc84654da5ae299bff85d5929c",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "packages_modules_Bluetooth",
+        "path": "packages/modules/Bluetooth",
+        "remote": "evo",
+        "revision": "9f64386a675bc73bd2a34fe41da4e099338b8800",
+        "upstream": "9c3b6fb69cc0ba55ed6814fa04fd36744ca91547",
+        "dest-branch": "9c3b6fb69cc0ba55ed6814fa04fd36744ca91547",
+        "groups": "pdk"
+      },
+      "evox17_target": "9c3b6fb69cc0ba55ed6814fa04fd36744ca91547"
+    },
+    {
+      "id": "manifest:packages/modules/Wifi",
+      "project": "packages/modules/Wifi",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/modules/Wifi]",
+        "manifest-final-source.xml:project[path=packages/modules/Wifi]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_modules_Wifi",
+        "path": "packages/modules/Wifi",
+        "remote": "evo",
+        "revision": "bd162a1d735a03baa98a5015eb697097c70b52ec",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk-cw-fs,pdk-fs,sysui-studio"
+      },
+      "evox16": {
+        "name": "packages_modules_Wifi",
+        "path": "packages/modules/Wifi",
+        "remote": "evo",
+        "revision": "a45b3c140b9ff68b6e082e2efe3009603f2bdfa1",
+        "groups": "pdk-cw-fs,pdk-fs,sysui-studio"
+      },
+      "evox17_target": "a45b3c140b9ff68b6e082e2efe3009603f2bdfa1"
+    },
+    {
+      "id": "manifest:packages/resources/apps",
+      "project": "packages/resources/apps",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/resources/apps]",
+        "manifest-final-source.xml:project[path=packages/resources/apps]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_resources_apps",
+        "path": "packages/resources/apps",
+        "remote": "evo",
+        "revision": "eb5bf8bf77717974a9ef9cdfbcf44b8a9f991076",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "packages_resources_apps",
+        "path": "packages/resources/apps",
+        "remote": "evo",
+        "revision": "91d835b073de0f3208430467a217a14549777cc8"
+      },
+      "evox17_target": "91d835b073de0f3208430467a217a14549777cc8"
+    },
+    {
+      "id": "manifest:packages/resources/devicesettings",
+      "project": "packages/resources/devicesettings",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/resources/devicesettings]",
+        "manifest-final-source.xml:project[path=packages/resources/devicesettings]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "LineageOS/android_packages_resources_devicesettings",
+        "path": "packages/resources/devicesettings",
+        "revision": "b3556d4d8bb517fd9bd44f53d4cff9078a247829",
+        "upstream": "lineage-23.2",
+        "dest-branch": "lineage-23.2"
+      },
+      "evox16": {
+        "name": "LineageOS/android_packages_resources_devicesettings",
+        "path": "packages/resources/devicesettings",
+        "revision": "661fc4036da370a73e56dbd2949c18f8ab464b9b"
+      },
+      "evox17_target": "661fc4036da370a73e56dbd2949c18f8ab464b9b"
+    },
+    {
+      "id": "manifest:packages/services/OmniJaws",
+      "project": "packages/services/OmniJaws",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/services/OmniJaws]",
+        "manifest-final-source.xml:project[path=packages/services/OmniJaws]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_services_OmniJaws",
+        "path": "packages/services/OmniJaws",
+        "remote": "evo",
+        "revision": "22c7c89d7c12e0a379e83d0474ef49b7e2f564e2",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "packages_services_OmniJaws",
+        "path": "packages/services/OmniJaws",
+        "remote": "evo",
+        "revision": "83f9fb29597f91e6b3685d46c3068449af440e2a"
+      },
+      "evox17_target": "83f9fb29597f91e6b3685d46c3068449af440e2a"
+    },
+    {
+      "id": "manifest:packages/services/Telecomm",
+      "project": "packages/services/Telecomm",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/services/Telecomm]",
+        "manifest-final-source.xml:project[path=packages/services/Telecomm]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_services_Telecomm",
+        "path": "packages/services/Telecomm",
+        "remote": "evo",
+        "revision": "fb585fcd9648898bbbe2a6f3871987ad6dc8b9c9",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk-cw-fs,pdk-fs"
+      },
+      "evox16": {
+        "name": "packages_services_Telecomm",
+        "path": "packages/services/Telecomm",
+        "remote": "evo",
+        "revision": "1029477e8adee7b35ca154e34b770fe61c5cf25d",
+        "upstream": "3be358b7a129fb6486913c8125e2301c906f7deb",
+        "dest-branch": "3be358b7a129fb6486913c8125e2301c906f7deb",
+        "groups": "pdk-cw-fs,pdk-fs"
+      },
+      "evox17_target": "3be358b7a129fb6486913c8125e2301c906f7deb"
+    },
+    {
+      "id": "manifest:packages/services/Telephony",
+      "project": "packages/services/Telephony",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=packages/services/Telephony]",
+        "manifest-final-source.xml:project[path=packages/services/Telephony]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "packages_services_Telephony",
+        "path": "packages/services/Telephony",
+        "remote": "evo",
+        "revision": "2a6ef7d3ed54f0e4d3de3a48d122b40e3e74ef3f",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk-cw-fs,pdk-fs"
+      },
+      "evox16": {
+        "name": "packages_services_Telephony",
+        "path": "packages/services/Telephony",
+        "remote": "evo",
+        "revision": "b07a812762ff58516a7014c58d3b5b8b8819f19e",
+        "groups": "pdk-cw-fs,pdk-fs"
+      },
+      "evox17_target": "b07a812762ff58516a7014c58d3b5b8b8819f19e"
+    },
+    {
+      "id": "manifest:system/core",
+      "project": "system/core",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=system/core]",
+        "manifest-final-source.xml:project[path=system/core]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "system_core",
+        "path": "system/core",
+        "remote": "evo",
+        "revision": "39f6732ee8c3ec0fa6daefa0fd38e833a519a6d5",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "system_core",
+        "path": "system/core",
+        "remote": "evo",
+        "revision": "ee96af1583278d5c4a32b7ddc6665d0e81e04090",
+        "groups": "pdk"
+      },
+      "evox17_target": "ee96af1583278d5c4a32b7ddc6665d0e81e04090"
+    },
+    {
+      "id": "manifest:system/fs/fs_mgr",
+      "project": "system/fs/fs_mgr",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=system/fs/fs_mgr]",
+        "manifest-final-source.xml:project[path=system/fs/fs_mgr]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "system_fs_fs_mgr",
+        "path": "system/fs/fs_mgr",
+        "remote": "evo",
+        "revision": "6db70ed0b12a6da338dfa652913c03b5524e216e",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "system_fs_fs_mgr",
+        "path": "system/fs/fs_mgr",
+        "remote": "evo",
+        "revision": "6be2394ed00fdc4ba2ff9cd7037e0a7a2d4d8656",
+        "groups": "pdk"
+      },
+      "evox17_target": "6be2394ed00fdc4ba2ff9cd7037e0a7a2d4d8656"
+    },
+    {
+      "id": "manifest:system/memory/libdmabufheap",
+      "project": "system/memory/libdmabufheap",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=system/memory/libdmabufheap]",
+        "manifest-final-source.xml:project[path=system/memory/libdmabufheap]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "system_memory_libdmabufheap",
+        "path": "system/memory/libdmabufheap",
+        "remote": "evo",
+        "revision": "e2b775649fa5c08d488796a2e299a0f67d7f3352",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "LineageOS/android_system_memory_libdmabufheap",
+        "path": "system/memory/libdmabufheap",
+        "revision": "22d1435f67bda2c5f7a881b7671406c868c52603",
+        "upstream": "57925b760460430b1424bf0fa4cb0ffe001b9cfd",
+        "dest-branch": "57925b760460430b1424bf0fa4cb0ffe001b9cfd",
+        "groups": "pdk"
+      },
+      "evox17_target": "57925b760460430b1424bf0fa4cb0ffe001b9cfd"
+    },
+    {
+      "id": "manifest:system/sepolicy",
+      "project": "system/sepolicy",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit. Use the recorded evox17 target and individual patch verdicts instead of retaining the derived evox16 SHA.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=system/sepolicy]",
+        "manifest-final-source.xml:project[path=system/sepolicy]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "system_sepolicy",
+        "path": "system/sepolicy",
+        "remote": "evo",
+        "revision": "1facbe510fdd0ed771bd04b16e891045f7f73112",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "system_sepolicy",
+        "path": "system/sepolicy",
+        "remote": "evo",
+        "revision": "5bcb7c60218b3fe43d81520ff634ba4d949f5965",
+        "upstream": "c3997bf608b40a7217d0eb2257af887afa78617b",
+        "dest-branch": "c3997bf608b40a7217d0eb2257af887afa78617b",
+        "groups": "pdk"
+      },
+      "evox17_target": "c3997bf608b40a7217d0eb2257af887afa78617b"
+    },
+    {
+      "id": "manifest:system/update_engine",
+      "project": "system/update_engine",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=system/update_engine]",
+        "manifest-final-source.xml:project[path=system/update_engine]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "system_update_engine",
+        "path": "system/update_engine",
+        "remote": "evo",
+        "revision": "5b9591570c6603d73ab86f8526f4280ccfea1849",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "system_update_engine",
+        "path": "system/update_engine",
+        "remote": "evo",
+        "revision": "1ef2cbc4f6f3fee374b9124b005da6eab13f8880",
+        "groups": "pdk"
+      },
+      "evox17_target": "1ef2cbc4f6f3fee374b9124b005da6eab13f8880"
+    },
+    {
+      "id": "manifest:system/usb",
+      "project": "system/usb",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=system/usb]",
+        "manifest-final-source.xml:project[path=system/usb]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "name": "platform/system/usb",
+        "path": "system/usb",
+        "remote": "aosp",
+        "revision": "4a587a2ffcf50a483ae93eab2221c0ba692c0b15",
+        "upstream": "refs/tags/android-17.0.0_r1",
+        "dest-branch": "refs/tags/android-17.0.0_r1",
+        "groups": "pdk"
+      },
+      "evox16": {
+        "name": "LineageOS/android_system_usb",
+        "path": "system/usb",
+        "revision": "4a587a2ffcf50a483ae93eab2221c0ba692c0b15",
+        "groups": "pdk"
+      },
+      "evox17_target": "4a587a2ffcf50a483ae93eab2221c0ba692c0b15"
+    },
+    {
+      "id": "manifest:vendor/extras",
+      "project": "vendor/extras",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=vendor/extras]",
+        "manifest-final-source.xml:project[path=vendor/extras]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "vendor_extras",
+        "path": "vendor/extras",
+        "remote": "evo",
+        "revision": "a1c0dff051071eb3596deb7f949a120ab917a4f9",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "vendor_extras",
+        "path": "vendor/extras",
+        "remote": "evo",
+        "revision": "0b8438de544ae36793ed3a2955aeaa27e9e97c16"
+      },
+      "evox17_target": "0b8438de544ae36793ed3a2955aeaa27e9e97c16"
+    },
+    {
+      "id": "manifest:vendor/gms",
+      "project": "vendor/gms",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=vendor/gms]",
+        "manifest-final-source.xml:project[path=vendor/gms]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "vendor_gms",
+        "path": "vendor/gms",
+        "remote": "evo",
+        "revision": "ccd9f9a924cd7cc35ae648f90dac26ff3bb954be",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb",
+        "clone-depth": "1"
+      },
+      "evox16": {
+        "name": "vendor_gms",
+        "path": "vendor/gms",
+        "remote": "evo",
+        "revision": "3e0987a856ee8bdd21b9ff1983a8e182873a64ad",
+        "clone-depth": "1"
+      },
+      "evox17_target": "3e0987a856ee8bdd21b9ff1983a8e182873a64ad"
+    },
+    {
+      "id": "manifest:vendor/google/overlays/ThemeIcons",
+      "project": "vendor/google/overlays/ThemeIcons",
+      "verdict": "KEEP",
+      "reason": "Keep upstream retirement; do not revive the project. Prove obsolete installed outputs absent from the final image.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=vendor/google/overlays/ThemeIcons]",
+        "manifest-final-source.xml:project[path=vendor/google/overlays/ThemeIcons]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "removed",
+      "evox15": {
+        "name": "vendor_google_overlays_ThemeIcons",
+        "path": "vendor/google/overlays/ThemeIcons",
+        "remote": "evo",
+        "revision": "f31418902bd408e8f00b5e72bb6d187aacbddff5",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": null,
+      "evox17_target": null
+    },
+    {
+      "id": "manifest:vendor/lineage",
+      "project": "vendor/lineage",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=vendor/lineage]",
+        "manifest-final-source.xml:project[path=vendor/lineage]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "vendor_evolution",
+        "path": "vendor/lineage",
+        "remote": "iowaz",
+        "revision": "aea608c6f6d1e81203e30a5db472e3b3dbb23a48",
+        "upstream": "cnb-klimt",
+        "dest-branch": "cnb-klimt"
+      },
+      "evox16": {
+        "name": "vendor_evolution",
+        "path": "vendor/lineage",
+        "remote": "iowaz",
+        "revision": "12eed86fe35dfac19e229bd6c383031e304311e0"
+      },
+      "evox17_target": "12eed86fe35dfac19e229bd6c383031e304311e0"
+    },
+    {
+      "id": "manifest:vendor/pixel-style",
+      "project": "vendor/pixel-style",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=vendor/pixel-style]",
+        "manifest-final-source.xml:project[path=vendor/pixel-style]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "vendor_pixel-style",
+        "path": "vendor/pixel-style",
+        "remote": "evo",
+        "revision": "7bfb22daa4d7e1349acc11ac96b36988f68170da",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "vendor_pixel-style",
+        "path": "vendor/pixel-style",
+        "remote": "evo",
+        "revision": "70094c9d50313e34fcd4e82b433494fe92a3cac6"
+      },
+      "evox17_target": "70094c9d50313e34fcd4e82b433494fe92a3cac6"
+    },
+    {
+      "id": "manifest:vendor/themes",
+      "project": "vendor/themes",
+      "verdict": "KEEP",
+      "reason": "Keep upstream 12.3 manifest member; actual inclusion follows product graph. Canvas remains excluded in this GMS configuration.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=vendor/themes]",
+        "manifest-final-source.xml:project[path=vendor/themes]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "added",
+      "evox15": null,
+      "evox16": {
+        "name": "vendor_themes",
+        "path": "vendor/themes",
+        "remote": "evo",
+        "revision": "7d8236cf8495ea673652c5cfa3a3eaf773f39542"
+      },
+      "evox17_target": "7d8236cf8495ea673652c5cfa3a3eaf773f39542"
+    },
+    {
+      "id": "manifest:vendor/unbundled_google/packages/SettingsGoogle",
+      "project": "vendor/unbundled_google/packages/SettingsGoogle",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=vendor/unbundled_google/packages/SettingsGoogle]",
+        "manifest-final-source.xml:project[path=vendor/unbundled_google/packages/SettingsGoogle]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "vendor_packages_SettingsGoogle",
+        "path": "vendor/unbundled_google/packages/SettingsGoogle",
+        "remote": "evo",
+        "revision": "512aed92509f0a489547901178781f00b9c97fa6",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "vendor_packages_SettingsGoogle",
+        "path": "vendor/unbundled_google/packages/SettingsGoogle",
+        "remote": "evo",
+        "revision": "e7466bd103f9c605ef9af776dd41fbaddc30eeec"
+      },
+      "evox17_target": "e7466bd103f9c605ef9af776dd41fbaddc30eeec"
+    },
+    {
+      "id": "manifest:vendor/unbundled_google/packages/SystemUIGoogle",
+      "project": "vendor/unbundled_google/packages/SystemUIGoogle",
+      "verdict": "KEEP",
+      "reason": "Keep the coherent upstream 12.3 manifest migration. This accepts upstream release/source selection, not local adaptations (separately judged). No specific Klimt failure is asserted for each ordinary upstream commit.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=vendor/unbundled_google/packages/SystemUIGoogle]",
+        "manifest-final-source.xml:project[path=vendor/unbundled_google/packages/SystemUIGoogle]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "revision",
+      "evox15": {
+        "name": "vendor_packages_SystemUIGoogle",
+        "path": "vendor/unbundled_google/packages/SystemUIGoogle",
+        "remote": "evo",
+        "revision": "d6d8d19ecb3d9b3718dd4c520edbe39c06029c3f",
+        "upstream": "refs/heads/cnb",
+        "dest-branch": "refs/heads/cnb"
+      },
+      "evox16": {
+        "name": "vendor_packages_SystemUIGoogle",
+        "path": "vendor/unbundled_google/packages/SystemUIGoogle",
+        "remote": "evo",
+        "revision": "a852b90cee67be987b5754161bb5b6db9c246e38"
+      },
+      "evox17_target": "a852b90cee67be987b5754161bb5b6db9c246e38"
+    },
+    {
+      "id": "manifest:vendor/xiaomi/klimt",
+      "project": "vendor/xiaomi/klimt",
+      "verdict": "KEEP",
+      "reason": "Keep manifest routing/metadata; same code revision. Existing lights/kernel/vendor exceptions retain their baseline pins.",
+      "evidence": [
+        "manifests/snapshots/evox15.xml:project[path=vendor/xiaomi/klimt]",
+        "manifest-final-source.xml:project[path=vendor/xiaomi/klimt]",
+        "MIGRATION.json:target_paths"
+      ],
+      "kind": "metadata-only",
+      "evox15": {
+        "path": "vendor/xiaomi/klimt",
+        "name": "proprietary_vendor_xiaomi_klimt",
+        "remote": "iowaz",
+        "revision": "74d378be9f0b832f2c83284474a0f5da72062ca2",
+        "upstream": "evox",
+        "dest-branch": "evox"
+      },
+      "evox16": {
+        "name": "proprietary_vendor_xiaomi_klimt",
+        "path": "vendor/xiaomi/klimt",
+        "remote": "iowaz",
+        "revision": "74d378be9f0b832f2c83284474a0f5da72062ca2"
+      },
+      "evox17_target": "74d378be9f0b832f2c83284474a0f5da72062ca2"
+    }
+  ],
+  "process_findings": [
+    "P1: Precheck contract explicitly included unselected legacy Telecom (PRECHECK_READY.json:modules; precheck05/precheck.log:36,425). Use graph-selected TelecomShim in mainline prechecks; isolate optional legacy probes from product staging.",
+    "P2: Shared incremental staging was not cleaned to selected install closure. Full build installed TelecomShim, but target-files META/filesystem_config.txt:2449-2460 and raw image contain both. Recreate staging or run controlled installclean in a future authorized build, then verify actual filesystem equals selected install closure.",
+    "P3: Accepted checker recorded duplicate com.android.server.telecom yet passed. check_image.py:483-507 explicitly treats duplicates as evidence only. Fail closed on duplicate application identities unless an exact reviewed split/overlay exception applies; this pair is not one.",
+    "P4: ZIP freshness/hash and source pin checks do not prove every installed member selected/current (controller.py:309-316; verify.py:118-130,159-178). A freshly generated ZIP can include stale/unselected APKs. Bind actual partition files to graph-selected targets and exact producer bytes.",
+    "P5: Obsolete-file absence fixture only covered seven GMS paths (checker:503-507). Cover all retired/unselected install paths, including legacy Telecom and removed manifest projects; check inside delivered images.",
+    "P6: No gate checked flag-dependent Telecom protocol pairing. Verify frozen RELEASE_TELECOM_MAINLINE_MODULE, loader variant, selected app manifest/onBind contract, required mainline dependencies and exactly one installed com.android.server.telecom.",
+    "P7: Gates enforced optional Gralloc/libcore/allocator/su/Doze changes as mandatory acceptance. Proving a patch installed does not prove necessity. Rebase requirements on minimal accepted configuration and report deliberate security/preference changes explicitly.",
+    "P8: Precheck04:34982-34988 caught wrong Log overloads in our Ringer rewrite. docs/evox16.md reports a host stub with the wrong signature. Use actual production APIs for compile validation; removing the optional rewrite eliminates this repair.",
+    "P9: VERIFIED.txt literally said runtime pending, so it did not claim successful boot. Nevertheless an already-recorded fatal duplicate was accepted as image verified. Distinguish build-complete/static-image-pass/boot-pass/functional-pass; static labels must not imply bootability.",
+    "P10: Preserve original artifacts/rechecks and retain useful source freeze, hashes, signing-certificate, AVB, kernel, VINTF and producer gates. Checker repairs must not waive real defects; the new duplicate/selection gate must reject the known-bad evox16 image.",
+    "P11: Before evox17 is boot-validated, separately authorized device testing must reach sys.boot_completed=1 with stable system_server, one Telecom package, no incorrect-interface crash, lockscreen/basic calls. Then validate SIM/eSIM, graphics/media/camera, fingerprint/AOD, radios and charging. No phone operation was performed by this review."
+  ],
+  "evox17_minimal_set": [
+    "Use coherent pinned Evolution X 12.3 cnb manifest and declared AOSP/Lineage dependencies; preserve existing hardware device/kernel/proprietary/vendor-policy baseline identities.",
+    "Retain evox15 device implementation a528622 (eSIM/MIUI stub, Wi-Fi shim, UDFPS/TouchBridge, Health, SELinux and vendor/camera integration). Drop 1767eb4/d8bc99b/0590205 and replace full evox16 export with regenerated minimal metadata.",
+    "On build/soong upstream ce8adbbbafd7376385a1fbcb5176563907e8010f retain only miui boot-jar allowance; drop BuildSystemDesc policy.",
+    "Retain hardware/interfaces 11087c5b9457e65346d0324f5452c647fc080a7c: upstream 51053bb plus existing c9498a7/11087c5 lights compatibility. No audited 12.3 upstream gap.",
+    "Use upstream frameworks/native ddf96e8644294cacbd955dd6358f4f3cd84f5ccd, hardware/xiaomi af5766acc6d6766eddeb52574996247128428ff6, Settings bab27c819a81c53900d5fc4f7cc785c099324346 and Lineage libdmabufheap 57925b760460430b1424bf0fa4cb0ffe001b9cfd with default selector and unchanged libion selection.",
+    "Use BASES upstream frameworks/base/libcore/sepolicy/Sandbox/AppLocker/ThemeStore/Telecomm/Bluetooth/Seedvault; none of their evox16 patches remain. Use vendor/lineage upstream 12eed86 with already present security-patch/fingerprint values.",
+    "Do not replay superseded old picks. Deliberately drop the native metadata guard as nonessential, not superseded. Defer optional fixes to separate observed-regression work.",
+    "Build-process prerequisite: recreate clean partition staging after install-graph changes; mainline precheck uses TelecomShim; reject duplicate Telecom, prove legacy APK absent and flag/loader/onBind contract coherent inside delivered image. No framework workaround needed."
+  ],
+  "scope": {
+    "read_only": true,
+    "no_phone_access": true,
+    "source_snapshot_sha256": "c720a44f043c991015d8d4cce8be77aa52dae8f2d0d245e71a391774bdd7bf2a",
+    "evox15_projects": 1262,
+    "evox16_projects": 1263,
+    "manifest_delta_entries": 86,
+    "export_projects": 14,
+    "export_patch_files": 19,
+    "export_patch_verdict_counts": {
+      "REVERT": 18,
+      "KEEP": 1
+    }
+  },
+  "artifact_evidence": {
+    "delivered_zip_sha256": "bba4b20753f86d62cff99a4553cfedc0038991c393ddf2bd91a361d05b549438",
+    "delivered_zip_bytes": 5663178762,
+    "sparse_system_img_sha256": "e1dad9da235119d7f3759c980c6104e80a19e8c5fb12be8f4d5518ede6292ab5",
+    "unsparsed_system_img_sha256": "9817acb5e195cf3c8f8ba9257cd5957e392060bb37f759d8ad082a0fa60267ab",
+    "legacy_telecom_apk_sha256": "a077eb590ece405c8226474dfa440ee9b7fd60549e0af526f13e73f9bcc473fc",
+    "telecom_shim_apk_sha256": "1f393cec3869945daa207b587f42378de30e5625ccc5ff479e109835611cf5a1"
+  },
+  "export_records": [
+    {
+      "project": "frameworks/base",
+      "base": "d84fa40043bca5caddd86325e95a85f932d5e7b7",
+      "base_tree": "4f32527b88978a46c810ecb856664bc10354ab37",
+      "final_head": "f60f8d1357b56a5f0b946926defe13deae943d31",
+      "final_tree": "fad75e552c7cbb674756b41804ec90ab7e671045",
+      "patches": [
+        {
+          "file": "frameworks/base/0001-Sandbox-Enforce-privileged-per-user-configuration-mu.patch",
+          "sha256": "437a454d5588a2de282d6bd8c05349ff68f092b26e6320c2527ee29c19bb0e08"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "build/soong",
+      "base": "1ac47f839dbb998440f558d886ba03a61954cfe8",
+      "base_tree": "817bd5132eb46fa036b23759a49ec3c171d40c80",
+      "final_head": "ffe1ef057ccd96e9db801e3fb12860c67d9fb71f",
+      "final_tree": "c6bed26d421ec9cf705b5626a35c1ee990e42f53",
+      "patches": [
+        {
+          "file": "build/soong/0001-klimt-Retain-MIUI-boot-jar-package-allowance-on-Evox.patch",
+          "sha256": "473ca7c06363700fee7f108e4f6b68d251242905eed442c36291faca6c042026"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "frameworks/native",
+      "base": "49687694bd18a4a2df972f89b6717dbfce610721",
+      "base_tree": "0a17b5a3b1c7274c7d80186392e80110e0b1f11c",
+      "final_head": "2341752da7cc47dfb8ca54af82e8ae825bc53d5e",
+      "final_tree": "a1d6ca889dadbe26da068bb4f2484174c9d3b7c3",
+      "patches": [
+        {
+          "file": "frameworks/native/0001-libui-Preserve-the-supported-SMPTE2094_50-metadata-g.patch",
+          "sha256": "87b4d0cfd93c9fa56b44fe00c9c27be22db7d62f165596a61a4bc24c59033165"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "libcore",
+      "base": "4ebfb391ee0109d16abe6e2bc965724b940928c5",
+      "base_tree": "301ec2686ccc880ea2e937ad2992ed43b8d03117",
+      "final_head": "77b7dba97fe8eb92d66654f2a7cf981ef75a1ca1",
+      "final_tree": "7f09cc02c767a52ef3b0f46e1c68b532513ffaac",
+      "patches": [
+        {
+          "file": "libcore/0001-libcore-Preserve-the-current-Unix-file-visibility-po.patch",
+          "sha256": "a1ec73c04946667ec18a597b46b7a32e538061a436c9834aa7b2ba4caf210199"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "system/sepolicy",
+      "base": "c3997bf608b40a7217d0eb2257af887afa78617b",
+      "base_tree": "23ba5f19296f7d8b4a331a2c8f01786dfc4ced83",
+      "final_head": "5bcb7c60218b3fe43d81520ff634ba4d949f5965",
+      "final_tree": "5712e7cd67161c6875b0a218bdb271996548e4ba",
+      "patches": [
+        {
+          "file": "system/sepolicy/0001-sepolicy-Preserve-user-build-su-gating-and-root-poli.patch",
+          "sha256": "8d64de1317efbd9a9b9bf4056399fff7f190a075e1ce486e68b553f38db45261"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "packages/apps/Settings",
+      "base": "bab27c819a81c53900d5fc4f7cc785c099324346",
+      "base_tree": "86af24e8114378cafa7f1378abce84d7e3dd37f4",
+      "final_head": "b0e5928b750c5493bff1b53b4b5dbe4959878070",
+      "final_tree": "6cda89f4f46e50844c406f8a7f6b5f8c05ac256f",
+      "patches": [
+        {
+          "file": "packages/apps/Settings/0001-Settings-preserve-carrier-scan-error-and-cancellatio.patch",
+          "sha256": "be45806a347163aacb201e9e542120d252646b10c6f3c43a679cfbfde36a6d66"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "packages/modules/Bluetooth",
+      "base": "9c3b6fb69cc0ba55ed6814fa04fd36744ca91547",
+      "base_tree": "fbfde8de66fd2fd1a89c184d09ca8ac206c43382",
+      "final_head": "9f64386a675bc73bd2a34fe41da4e099338b8800",
+      "final_tree": "a4cc32916c7d13b95c68a5b342aa8cc0318bcb34",
+      "patches": [
+        {
+          "file": "packages/modules/Bluetooth/0001-Bluetooth-tolerate-absent-accessory-device-class.patch",
+          "sha256": "aa3d52319dd4f6e30371e3fd740b19049b2f5451c913a4f1e74d6fbaded5208e"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "packages/services/Telecomm",
+      "base": "3be358b7a129fb6486913c8125e2301c906f7deb",
+      "base_tree": "8f3b25199d30a189fa681f2ae5dc080e020b89f5",
+      "final_head": "1029477e8adee7b35ca154e34b770fe61c5cf25d",
+      "final_tree": "d62a6da504add75f44c20a26a7881b3139bdb9fa",
+      "patches": [
+        {
+          "file": "packages/services/Telecomm/0001-Telecomm-cancel-call-flash-by-session-and-retain-acc.patch",
+          "sha256": "05843bc84d59f710bd85f13ecc852bc4a7b25f9db611b8053d84562d331fd08b"
+        },
+        {
+          "file": "packages/services/Telecomm/0002-Telecomm-use-android.telecom.Log-overloads-for-torch.patch",
+          "sha256": "15a301e32f17acbc6cbd07a9d04cc08ac29c3a96756cde1e3252d45614c56e39"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "system/memory/libdmabufheap",
+      "base": "57925b760460430b1424bf0fa4cb0ffe001b9cfd",
+      "base_tree": "10af1a10e13f62c7d7e9caa300b044b2cf55ad45",
+      "final_head": "22d1435f67bda2c5f7a881b7671406c868c52603",
+      "final_tree": "71526400792799dc702b68accd49210c09d99f77",
+      "patches": [
+        {
+          "file": "system/memory/libdmabufheap/0001-libdmabufheap-select-allocator-compatibility-indepen.patch",
+          "sha256": "1c9c5cfb919a237942e855f823e1daf7dc9afef0c33ffa61046ce57fdc5fe4d3"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "packages/apps/Sandbox",
+      "base": "fda7e163893dac66381594806cec1f80d00b146c",
+      "base_tree": "99f12486f6ff130b61e333b39fe21be4efa01883",
+      "final_head": "515ba24d62b89a795d31ca80033469ae5c2ec5c6",
+      "final_tree": "a3df062c8118f9013d3a4669a66ee9c36833b227",
+      "patches": [
+        {
+          "file": "packages/apps/Sandbox/0001-Sandbox-Restore-app-configuration-for-the-saved-Andr.patch",
+          "sha256": "48e68699ac5ab937878064504f84a845993d355bcd0438e7a7b3b9d719bfa71c"
+        },
+        {
+          "file": "packages/apps/Sandbox/0002-Sandbox-Declare-the-required-cross-user-administrati.patch",
+          "sha256": "045772f8c1e90ff148233dd794cc0025c1f6a7cdc1c24036fb93adcda6936310"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "packages/apps/ThemeStore",
+      "base": "d96bfe6e6b52236ac5845ac4ed5ac4c93b5fad65",
+      "base_tree": "39efd673b553aa1ae867b66e76c552103f714de2",
+      "final_head": "1c4ab6d86eab2f34617e1792825f547168dbd15f",
+      "final_tree": "4b1ec73edf57d00af9cd3d7393f555a69a5dc720",
+      "patches": [
+        {
+          "file": "packages/apps/ThemeStore/0001-ThemeStore-Wait-for-terminal-install-status-after-us.patch",
+          "sha256": "44931b1668ec3d3d299415a0c5abe890abf9b480fccde873b83ed5360fffc766"
+        },
+        {
+          "file": "packages/apps/ThemeStore/0002-ThemeStore-Isolate-callbacks-for-concurrent-install-.patch",
+          "sha256": "f619b8fb65ef28e3e119232f039e0c07450f78ca9f2f0f3a3574f358d07693c0"
+        },
+        {
+          "file": "packages/apps/ThemeStore/0003-ThemeStore-Preserve-per-app-icon-pack-assignments-du.patch",
+          "sha256": "220d50739e6605bc961268e7d7b9d3a2804acb2b95697508f7eb53f89a6cbe0f"
+        },
+        {
+          "file": "packages/apps/ThemeStore/0004-ThemeStore-Isolate-callbacks-for-each-uninstall-oper.patch",
+          "sha256": "ff77f9acfdaf7f319fe859b44c99f5aff436b7e9899f5a097d6cc61e5c20626a"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "packages/apps/AppLocker",
+      "base": "065f2f5553bcf297fe503b28ef15433447df92a5",
+      "base_tree": "0e26114cb7fa71de2b5cf8c757194eb387ba4c9e",
+      "final_head": "34d03ec0a4c33d82079f1a4688575a061776f1dd",
+      "final_tree": "2b2c3ee5424d8fe3067eb9b5120f185f9abd99f9",
+      "patches": [
+        {
+          "file": "packages/apps/AppLocker/0001-AppLocker-Declare-permissions-for-the-guarded-per-us.patch",
+          "sha256": "6743581272104cf6519e42bad064f903e8b6a96dd6b9f13d63a191ea8ea8a736"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "hardware/xiaomi",
+      "base": "af5766acc6d6766eddeb52574996247128428ff6",
+      "base_tree": "b77c7e9bfa779879251a79c2a772d026779fccb1",
+      "final_head": "f8f00fcc11b8bf5a5ea82ddaae9a3c62b120861a",
+      "final_tree": "abb8d4c3f461a2352f6eb01ad7a1643953ebae13",
+      "patches": [
+        {
+          "file": "hardware/xiaomi/0001-sensors-Terminate-bounded-UDFPS-status-reads.patch",
+          "sha256": "bb388bb92ebe4be69f6c5f658844c685da031dcc88e65486850c2f1c1533f919"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    },
+    {
+      "project": "packages/apps/Seedvault",
+      "base": "f47750d208dc69bdd65744e49ceb287b43aa5c00",
+      "base_tree": "676ddbed125c43b6a4c37add6cd759e6021029bc",
+      "final_head": "30c6534aa6c2fd5974c5b00d5273491e9e0b6afb",
+      "final_tree": "3e166ebfb1f5a760d14bcb791413f3e974c10bd4",
+      "patches": [
+        {
+          "file": "packages/apps/Seedvault/0001-Seedvault-Classify-WebDAV-out-of-space-errors-from-t.patch",
+          "sha256": "2d665d8fe1e052e829f42918609fcf1f53e46cd7ed26515d20402e6ebe7fa0a3"
+        }
+      ],
+      "publication": "local-only derived commit; base preserved/fetchable as recorded"
+    }
+  ],
+  "limitations": [
+    "No rebuild or phone test performed. Removing nonessential patches is a scope verdict, not proof the resulting ROM works.",
+    "hardware/interfaces comparison is to audited 12.3 pin 51053bb, not later remote movement.",
+    "Full project/manifest ledger does not claim line-by-line runtime approval of every upstream feature.",
+    "Default allocator preserves compatibility entry points/data members; graphics/media/camera behavior after selector rollback still requires validation. No captured default-path Klimt failure establishes necessity of the fork."
+  ],
+  "root_cause_evidence": [
+    "C:/XiaomiBuilds/debug/evox16/device-bootloop-20261014/logcat-crash.txt:47-65",
+    "C:/XiaomiBuilds/debug/evox16/device-bootloop-20261014/logcat-all.txt:29924-29925,31392",
+    "/mnt/wsl/evox/logs/evox16/evox16-precheck05/precheck.log:36,425",
+    "/mnt/wsl/evox/logs/evox16/evox16-attempt01/build.log:86916",
+    "C:/XiaomiBuilds/compare/evox16/evox16-attempt01/rechecks/recheck02/image-apk-duplicate-packages.json:com.android.server.telecom",
+    "frameworks/base@f60f8d1357b56a5f0b946926defe13deae943d31:services/telecom/mainline/java/com/android/server/telecom/TelecomLoaderService.java:71-83",
+    "build/make@646e5671fe2617107d12ec56b1ef11ad12bc087f:target/product/handheld_system.mk:104-119",
+    "packages/services/Telecomm@1029477e8adee7b35ca154e34b770fe61c5cf25d:legacy-src/com/android/server/telecom/components/TelecomService.java:82-93",
+    "packages/services/Telecomm@1029477e8adee7b35ca154e34b770fe61c5cf25d:src/com/android/server/telecom/components/TelecomService.java:29-38",
+    "Delivered ZIP/raw-image/APK hashes independently recomputed; see artifact_evidence and human report"
+  ]
+}

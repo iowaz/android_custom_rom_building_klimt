@@ -1,0 +1,62 @@
+{
+  "com.android.server.telecom": [
+    {
+      "relative": "system/system/priv-app/Telecom/Telecom.apk",
+      "path": "/mnt/wsl/build/compare/evox16/evox16-attempt01/rechecks/recheck02/fs/system/system/priv-app/Telecom/Telecom.apk",
+      "kind": "file",
+      "sha256": "a077eb590ece405c8226474dfa440ee9b7fd60549e0af526f13e73f9bcc473fc",
+      "bytes": 2642429,
+      "package": "com.android.server.telecom",
+      "package_line": "package: name='com.android.server.telecom' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'"
+    },
+    {
+      "relative": "system/system/priv-app/TelecomShim/TelecomShim.apk",
+      "path": "/mnt/wsl/build/compare/evox16/evox16-attempt01/rechecks/recheck02/fs/system/system/priv-app/TelecomShim/TelecomShim.apk",
+      "kind": "file",
+      "sha256": "1f393cec3869945daa207b587f42378de30e5625ccc5ff479e109835611cf5a1",
+      "bytes": 16607,
+      "package": "com.android.server.telecom",
+      "package_line": "package: name='com.android.server.telecom' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'"
+    }
+  ],
+  "com.android.theme.font.poppins": [
+    {
+      "relative": "product/overlay/ClockFontPoppins/ClockFontPoppinsSourceOverlay.apk",
+      "path": "/mnt/wsl/build/compare/evox16/evox16-attempt01/rechecks/recheck02/fs/product/overlay/ClockFontPoppins/ClockFontPoppinsSourceOverlay.apk",
+      "kind": "file",
+      "sha256": "65618ac5135f7192b8165c6e028f679313bf1f8ee7328b93c47b1c9b129cd914",
+      "bytes": 8351,
+      "package": "com.android.theme.font.poppins",
+      "package_line": "package: name='com.android.theme.font.poppins' versionCode='1' versionName='1.0' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'"
+    },
+    {
+      "relative": "product/overlay/FontPoppins/FontPoppinsSourceOverlay.apk",
+      "path": "/mnt/wsl/build/compare/evox16/evox16-attempt01/rechecks/recheck02/fs/product/overlay/FontPoppins/FontPoppinsSourceOverlay.apk",
+      "kind": "file",
+      "sha256": "65618ac5135f7192b8165c6e028f679313bf1f8ee7328b93c47b1c9b129cd914",
+      "bytes": 8351,
+      "package": "com.android.theme.font.poppins",
+      "package_line": "package: name='com.android.theme.font.poppins' versionCode='1' versionName='1.0' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'"
+    }
+  ],
+  "com.google.android.wallpaper.picker.overlay": [
+    {
+      "relative": "product/overlay/WallpaperPicker2Overlay.apk",
+      "path": "/mnt/wsl/build/compare/evox16/evox16-attempt01/rechecks/recheck02/fs/product/overlay/WallpaperPicker2Overlay.apk",
+      "kind": "file",
+      "sha256": "8eaecfcd8cda185ec9ae9240830585a309d8d725537534f4ab2a615294cf17bb",
+      "bytes": 8351,
+      "package": "com.google.android.wallpaper.picker.overlay",
+      "package_line": "package: name='com.google.android.wallpaper.picker.overlay' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'"
+    },
+    {
+      "relative": "product/overlay/WallpaperPicker2PixelOverlay.apk",
+      "path": "/mnt/wsl/build/compare/evox16/evox16-attempt01/rechecks/recheck02/fs/product/overlay/WallpaperPicker2PixelOverlay.apk",
+      "kind": "file",
+      "sha256": "df4bcf94ab411965938d425c423813738dbd2672afc744edfb6eebbbbc648e9b",
+      "bytes": 8351,
+      "package": "com.google.android.wallpaper.picker.overlay",
+      "package_line": "package: name='com.google.android.wallpaper.picker.overlay' versionCode='37' versionName='17' platformBuildVersionName='17' platformBuildVersionCode='37' compileSdkVersion='37' compileSdkVersionCodename='17'"
+    }
+  ]
+}

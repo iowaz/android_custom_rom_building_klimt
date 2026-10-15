@@ -1,0 +1,12 @@
+{
+  "tests_run": 41,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "skipped_details": [],
+  "passed": true,
+  "host": "posix",
+  "scope": "helper/negative fixture tests only; no actual EVOX17 image verification performed",
+  "check_image_py_sha256": "bc5576486c065705d30688963737afd99ec49ac3be691fdba8141412b54a6d8b",
+  "host_detail": "WSL Ubuntu-24.04 (Linux)"
+}

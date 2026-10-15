@@ -86,7 +86,8 @@ anyone without access to the private vendor repository. So this repository ships
 The builds run on a Windows 11 PC (12 threads, 32 GB RAM, two NVMe SSDs) inside WSL2 (Ubuntu 24.04). The source
 and the build output live on two ext4 virtual disks attached to WSL, because an Android build on NTFS (`/mnt/c`)
 is far too slow. Since 2026-10-15 everything on the Windows side is in one folder, `D:\android_rom_building`
-(`/mnt/d/android_rom_building` in WSL); its own `README.md` is the map.
+(`/mnt/d/android_rom_building` in WSL); its own `README.md` is the map, and
+[docs/build-pc-layout.md](docs/build-pc-layout.md) describes it and the reorganization that created it.
 
 | What | Where (Windows) | Where (WSL) | Size |
 |---|---|---|---|

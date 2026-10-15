@@ -110,7 +110,7 @@ The installed APK lists differ only by upstream changes. 461 APKs in evox15 and 
 
 - Archive: `lineage_klimt-evox17-img.zip`, 5,661,595,211 bytes, the same 19 fastboot entries as evox15.
 - SHA-256: `5961c6a7546d3b3dfbdb8642263bd7e619eabd12926da8a9aa39b08e413cf958`.
-- In `D:\WitAquaBuild\out-evox`, with:
+- In `D:\android_rom_building\output-zips\evox17` (`D:\WitAquaBuild\out-evox` until 2026-10-15), with:
   - `lineage_klimt-evox17-flash.bat`/`.sh`: they check the hash and the `klimt` product, need `/flash` or
     `--flash`, run `fastboot update --skip-reboot` (data kept) and leave the reboot to you;
   - `VERIFIED-evox17.txt` ("NOT boot-tested"), `SHA256SUMS-evox17`, `RESULTS-evox17.json`,
@@ -142,7 +142,7 @@ On 2026-10-15 at 07:27 Sao Paulo, `lineage_klimt-evox17-img.zip` was flashed ove
   `adb shell getprop`, which may not read that property; TouchBridge itself is running.
 
 The full logs (logcat, events, dropbox, getprop) stay on the build PC in
-`C:\XiaomiBuilds\debug\evox17\device-firstboot-20261015\`.
+`D:\android_rom_building\diagnostics\builds\evox17\device-firstboot-20261015\`.
 
 ## Before calling it ready
 

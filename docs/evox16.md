@@ -81,7 +81,7 @@ the same ZIP passed everything without rebuilding.
 
 - Archive: `lineage_klimt-evox16-img.zip` (5,663,178,762 bytes, 19 fastboot entries, same set as evox15).
 - SHA-256: `bba4b20753f86d62cff99a4553cfedc0038991c393ddf2bd91a361d05b549438`.
-- In `D:\WitAquaBuild\out-evox` with `lineage_klimt-evox16-flash.bat`/`.sh`, `VERIFIED-evox16.txt`,
+- Formerly in `D:\WitAquaBuild\out-evox`; since 2026-10-15 the ZIP is in `D:\android_rom_building\to-delete\evox16-bootloop-image` and the rest in `diagnostics\builds\evox16\delivery`: `lineage_klimt-evox16-flash.bat`/`.sh`, `VERIFIED-evox16.txt`,
   `SHA256SUMS-evox16`, `RESULTS-evox16.json`, `COMPARISON-evox16.md` and `SOURCE-evox16.xml`.
 - The flash scripts check the ZIP hash and the `klimt` product, need `/flash` or `--flash`, run
   `fastboot update --skip-reboot` (data kept) and leave the reboot to you.
@@ -139,9 +139,9 @@ Restore: rebooted to the bootloader and flashed the verified evox15 ZIP (`63982b
 on slot b with no wipe. Exit 0, 0 errors, no erase. It booted in 36 s with no `system_server` crashes. evox16 never
 reached the lock screen, so the credential-encrypted user data was never unlocked by it.
 
-The device logs are kept locally in `C:\XiaomiBuilds\debug\evox16\device-bootloop-20261014\`: bugreport, full
+The device logs are kept locally in `D:\android_rom_building\diagnostics\builds\evox16\device-bootloop-20261014\`: bugreport, full
 logcat, crash and events buffers, the dropbox `system_server_crash` records and getprop. The flash logs are
-`C:\XiaomiBuilds\flash-evox16.log` and `flash-evox15-restore.log`.
+`diagnostics\builds\evox16\flash\flash-evox16.log` and `diagnostics\builds\evox15\flash\flash-evox15-restore.log`.
 
 ## Not tested on the phone
 

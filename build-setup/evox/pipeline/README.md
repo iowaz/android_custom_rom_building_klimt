@@ -81,6 +81,11 @@ python3 -B $P/promote.py evox18-attempt01 recheck01
 Run long commands through `start.sh` or a background shell; a process started with `setsid ... &` inside a
 one-off `wsl.exe` call can die when the call returns.
 
+The controller and the verifier refuse to run while another build or extraction is alive. They look for
+`soong_ui`, `soong_build`, `ninja` or `kati` processes, and for command lines like `build.sh evoxNN` or
+`verify-evoxNN.sh`. Do not give helper scripts names that match: evox18's first verification stopped because a
+progress watcher was called `watch-build.sh evox18-attempt01` (now `watch-attempt.sh`).
+
 ## Tests
 
 `python3 -B tests.py` (controller, gates, flash helpers) and `python3 -B image-checks/tests.py` (checker

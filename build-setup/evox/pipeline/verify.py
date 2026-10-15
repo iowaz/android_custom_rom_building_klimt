@@ -213,8 +213,8 @@ See COMPARISON.md and RESULTS.json for image/source evidence. `sha256sum -c SHA2
 ''')
     marker=BUILD+' static image checks passed (source/producer/archive/layout/AVB/kernel/policy/patch/private compatibility/install integrity). NOT boot-tested.\n'
     # This marker is written last, after every required image/provenance gate.
-    paths=sorted(p for p in dest.iterdir() if p.is_file())
-    sums={p.name:sha(p) for p in paths}
+    files=sorted(p for p in dest.iterdir() if p.is_file())
+    sums={p.name:sha(p) for p in files}
     sums['VERIFIED.txt']=hashlib.sha256(marker.encode()).hexdigest()
     (dest/'SHA256SUMS').write_text(''.join(sums[name]+'  '+name+'\n' for name in sorted(sums)))
     (report/'VERIFIED.txt').write_text(marker)

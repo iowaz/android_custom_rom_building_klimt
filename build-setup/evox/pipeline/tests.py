@@ -97,6 +97,21 @@ class Gates(unittest.TestCase):
             p=Path(tmp);self.fixture(p)
             f=p/'raw-musthold.txt';f.write_text(f.read_text().replace('mtk_drm_gateic_set_backlight','unknown_symbol'))
             with self.assertRaises(ValueError):gates.validate(p)
+    def test_no_module_shadowed_by_a_local(self):
+        # verify.py once assigned a local `paths`, which shadowed the paths module inside main() (evox18 recheck01).
+        modules={'paths','json','os','re','shutil','subprocess','sys','time','hashlib','zipfile'}
+        for f in B.glob('*.py'):
+            tree=ast.parse(f.read_text(),filename=str(f))
+            for fn in [n for n in ast.walk(tree) if isinstance(n,ast.FunctionDef)]:
+                stored={t.id for n in ast.walk(fn) for t in ([n] if isinstance(n,ast.Name) and isinstance(n.ctx,ast.Store) else [])}
+                self.assertFalse(stored&modules,(f.name,fn.name,stored&modules))
+    def test_no_windows_drive_paths(self):
+        # The legacy checks once called /mnt/c/XiaomiBuilds/... helpers that moved (evox18 recheck02).
+        # Locations come from paths.py (KLIMT_ROOT) or are relative to the script.
+        for f in [*B.glob('*.py'),*B.glob('*.sh'),*B.glob('legacy/*.sh'),*B.glob('image-checks/check_image.py')]:
+            if f.name in ('tests.py','paths.py'):continue
+            for n,line in enumerate(f.read_text().splitlines(),1):
+                self.assertNotRegex(line,r'/mnt/[a-z]/(?!android_rom_building)',f'{f.name}:{n}')
     def test_all_syntax(self):
         for f in B.rglob('*.sh'):subprocess.run(['bash','-n',str(f)],check=True)
         for f in B.glob('*.py'):ast.parse(f.read_text(),filename=str(f))

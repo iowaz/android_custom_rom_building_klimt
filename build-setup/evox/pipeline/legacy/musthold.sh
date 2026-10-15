@@ -24,7 +24,7 @@ sha256sum $U/XiaomiBuilds_vendor_boot_b/dtb ${EVOX_TMP}/evx_vb/dtb $U/b9_vendor_
 cmp $U/XiaomiBuilds_vendor_boot_b/dtb ${EVOX_TMP}/evx_vb/dtb && echo "vendor_boot dtb IDENTICAL to live slot b"
 sec "M6. Module CRCs vs Evo Module.symvers (vendor_dlkm + vendor_boot ramdisk + system_dlkm)"
 SYM=$O/obj/KERNEL_OBJ/Module.symvers; echo "Module.symvers: $(wc -l < $SYM) symbols"
-test ! -e ${EVOX_TMP}/evx_rd; mkdir -p ${EVOX_TMP}/evx_rd; for r in ${EVOX_TMP}/evx_vb/vendor_ramdisk*; do n=$(basename $r); mkdir -p ${EVOX_TMP}/evx_rd/$n; (lz4 -dc $r 2>/dev/null || gzip -dc $r) > ${EVOX_TMP}/evx_rd/$n.cpio; python3 /mnt/c/XiaomiBuilds/build-setup/cpio_extract.py ${EVOX_TMP}/evx_rd/$n.cpio ${EVOX_TMP}/evx_rd/$n >/dev/null; done
+test ! -e ${EVOX_TMP}/evx_rd; mkdir -p ${EVOX_TMP}/evx_rd; for r in ${EVOX_TMP}/evx_vb/vendor_ramdisk*; do n=$(basename $r); mkdir -p ${EVOX_TMP}/evx_rd/$n; (lz4 -dc $r 2>/dev/null || gzip -dc $r) > ${EVOX_TMP}/evx_rd/$n.cpio; python3 "$(dirname "$(realpath "$0")")/../../tools/cpio_extract.py" ${EVOX_TMP}/evx_rd/$n.cpio ${EVOX_TMP}/evx_rd/$n >/dev/null; done
 python3 - $SYM $E/fs/vendor_dlkm/lib/modules ${EVOX_TMP}/evx_rd $E/fs/system_dlkm <<'PY'
 import sys,os,struct,subprocess
 symvers={}

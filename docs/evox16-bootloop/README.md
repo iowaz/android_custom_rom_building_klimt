@@ -1,7 +1,7 @@
 # evox16 boot loop evidence
 
 Excerpts only. The full phone logs (bugreport, logcat, dropbox, getprop) stay on the build PC in
-`C:\XiaomiBuilds\debug\evox16\device-bootloop-20261014\` because they contain personal data.
+`D:\android_rom_building\diagnostics\builds\evox16\device-bootloop-20261014\` because they contain personal data.
 
 | File | What it shows |
 |---|---|

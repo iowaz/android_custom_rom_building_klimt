@@ -2,6 +2,9 @@
 # compacting the two build disks on the way, then attach them again under the same WSL names
 # (/mnt/wsl/build and /mnt/wsl/evox), so nothing inside WSL changes.
 # Written 2026-10-15. Log: D:\android_rom_building\diagnostics\logs\relocate-vhdx-<time>.log
+# Do not run again: it is the record of the one-time move. Its step 5 would move the swap back to D:, but since
+# the evening of 2026-10-15 the swap is on C: (C:\WSL\swap.vhdx) on purpose. To compact the disks, run only steps
+# 2, 3 and 7 (see docs/build-pc-layout.md).
 $ErrorActionPreference = 'Continue'
 $root = 'D:\android_rom_building'
 $vh = Join-Path $root 'vhdx-images'

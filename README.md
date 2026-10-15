@@ -93,7 +93,8 @@ is far too slow. Since 2026-10-15 everything on the Windows side is in one folde
 |---|---|---|---|
 | Source tree | `vhdx-images\source.vhdx` | `/mnt/wsl/evox/src`, logs in `/mnt/wsl/evox/logs` | ~165 GB of 200 GB |
 | Build output, ccache, reference images | `vhdx-images\build.vhdx` | `/mnt/wsl/build/evox-out` (`src/out` is a symlink to it), `/mnt/wsl/build/ccache`, `/mnt/wsl/build/compare` | ~270 GB of 480 GB |
-| The WSL distro and its swap | `vhdx-images\wsl-ubuntu-24.04\`, `vhdx-images\wsl-swap.vhdx` | `/` | |
+| The WSL distro | `vhdx-images\wsl-ubuntu-24.04\` | `/` | |
+| WSL's swap (on C:, a different drive from the build disks) | `C:\WSL\swap.vhdx` | | up to 48 GB |
 | This repository (the pipeline runs from it) | `repositories\android_custom_rom_building_klimt` | `/mnt/d/android_rom_building/repositories/...` | |
 | Readiness records, verifier reports, phone logs | `diagnostics\` | | |
 | Finished images (what you flash) | `output-zips\<build>\` | | ~5.4 GB per build |
@@ -107,7 +108,7 @@ is far too slow. Since 2026-10-15 everything on the Windows side is in one folde
 memory=28GB
 processors=12
 swap=48GB
-swapFile=D:\\android_rom_building\\vhdx-images\\wsl-swap.vhdx
+swapFile=C:\\WSL\\swap.vhdx
 
 [experimental]
 autoMemoryReclaim=gradual

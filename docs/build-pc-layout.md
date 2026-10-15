@@ -11,7 +11,7 @@ D:\android_rom_building\
   output-zips\<build>\    the image ZIP, its flash helpers, SHA256SUMS, VERIFIED.txt, RESULTS.json ...
   tools\platform-tools\   adb.exe, fastboot.exe (used by the flash helpers)
   tools\                  also miflash_unlock\ (6.5 and 7.6), ghostlock\, drivers\ (Xiaomi USB drivers)
-  vhdx-images\            source.vhdx (/mnt/wsl/evox), build.vhdx (/mnt/wsl/build), wsl-swap.vhdx,
+  vhdx-images\            source.vhdx (/mnt/wsl/evox), build.vhdx (/mnt/wsl/build),
                           wsl-ubuntu-24.04\ext4.vhdx (the distro)
   repositories\           this repository (the pipeline runs from it), the frozen-manifest repository,
                           a local clone of xiaomi-unlock-helper
@@ -21,6 +21,10 @@ D:\android_rom_building\
   scripts\                mount-disks.ps1, wsl-keepalive.ps1, watch-attempt.sh, one-time\ (this move)
   to-delete\              obsolete files that exist nowhere else; the owner deletes them
 ```
+
+The one exception is WSL's swap file, `C:\WSL\swap.vhdx` (`swapFile` in `%USERPROFILE%\.wslconfig`): it is on
+C: on purpose, a different drive from the build disks, so paging during the soong analysis does not compete with
+the build's I/O on D:. WSL creates the file when it is missing; it grows up to the 48 GB of `swap=`.
 
 The flash helpers in `output-zips\<build>` use `tools\platform-tools\fastboot.exe` (builds from evox18 on).
 After a reboot, `scripts\mount-disks.ps1` (elevated) attaches both build disks.
@@ -46,7 +50,7 @@ Done in this order (logs in `diagnostics\logs`, scripts in `scripts\one-time`):
    dynamic VHDX files with `diskpart compact vdisk`: `build.vhdx` went from 451.8 GB to 390.3 GB and
    `evox.vhdx` from 183.9 GB to 174.9 GB. It then moved them into `vhdx-images` (the source disk is now
    `source.vhdx`), moved the swap file and the distro (`wsl --manage --move`), and attached the disks again
-   under the same WSL names, so nothing inside WSL changed.
+   under the same WSL names, so nothing inside WSL changed. (The swap went back to C: that evening, see below.)
 3. **Exact duplicates removed** after a SHA-256 comparison:
    - four extra copies of the evox16 ZIP and three of the evox17 ZIP (the attempt and recheck copies, and the
      Codex session's copies);
@@ -58,15 +62,20 @@ Done in this order (logs in `diagnostics\logs`, scripts in `scripts\one-time`):
    - the klimt Codex sessions went to `diagnostics\codex-sessions`, and this repository and the
      frozen-manifest repository to `repositories` (`repo`'s manifest URL was updated);
    - unique but obsolete files went to `to-delete` (the evox16 boot-loop ZIP, the WitAqua v4.0 ZIP, evox16's
-     source bundles, the old `C:\XiaomiBuilds`, old platform-tools downloads), 17.4 GB for the owner to delete.
+     source bundles, the old `C:\XiaomiBuilds`, old platform-tools downloads), 17.4 GB, which the owner then
+     deleted.
 5. **After evox18, the last strays** (`reorganize-windows-phase-c.ps1`): `C:\tmp` (a device-diagnostics folder,
    an adb log, a GhostLock boot payload), `C:\xu\repo` (the xiaomi-unlock-helper clone), the Mi Unlock 7.6 tool
    and Xiaomi drivers from `Downloads`, and two more klimt Codex sessions. Each file was hash-checked at the
    destination before its source was removed; Mi Unlock 6.5 in `Downloads` was an exact copy and was removed.
+6. **The swap back to C:** (the owner's choice: a different drive from the build disks). `.wslconfig` now says
+   `swapFile=C:\\WSL\\swap.vhdx`; after `wsl --shutdown` WSL created the new file and attached 48 GB of swap,
+   and the old 48 GB `vhdx-images\wsl-swap.vhdx` was removed. (When WSL had started earlier that evening with
+   the file on D:, `/proc/swaps` was empty: it was running without swap.)
 
-Result: D: free space went from 47 GB to 71 GB, and C: gained about 94 GB: the swap file (48 GB) moved to D:,
-plus the duplicate ZIPs and the old copies. evox18's build, its ZIP and its extractions then took D: back to
-27.6 GB free (`build.vhdx` 425.8 GB, 251 GB used inside).
+Result: D: had 47 GB free before the reorganization and 93.2 GB at the end, after evox18's build, ZIP and
+extractions (which grew `build.vhdx` to 425.8 GB, 251 GB used inside), the deletion of `to-delete` and the
+swap's return to C:.
 
 **The compaction gain is temporary.** Both build disks are dynamic VHDX files. `fstrim` unmaps freed blocks and
 `diskpart compact vdisk` gives them back to D:, but the next build or image extraction writes to free blocks
@@ -74,9 +83,11 @@ again, and each newly written block grows the file. evox18's build and one extra
 about 30 GB. To keep D: from filling:
 - delete image extractions under `/mnt/wsl/build/compare/<build>` once a build is promoted, and do *not* run
   `fstrim` afterwards: blocks that stay allocated are reused without growing the file;
-- when D: does get tight, run the compaction part of
-  [`relocate-vhdx.ps1`](../build-setup/windows/relocate-vhdx.ps1) (elevated; it unmounts the disks) after
-  `fstrim`.
+- when D: does get tight, compact: `sudo fstrim -v /mnt/wsl/build /mnt/wsl/evox` in WSL, stop the keepalive,
+  then elevated `wsl --shutdown`, `diskpart` with `select vdisk file="<the .vhdx>"`, `attach vdisk readonly`,
+  `compact vdisk`, `detach vdisk` for each disk, and `scripts\mount-disks.ps1`. These are steps 2, 3 and 7 of
+  [`relocate-vhdx.ps1`](../build-setup/windows/relocate-vhdx.ps1). Do not run that whole script again: it
+  is the record of the one-time move, and its step 5 would put the swap back on D:.
 
 A build does not start below 45 GB free on D: (set by `ready.py`), and the verifier does not start below 38 GB.
 

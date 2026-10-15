@@ -1,0 +1,6 @@
+=== Thu Oct 15 07:27:13 -03 2026 fastboot update --skip-reboot lineage_klimt-evox17-img.zip (no -w, slot b)
+Finished. Total time: 261.741s
+=== exit 0
+current-slot: b
+=== Thu Oct 15 07:31:47 -03 2026 fastboot reboot
+boot_completed=1 after 48s

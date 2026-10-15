@@ -1,7 +1,8 @@
 # evox17: Evolution X 12.3 with only what klimt needs
 
-Status on 2026-10-15: built and image-checked (`evox17-attempt01`, verifier recheck `recheck01`). **Not
-boot-tested.** Flash it only with the evox15 ZIP ready to restore (see [Before calling it ready](#before-calling-it-ready)).
+Status on 2026-10-15: built and image-checked (`evox17-attempt01`, verifier recheck `recheck01`), then
+**dirty-flashed to slot b, where it boots** (see [First boot on the phone](#first-boot-on-the-phone)). The hands-on
+checks (calls, camera, fingerprint, AOD) are still to do.
 
 evox17 is what evox16 should have been: Evolution X 12.3 (`cnb`, Android 17, `CP2A.260605.016`) with the evox15
 device setup and nothing else. It follows the [evox16 review](evox16-review.md).
@@ -116,13 +117,40 @@ The installed APK lists differ only by upstream changes. 461 APKs in evox15 and 
     `COMPARISON-evox17.md`, `SOURCE-evox17.xml`, `README-evox17.md`.
 - `BOOTLOOPS-DO-NOT-FLASH-evox16.txt` sits next to the evox16 files.
 
+## First boot on the phone
+
+On 2026-10-15 at 07:27 Sao Paulo, `lineage_klimt-evox17-img.zip` was flashed over evox15
+(`EvolutionX-17.0-20261012-klimt-12.2`) on slot b with `fastboot update --skip-reboot`, without `-w`
+([flash log](evox17-firstboot/flash.txt)): exit 0, 0 errors, no erase, slot still b. The evox15 ZIP was checked
+(`63982b33…3f90a`) and kept ready to restore.
+
+- `sys.boot_completed=1` **48 s** after the reboot. The build is `EvolutionX-17.0-20261015-klimt-12.3`, verified
+  boot is green and the user data is intact: the user unlocked, and there are 706 packages (705 before; the image
+  has one more APK).
+- `system_server` kept the same PID for the first five minutes. There are no crashes, no new tombstones and no
+  dropbox entries.
+- **Telecom:** `/system/priv-app/TelecomShim/TelecomShim.apk` is the only `com.android.server.telecom`.
+  `dumpsys telecom` reports `Init Path: On mainline`, and no "incorrect interface" line appears in the logs
+  ([output](evox17-firstboot/telecom.txt)).
+- **Radio:** the SIM in slot 2 is loaded and in service on LTE, with IMS registered. Mobile data and Wi-Fi
+  networks are up.
+- **Other hardware:** 8 cameras listed; the fingerprint provider and the UDFPS wake sensor are present; charging
+  over USB; SELinux enforcing.
+- **SurfaceFlinger:** 0 "Mapper error" lines, so the SMPTE 2094-50 guard works.
+- **SELinux denials** ([checks](evox17-firstboot/phonecheck-t5min.txt)) are the known ones: MiSys reading
+  `vendor_mtkcam_prop` (an open item since evox14) and apps probing for root. The `gesture_prop` denial is from
+  `adb shell getprop`, which may not read that property; TouchBridge itself is running.
+
+The full logs (logcat, events, dropbox, getprop) stay on the build PC in
+`C:\XiaomiBuilds\debug\evox17\device-firstboot-20261015\`.
+
 ## Before calling it ready
 
-Flash it to slot b with no wipe, as before, with `lineage_klimt-evox15-img.zip` ready to restore. Then check, in
-order:
+Items 1 and 2 passed on the first boot; the rest needs hands-on testing.
 
 1. `adb shell getprop sys.boot_completed` returns 1;
 2. `system_server` stays up. `adb shell pm list packages -f com.android.server.telecom` shows
    `/system/priv-app/TelecomShim/TelecomShim.apk` only, and logcat has no "incorrect interface" crash;
-3. the lock screen unlocks; calls, SMS, mobile data, SIM/eSIM;
-4. graphics, video and camera; fingerprint, AOD and double tap; Wi-Fi and Bluetooth; charging.
+3. the lock screen unlocks; calls (in and out, VoLTE), SMS, mobile data, SIM/eSIM;
+4. graphics, video and camera (including the video lens switch); fingerprint, AOD and double tap to wake;
+   Wi-Fi and Bluetooth audio; charging and its time estimate.

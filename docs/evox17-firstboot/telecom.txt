@@ -1,0 +1,7 @@
+Init Path: On mainline
+TelecomUI package: com.android.server.telecomui
+CallsManager: 
+package:/apex/com.android.telephonycore/priv-app/TelecomServiceResources@CP2A.260605.016/TelecomServiceResources.apk=com.android.server.telecom.resources
+package:/system/priv-app/TelecomShim/TelecomShim.apk=com.android.server.telecom
+package:/product/overlay/PixelTelecom.apk=com.android.server.telecom.auto_generated_rro_product___gms
+package:/apex/com.android.telephonycore/priv-app/TelecomUi@CP2A.260605.016/TelecomUi.apk=com.android.server.telecomui

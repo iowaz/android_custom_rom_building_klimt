@@ -1,0 +1,40 @@
+uptime:  07:37:08 up 5 min,  0 users,  load average: 19.76, 17.72, 8.63
+system_server pid: 1735
+boot_completed=1 ce_available=true lockscreen_shown=mDreamingLockscreen=false
+--- radio
+sim.state=ABSENT,LOADED network.type=Unknown,LTE operator.numeric_present=yes
+    mServiceState={mVoiceRegState=3(POWER_OFF),...}
+    mSignalStrength=SignalStrength:{mCdma=CellSignalStrengthCdma: cdmaDbm=2147483647 cdmaEcio=2147483647 evdoDbm=2147483647 evdoEcio=2147483647 evdoSnr=21474836
+    mDataConnectionState=-1
+    mServiceState={mVoiceRegState=0(IN_SERVICE),...}
+ims:  2
+  network 100 CELLULAR
+  network 101 CELLULAR
+  network 102 WIFI
+--- wifi / bluetooth
+Wifi is enabled
+Wifi scanning is always available
+==== Primary ClientModeManager instance ====
+      optional_codecs_enabled: true
+      optional_codecs_enabled: true
+--- camera / fingerprint / sensors
+Number of camera devices: 8
+Dumping for sensorId: 5, provider: FingerprintProvider
+#3     authStartedFor(userId=0, sensorId=5, requestId=1)
+#5     authEndedFor(userId=0 ,biometricStrength=15, sensorId=5, requestId=1, wasSuccessful=false)
+Total 49 h/w sensors, 49 running 4 disabled clients:
+0x03000001) UDFPS Sensor              | The LineageOS Project | ver: 1 | type: org.lineageos.sensor.udfps(65539) | perm: n/a | flags: 0x00000005
+--- battery / health
+  AC powered: false
+  USB powered: true
+  status: 2
+  level: 30
+  temperature: 345
+  Capacity level: 3
+--- display / doze
+doze_always_on=0 double_tap_to_wake=1 persist.sys.tap_gesture.dt2w=
+--- selinux / noise
+enforce=Enforcing
+avc denials since boot: 584
+Mapper error lines since boot: 0
+crashes: 0 fatal, tombstones: 2

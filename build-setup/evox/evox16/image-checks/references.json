@@ -1,0 +1,655 @@
+{
+  "schema": 1,
+  "private_route": [
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/system/lib64/libcamera_mianode_jni.xiaomi.so",
+      "size": 84416,
+      "sha256": "a16c2b4c138b8e1562661ed233d93d35bced138ce85c5c88e01129df2ba38ebb"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/system_ext/etc/bluetooth_audio_policy_configuration.xml",
+      "size": 2099,
+      "sha256": "877d8745fe542a2e1070d773d64c7c6b3d03168679d3d8355dd8ee283c5ec884"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/etc/bluetooth_audio_policy_configuration.xml",
+      "size": 3161,
+      "sha256": "23b8ed90e41a3bc419e5e06cdee6afc635aef78216306d9c652afc1994d644c6"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/vendor.mediatek.hardware.bluetooth.audio@2.2.so",
+      "size": 171752,
+      "sha256": "02a5acb8dbd89a64fefd066066fe82e100a8330f83989c6f8fd757aff3a38be0"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libwifi-hal-mtk.so",
+      "size": 346737,
+      "sha256": "2301ee01ba86f396b656ceb377ca70353d510820b882a74dfeb056cdf4ecbbb1"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libbluetooth_audio_session_aidl_mtk.so",
+      "size": 499801,
+      "sha256": "eb1ddb638370785667431773c65bc0aa27c1e8001122bc9dd11cea044fe6934c"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/vendor.mediatek.hardware.bluetooth.audio-V1-ndk.so",
+      "size": 305049,
+      "sha256": "c847c2e7d77d97d64b42ccf1830060e8edf803dd097f9b8c290ddf8f0cb8aa5f"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libaudio_aidl_conversion_common_ndk_vendor.so",
+      "size": 420321,
+      "sha256": "b672df2a09c3069fa8221e6a774d1f9c5ca231dbe5d807bdaacce150870e8d9c"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libui_vendor.so",
+      "size": 523929,
+      "sha256": "1732fa77f933371672cb3b0a2ec0452e7d69e33b42ada7ead40554fb121d7e65"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/android.hardware.bluetooth.audio-impl-mediatek.so",
+      "size": 432265,
+      "sha256": "6bf296e51f16c951687edec04970df4171e6f488c614540397d4560eca20f321"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/vendor.mediatek.hardware.bluetooth.audio@2.1.so",
+      "size": 238320,
+      "sha256": "44dd1373470c2419b29bccbbd5d1425df461d33d95f08c766c79f1df2b1d2398"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/android.hardware.bluetooth.audio_v4_vendor.so",
+      "size": 580529,
+      "sha256": "2fe2e0199d20c433213a3935bbdf32d62a40e3dbf55570055db5fc221cbe6a97"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libbluetooth_audio_session_mediatek.so",
+      "size": 135384,
+      "sha256": "222401d60858cfd79e684d6d04f6748fcc973f819dd3751048711bc9a38a2e03"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/hw/vendor.mediatek.hardware.bluetooth.audio@2.1-impl.so",
+      "size": 152137,
+      "sha256": "d9916ccfb624ccd5493545a0dc966c9ad402ea6d5f9e09d0d423e0bf47508eab"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/hw/vendor.mediatek.hardware.bluetooth.audio@2.2-impl.so",
+      "size": 235577,
+      "sha256": "05b0958d03b90d100e6e0966e1693be1be0954773e892a91b850a30cc94cd2bb"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/product/priv-app/MIUIEsimLPA/MIUIEsimLPA.apk",
+      "size": 9096417,
+      "sha256": "9daa20d489168264109d68532d27857a9eef7d7ce72199c565afb6b96d2e6b4f"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/odm/etc/camera/mialgo_capture_bokeh_depth_cl.bin",
+      "size": 36405,
+      "sha256": "bec327efdcc8f77cb03702f531cb1808f246d2cbc2604f5b213141853ab38c09"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/odm/etc/camera/mialgo_sdsr_cl.bin",
+      "size": 125004,
+      "sha256": "0d24ddb030e0f72e875efb06e1c9522717bcef6f0585ad7c8b16e5a3fe8f96c3"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/odm/etc/camera/mialgo_computation_optics_cl.bin",
+      "size": 27654,
+      "sha256": "eb109f36cb5e8566348340584b8f553afeb81000adb4376dc90793857fdfa7a4"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/odm/lib64/camera/plugins/streaming/com.xiaomi.plugin.mihisv2.so",
+      "size": 311928,
+      "sha256": "4a4fe8a0b6ca0bcc57b5045da37ca6ad64e52f4ee889a2dcefde23d09836329a"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/odm/lib64/camera/plugins/streaming/com.xiaomi.plugin.mihisv3.so",
+      "size": 301024,
+      "sha256": "6d132cfbe480f18a711a968975c1764e21442f42650ef27a0471cd1fde64db6d"
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/odm/lib64/camera/plugins/streaming/com.xiaomi.plugin.mihisv1.so",
+      "size": 300888,
+      "sha256": "2cf456c2d6318faf06d84c408c05e6912f5771a6a2b2926f2e3b2b4125d6748b"
+    }
+  ],
+  "private_elf": [
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/system/lib64/libcamera_mianode_jni.xiaomi.so",
+      "size": 84416,
+      "sha256": "a16c2b4c138b8e1562661ed233d93d35bced138ce85c5c88e01129df2ba38ebb",
+      "readelf_ok": true,
+      "needed": [
+        "libbinder.so",
+        "libcamera_client.so",
+        "libcamera_metadata.so",
+        "libcutils.so",
+        "libgui.so",
+        "liblog.so",
+        "libutils.so",
+        "libvndksupport.so",
+        "libxml2.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "6a2e012e10f546a8df1cc6e153bc7439"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/vendor.mediatek.hardware.bluetooth.audio@2.2.so",
+      "size": 171752,
+      "sha256": "02a5acb8dbd89a64fefd066066fe82e100a8330f83989c6f8fd757aff3a38be0",
+      "readelf_ok": true,
+      "needed": [
+        "android.hardware.audio.common@5.0.so",
+        "vendor.mediatek.hardware.bluetooth.audio@2.1.so",
+        "android.hidl.safe_union@1.0.so",
+        "libhidlbase.so",
+        "liblog.so",
+        "libutils.so",
+        "libcutils.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "edb026a2e1461c5aba98b0a59b44fd7d"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libwifi-hal-mtk.so",
+      "size": 346737,
+      "sha256": "2301ee01ba86f396b656ceb377ca70353d510820b882a74dfeb056cdf4ecbbb1",
+      "readelf_ok": true,
+      "needed": [
+        "libbase.so",
+        "libcutils.so",
+        "liblog.so",
+        "libnl.so",
+        "libutils.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "bce169300d80cf59aa200d0af854a0a7"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libbluetooth_audio_session_aidl_mtk.so",
+      "size": 499801,
+      "sha256": "eb1ddb638370785667431773c65bc0aa27c1e8001122bc9dd11cea044fe6934c",
+      "readelf_ok": true,
+      "needed": [
+        "android.hardware.bluetooth.audio_v4_vendor.so",
+        "android.hardware.bluetooth.audio@2.0.so",
+        "android.hardware.bluetooth.audio@2.1.so",
+        "libbase.so",
+        "libcutils.so",
+        "libbinder_ndk.so",
+        "libfmq.so",
+        "liblog.so",
+        "vendor.mediatek.hardware.bluetooth.audio-V1-ndk.so",
+        "libhidlbase.so",
+        "libxml2.so",
+        "libflatbuffers-cpp.so",
+        "server_configurable_flags.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "b6f4123722ffe4453724b7792ca2b309"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/vendor.mediatek.hardware.bluetooth.audio-V1-ndk.so",
+      "size": 305049,
+      "sha256": "c847c2e7d77d97d64b42ccf1830060e8edf803dd097f9b8c290ddf8f0cb8aa5f",
+      "readelf_ok": true,
+      "needed": [
+        "libbinder_ndk.so",
+        "android.hardware.common-V2-ndk.so",
+        "android.hardware.common.fmq-V1-ndk.so",
+        "android.hardware.audio.common_v3_vendor.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "9f2ae4459afbaf3b14b31cf46140e989"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libaudio_aidl_conversion_common_ndk_vendor.so",
+      "size": 420321,
+      "sha256": "b672df2a09c3069fa8221e6a774d1f9c5ca231dbe5d807bdaacce150870e8d9c",
+      "readelf_ok": true,
+      "needed": [
+        "android.media.audio.common.types_v5_vendor.so",
+        "android.hardware.audio.common_v3_vendor.so",
+        "liblog.so",
+        "libstagefright_foundation.so",
+        "libutils.so",
+        "libbase.so",
+        "libbinder_ndk.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "b6ac4ef67d7de154a9c96a4797b489c7"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libui_vendor.so",
+      "size": 523929,
+      "sha256": "1732fa77f933371672cb3b0a2ec0452e7d69e33b42ada7ead40554fb121d7e65",
+      "readelf_ok": true,
+      "needed": [
+        "android.hardware.graphics.common-V7-ndk.so",
+        "android.hardware.graphics.allocator-V2-ndk.so",
+        "android.hardware.graphics.allocator@2.0.so",
+        "android.hardware.graphics.allocator@3.0.so",
+        "android.hardware.graphics.allocator@4.0.so",
+        "android.hardware.graphics.common@1.2.so",
+        "android.hardware.graphics.mapper@2.0.so",
+        "android.hardware.graphics.mapper@2.1.so",
+        "android.hardware.graphics.mapper@3.0.so",
+        "android.hardware.graphics.mapper@4.0.so",
+        "libbase.so",
+        "libbinder_ndk.so",
+        "libcutils.so",
+        "libgralloctypes.so",
+        "libhidlbase.so",
+        "libsync.so",
+        "libutils.so",
+        "liblog.so",
+        "libvndksupport.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "8ec8479af4f2e75fae5bf0f6ce04c24d"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/android.hardware.bluetooth.audio-impl-mediatek.so",
+      "size": 432265,
+      "sha256": "6bf296e51f16c951687edec04970df4171e6f488c614540397d4560eca20f321",
+      "readelf_ok": true,
+      "needed": [
+        "android.hardware.bluetooth.audio_v4_vendor.so",
+        "libbase.so",
+        "libbinder_ndk.so",
+        "libcutils.so",
+        "libfmq.so",
+        "liblog.so",
+        "libbluetooth_audio_session_aidl_mtk.so",
+        "vendor.mediatek.hardware.bluetooth.audio-V1-ndk.so",
+        "vendor.mediatek.hardware.bluetooth.audio@2.1.so",
+        "vendor.mediatek.hardware.bluetooth.audio@2.2.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "35480de057b346b7bdaa0381c3a50b03"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/vendor.mediatek.hardware.bluetooth.audio@2.1.so",
+      "size": 238320,
+      "sha256": "44dd1373470c2419b29bccbbd5d1425df461d33d95f08c766c79f1df2b1d2398",
+      "readelf_ok": true,
+      "needed": [
+        "android.hardware.audio.common@5.0.so",
+        "android.hidl.safe_union@1.0.so",
+        "libhidlbase.so",
+        "liblog.so",
+        "libutils.so",
+        "libcutils.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "6c80ace2c679f2169044bb893dc92587"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/android.hardware.bluetooth.audio_v4_vendor.so",
+      "size": 580529,
+      "sha256": "2fe2e0199d20c433213a3935bbdf32d62a40e3dbf55570055db5fc221cbe6a97",
+      "readelf_ok": true,
+      "needed": [
+        "libbinder_ndk.so",
+        "android.hardware.audio.common_v3_vendor.so",
+        "android.hardware.common-V2-ndk.so",
+        "android.hardware.common.fmq-V1-ndk.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "ce542adf6a0ccb5fe482a181516b4cc2"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/libbluetooth_audio_session_mediatek.so",
+      "size": 135384,
+      "sha256": "222401d60858cfd79e684d6d04f6748fcc973f819dd3751048711bc9a38a2e03",
+      "readelf_ok": true,
+      "needed": [
+        "vendor.mediatek.hardware.bluetooth.audio@2.1.so",
+        "vendor.mediatek.hardware.bluetooth.audio@2.2.so",
+        "libbase.so",
+        "libcutils.so",
+        "libfmq.so",
+        "libhidlbase.so",
+        "liblog.so",
+        "libutils.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "3d16d2db0bb72543841e2607edbc4302"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/hw/vendor.mediatek.hardware.bluetooth.audio@2.1-impl.so",
+      "size": 152137,
+      "sha256": "d9916ccfb624ccd5493545a0dc966c9ad402ea6d5f9e09d0d423e0bf47508eab",
+      "readelf_ok": true,
+      "needed": [
+        "android.hardware.bluetooth.audio_v4_vendor.so",
+        "vendor.mediatek.hardware.bluetooth.audio@2.1.so",
+        "vendor.mediatek.hardware.bluetooth.audio-V1-ndk.so",
+        "libbase.so",
+        "libbluetooth_audio_session_mediatek.so",
+        "libcutils.so",
+        "libfmq.so",
+        "libhidlbase.so",
+        "liblog.so",
+        "libutils.so",
+        "libhardware.so",
+        "android.hardware.audio@6.0.so",
+        "android.hardware.audio.common@6.0.so",
+        "android.hardware.audio.common@6.0-util.so",
+        "vendor.mediatek.hardware.audio@6.1.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "5b1533a4a26f0da28a8a94c0ff2f88ca"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/vendor/lib64/hw/vendor.mediatek.hardware.bluetooth.audio@2.2-impl.so",
+      "size": 235577,
+      "sha256": "05b0958d03b90d100e6e0966e1693be1be0954773e892a91b850a30cc94cd2bb",
+      "readelf_ok": true,
+      "needed": [
+        "android.hardware.bluetooth.audio_v4_vendor.so",
+        "vendor.mediatek.hardware.bluetooth.audio@2.1.so",
+        "vendor.mediatek.hardware.bluetooth.audio@2.2.so",
+        "vendor.mediatek.hardware.bluetooth.audio-V1-ndk.so",
+        "libbase.so",
+        "libbluetooth_audio_session_mediatek.so",
+        "libcutils.so",
+        "libfmq.so",
+        "libhidlbase.so",
+        "liblog.so",
+        "libutils.so",
+        "libhardware.so",
+        "android.hardware.audio@6.0.so",
+        "android.hardware.audio.common@6.0.so",
+        "android.hardware.audio.common@6.0-util.so",
+        "vendor.mediatek.hardware.audio@6.1.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "d5885b8697d1662b6330284ffe688cbb"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/odm/lib64/camera/plugins/streaming/com.xiaomi.plugin.mihisv2.so",
+      "size": 311928,
+      "sha256": "4a4fe8a0b6ca0bcc57b5045da37ca6ad64e52f4ee889a2dcefde23d09836329a",
+      "readelf_ok": true,
+      "needed": [
+        "libcutils.so",
+        "liblog.so",
+        "libutils.so",
+        "libcamera_metadata.so",
+        "libcom.xiaomi.pluginutils.so",
+        "libcom.xiaomi.metadatautils.so",
+        "libcom.xiaomi.debug.so",
+        "com.xiaomi.camdfx.so",
+        "libcamlog.so",
+        "libmtkcam_metadata.so",
+        "libHISCppAlgos.so",
+        "libhis_motion_tracker.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "30ee8f4f63103efcd6f66558e345682c"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/odm/lib64/camera/plugins/streaming/com.xiaomi.plugin.mihisv3.so",
+      "size": 301024,
+      "sha256": "6d132cfbe480f18a711a968975c1764e21442f42650ef27a0471cd1fde64db6d",
+      "readelf_ok": true,
+      "needed": [
+        "libcutils.so",
+        "liblog.so",
+        "libutils.so",
+        "libcamera_metadata.so",
+        "libcom.xiaomi.pluginutils.so",
+        "libcom.xiaomi.metadatautils.so",
+        "libcom.xiaomi.debug.so",
+        "com.xiaomi.camdfx.so",
+        "libcamlog.so",
+        "libmtkcam_metadata.so",
+        "libHISCppAlgos.so",
+        "libhis_motion_tracker.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "d9b6d4948584272d2f46f09b8cf00d30"
+      ]
+    },
+    {
+      "path": "vendor/xiaomi/klimt/proprietary/odm/lib64/camera/plugins/streaming/com.xiaomi.plugin.mihisv1.so",
+      "size": 300888,
+      "sha256": "2cf456c2d6318faf06d84c408c05e6912f5771a6a2b2926f2e3b2b4125d6748b",
+      "readelf_ok": true,
+      "needed": [
+        "libcutils.so",
+        "liblog.so",
+        "libutils.so",
+        "libcamera_metadata.so",
+        "libcom.xiaomi.pluginutils.so",
+        "libcom.xiaomi.metadatautils.so",
+        "libcom.xiaomi.debug.so",
+        "com.xiaomi.camdfx.so",
+        "libcamlog.so",
+        "libmtkcam_metadata.so",
+        "libHISCppAlgos.so",
+        "libhis_motion_tracker.so",
+        "libc++.so",
+        "libc.so",
+        "libm.so",
+        "libdl.so"
+      ],
+      "buildid": [
+        "9b7a12a4b4b68c2ae342e879bac967c6"
+      ]
+    }
+  ],
+  "libcore_baseline_tree": "7f09cc02c767a52ef3b0f46e1c68b532513ffaac",
+  "allocator_legacy_files": {
+    "BufferAllocator_legacy.cpp": "201016a821d71133707698d477372dc74a80a11a5d99cc0c7041f2752eff8cde",
+    "BufferAllocatorWrapper_legacy.cpp": "e9798ff788392f92bb6a7e4716c15b6f40aa8fc714c4e158dced49d1a53215e4",
+    "include_legacy/BufferAllocator/BufferAllocator.h": "c7a68f28c433ff96ee500565cd8a934e426fa7443e2e23195edbb374da8e6e0d",
+    "include_legacy/BufferAllocator/BufferAllocatorWrapper.h": "0f43b50b495b33025b52bd56d010f78a8a1be68314040bcbf6b35ada71a57de0",
+    "include_legacy/BufferAllocator/dmabufheap-defs.h": "0805e89e90eafbf58d4782e47e09ed4cd87261a2a604651f1421bfe9922fe7db"
+  },
+  "health_sources": {
+    "device/xiaomi/klimt/health/main.cpp": "0aa7682004bd8a368f8899784cfa55e9907e56d4bb27c37682f00857f10845b1",
+    "device/xiaomi/klimt/health/Current.h": "3efd83214dd8e555e9b5f8991eab468e3291936619f3f66628588e1c065a5837"
+  },
+  "policy_reference": [
+    {
+      "name": "normal",
+      "reference": "/mnt/wsl/evox/src/out/soong/.intermediates/system/sepolicy/precompiled_sepolicy/android_common/klimt/precompiled_sepolicy",
+      "sha256": "ff90a9797e789c97212603fc69ff73538fb8d80aeaabc4e1bc1e06fe7919717f",
+      "permissive_domains": [],
+      "analyzer_sha256": "10cf86f3d15df9aa41a51b67430666a35ed5863e248734ca8bb6e8d5cc3488a7",
+      "source_image": "verified Evox15 output, captured before Evox16 module compilation"
+    },
+    {
+      "name": "recovery",
+      "reference": "/mnt/wsl/evox/src/out/target/product/klimt/recovery/root/sepolicy",
+      "sha256": "04ea92c75b6b79c15867c8b1fffc5660c4ca711f02cfeea0a41db89cd95793fd",
+      "permissive_domains": [],
+      "analyzer_sha256": "10cf86f3d15df9aa41a51b67430666a35ed5863e248734ca8bb6e8d5cc3488a7",
+      "source_image": "verified Evox15 output, captured before Evox16 module compilation"
+    }
+  ],
+  "policy_reference_file_sha256": "8618ade23b2b0be7589bb79ecd38dab999fb8eaf4433915d95cd847ffe8f3f43",
+  "obsolete_installed_artifacts": [
+    {
+      "module": "SetupWizardPrebuilt_versioned",
+      "relative": "product/priv-app/SetupWizardPrebuilt_versioned/SetupWizardPrebuilt_versioned.apk",
+      "baseline_sha256": "b674ee1303773bcec4898eb080e26d3456e0d480a440a5bab4f825b9e442ce86",
+      "kind": "apk"
+    },
+    {
+      "module": "GoogleRestorePrebuilt-v1068888",
+      "relative": "product/priv-app/GoogleRestorePrebuilt-v1068888/GoogleRestorePrebuilt-v1068888.apk",
+      "baseline_sha256": "8aabf9b62a2ce64e1ad1f1281722354794089cf002b07805d4856ab1fd806afd",
+      "kind": "apk"
+    },
+    {
+      "module": "pixel-haptics-override",
+      "relative": "system_ext/etc/sysconfig/pixel-haptics-override.xml",
+      "baseline_sha256": "a7b4f46d8a019ef564b142c3519134f0362052e0cfe6228e4e88042b4d26c735",
+      "kind": "xml"
+    },
+    {
+      "module": "privapp-permissions-com.google.android.pixelsystemservice",
+      "relative": "system_ext/etc/permissions/privapp-permissions-com.google.android.pixelsystemservice.xml",
+      "baseline_sha256": "66921ca53ad42a48ec2959685418cd41e719aebfb135f4d191b42732845a4bd3",
+      "kind": "xml"
+    },
+    {
+      "module": "PersistentBackgroundServices",
+      "relative": "system_ext/priv-app/PersistentBackgroundServices/PersistentBackgroundServices.apk",
+      "baseline_sha256": "ff7c9547932a61a3e623ea1b2c835cc0b50759c166fd0d3a8ddcf0a307c87e48",
+      "kind": "apk"
+    },
+    {
+      "module": "DeviceConnectivityServicePrebuilt_26.03.00",
+      "relative": "system_ext/priv-app/DeviceConnectivityServicePrebuilt_26.03.00/DeviceConnectivityServicePrebuilt_26.03.00.apk",
+      "baseline_sha256": "2e5ac8968513b9d4398c76a4c612c5bc81c85c8795a320bab959fb4dba447eb4",
+      "kind": "apk"
+    },
+    {
+      "module": "SetupWizardPixelPrebuilt_versioned",
+      "relative": "system_ext/priv-app/SetupWizardPixelPrebuilt_versioned/SetupWizardPixelPrebuilt_versioned.apk",
+      "baseline_sha256": "82dbe70ddf19a027b11a51f11a8da227cda2a098ecc861c3a04ccb5f27d6663f",
+      "kind": "apk"
+    }
+  ],
+  "removed_gms_modules": [
+    "DeviceConnectivityServicePrebuilt_26.03.00",
+    "GoogleRestorePrebuilt-v1068888",
+    "PersistentBackgroundServices",
+    "SetupWizardPixelPrebuilt_versioned",
+    "SetupWizardPrebuilt_versioned",
+    "pixel-haptics-override",
+    "privapp-permissions-com.google.android.pixelsystemservice"
+  ],
+  "obsolete_artifact_baseline_capture": {
+    "reference": "Accepted Evox15 extraction measured read-only by root through persistent system shell; no candidate output assessed",
+    "filesystem": "/mnt/wsl/build/compare/evox/fs",
+    "accepted_marker_sha256": "6dd8e16a8f0485c8540fc235ff84daf803757c75428a02e82352b810ba2a9d83",
+    "baseline_gms_head": "ccd9f9a924cd7cc35ae648f90dac26ff3bb954be",
+    "reviewed_gms_target": "3e0987a856ee8bdd21b9ff1983a8e182873a64ad",
+    "removed_module_review_sha256": "bae0f231c5cc6ee8e767764ac41fe328dd2f396365818425d676898f98fb45d3",
+    "artifacts": [
+      {
+        "module": "SetupWizardPrebuilt_versioned",
+        "relative": "product/priv-app/SetupWizardPrebuilt_versioned/SetupWizardPrebuilt_versioned.apk",
+        "baseline_sha256": "b674ee1303773bcec4898eb080e26d3456e0d480a440a5bab4f825b9e442ce86",
+        "kind": "apk"
+      },
+      {
+        "module": "GoogleRestorePrebuilt-v1068888",
+        "relative": "product/priv-app/GoogleRestorePrebuilt-v1068888/GoogleRestorePrebuilt-v1068888.apk",
+        "baseline_sha256": "8aabf9b62a2ce64e1ad1f1281722354794089cf002b07805d4856ab1fd806afd",
+        "kind": "apk"
+      },
+      {
+        "module": "pixel-haptics-override",
+        "relative": "system_ext/etc/sysconfig/pixel-haptics-override.xml",
+        "baseline_sha256": "a7b4f46d8a019ef564b142c3519134f0362052e0cfe6228e4e88042b4d26c735",
+        "kind": "xml"
+      },
+      {
+        "module": "privapp-permissions-com.google.android.pixelsystemservice",
+        "relative": "system_ext/etc/permissions/privapp-permissions-com.google.android.pixelsystemservice.xml",
+        "baseline_sha256": "66921ca53ad42a48ec2959685418cd41e719aebfb135f4d191b42732845a4bd3",
+        "kind": "xml"
+      },
+      {
+        "module": "PersistentBackgroundServices",
+        "relative": "system_ext/priv-app/PersistentBackgroundServices/PersistentBackgroundServices.apk",
+        "baseline_sha256": "ff7c9547932a61a3e623ea1b2c835cc0b50759c166fd0d3a8ddcf0a307c87e48",
+        "kind": "apk"
+      },
+      {
+        "module": "DeviceConnectivityServicePrebuilt_26.03.00",
+        "relative": "system_ext/priv-app/DeviceConnectivityServicePrebuilt_26.03.00/DeviceConnectivityServicePrebuilt_26.03.00.apk",
+        "baseline_sha256": "2e5ac8968513b9d4398c76a4c612c5bc81c85c8795a320bab959fb4dba447eb4",
+        "kind": "apk"
+      },
+      {
+        "module": "SetupWizardPixelPrebuilt_versioned",
+        "relative": "system_ext/priv-app/SetupWizardPixelPrebuilt_versioned/SetupWizardPixelPrebuilt_versioned.apk",
+        "baseline_sha256": "82dbe70ddf19a027b11a51f11a8da227cda2a098ecc861c3a04ccb5f27d6663f",
+        "kind": "apk"
+      }
+    ],
+    "retained_filter_match": "system_ext/etc/sysconfig/preinstalled-packages-pixelsystemservice.xml",
+    "themeicons_known_installed_paths": [],
+    "themeicons_limit": "No IconPack or ThemeIcons name match was present in the accepted extraction; no unproven old install path is asserted."
+  }
+}

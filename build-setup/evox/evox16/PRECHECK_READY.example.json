@@ -1,0 +1,18 @@
+{
+  "approved": false,
+  "approval_scope": "evox16-p5-module-precheck",
+  "target": "lineage_klimt-cp2a-user",
+  "runtime_unvalidated": true,
+  "snapshot": "ROOT_MUST_SUPPLY_FROZEN_XML_PATH",
+  "sha256": "ROOT_MUST_SUPPLY_EXACT_XML_SHA256",
+  "reviewed_project_heads": {},
+  "excluded_heads": {},
+  "static_checks": [
+    {"name": "root-reviewed static inputs and tooling", "pass": false, "evidence": "ROOT_MUST_SUPPLY_REVIEW_EVIDENCE"}
+  ],
+  "modules": [],
+  "pending_module_gates": [{"name": "root-selected focused compiler gates", "status": "pending"}],
+  "public_certificate_sha256": {},
+  "minimum_start_gib": {"host": null, "source": null, "output": null},
+  "emergency_minimum_gib": {"host": 10, "source": 2, "output": 2}
+}

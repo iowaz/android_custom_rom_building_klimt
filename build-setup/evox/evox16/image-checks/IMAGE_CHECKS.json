@@ -1,0 +1,62 @@
+[
+  {
+    "name": "evox16-policy",
+    "script_sha256": "62c7bb5a8087b080f011e1a31bcfce1bbd6b550d2a125d432153c90398248b0a",
+    "argv": [
+      "python3",
+      "/mnt/c/XiaomiBuilds/build-setup/evox/evox16/image-checks/check_image.py",
+      "policy"
+    ],
+    "coverage": "policy"
+  },
+  {
+    "name": "evox16-patch_packaging",
+    "script_sha256": "62c7bb5a8087b080f011e1a31bcfce1bbd6b550d2a125d432153c90398248b0a",
+    "argv": [
+      "python3",
+      "/mnt/c/XiaomiBuilds/build-setup/evox/evox16/image-checks/check_image.py",
+      "patch_packaging"
+    ],
+    "coverage": "patch_packaging"
+  },
+  {
+    "name": "evox16-private_compatibility",
+    "script_sha256": "62c7bb5a8087b080f011e1a31bcfce1bbd6b550d2a125d432153c90398248b0a",
+    "argv": [
+      "python3",
+      "/mnt/c/XiaomiBuilds/build-setup/evox/evox16/image-checks/check_image.py",
+      "private_compatibility"
+    ],
+    "coverage": "private_compatibility"
+  },
+  {
+    "name": "evox16-health_semantics",
+    "script_sha256": "62c7bb5a8087b080f011e1a31bcfce1bbd6b550d2a125d432153c90398248b0a",
+    "argv": [
+      "python3",
+      "/mnt/c/XiaomiBuilds/build-setup/evox/evox16/image-checks/check_image.py",
+      "health_semantics"
+    ],
+    "coverage": "health_semantics"
+  },
+  {
+    "name": "evox16-gms_themes_apps",
+    "script_sha256": "62c7bb5a8087b080f011e1a31bcfce1bbd6b550d2a125d432153c90398248b0a",
+    "argv": [
+      "python3",
+      "/mnt/c/XiaomiBuilds/build-setup/evox/evox16/image-checks/check_image.py",
+      "gms_themes_apps"
+    ],
+    "coverage": "gms_themes_apps"
+  },
+  {
+    "name": "evox16-doze_packaging",
+    "script_sha256": "62c7bb5a8087b080f011e1a31bcfce1bbd6b550d2a125d432153c90398248b0a",
+    "argv": [
+      "python3",
+      "/mnt/c/XiaomiBuilds/build-setup/evox/evox16/image-checks/check_image.py",
+      "doze_packaging"
+    ],
+    "coverage": "doze_packaging"
+  }
+]

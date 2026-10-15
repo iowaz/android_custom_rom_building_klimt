@@ -1,0 +1,38 @@
+218c218,219
+<   try:r=subprocess.run(argv,cwd=S,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=45)
+---
+>   # A full-build combined.ninja load measured 54.5 s / 16 GB RSS (attempt01); 45 s timed out.
+>   try:r=subprocess.run(argv,cwd=S,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=900)
+376c377,390
+<  c.need('compiled touch gesture property label',bool(re.search(r'^persist\.sys\.tap_gesture\.\s+u:object_r:gesture_prop:s0',prop,re.M)))
+---
+>  # The shipped (and every historical) entry is the prefix `persist.sys.tap_gesture`
+>  # without a trailing dot; resolve the bridge's actual properties by longest prefix.
+>  entries=[]
+>  for rel in ['system/etc/selinux/plat_property_contexts','system_ext/etc/selinux/system_ext_property_contexts','product/etc/selinux/product_property_contexts','vendor/etc/selinux/vendor_property_contexts','odm/etc/selinux/odm_property_contexts']:
+>   p=c.fs/rel if not rel.startswith('system/') else c.fs/'system'/rel
+>   if p.is_file():
+>    for l in p.read_text().splitlines():
+>     f=l.split()
+>     if len(f)>=2 and not f[0].startswith('#'):entries.append((f[0],f[1],'exact' in f[2:]))
+>  def prop_label(name):
+>   hits=[(len(n),label) for n,label,exact in entries if (name==n if exact else name.startswith(n))]
+>   return max(hits)[1] if hits else None
+>  labels={n:prop_label(n) for n in ['persist.sys.tap_gesture.dt2w','persist.sys.tap_gesture.fod_screen_off']}
+>  c.need('compiled touch gesture property label',bool(prop) and all(v=='u:object_r:gesture_prop:s0' for v in labels.values()),labels)
+384c398,404
+<  c.need('root policy analyzer call sites retained','sepolicy-analyze' in bp and 'sepolicy-analyze' in go and 'RootInstalled' not in go)
+---
+>  # sepolicy 5bcb7c6: the user-build permissive check guard no longer exempts
+>  # root-installed policies (!ctx.InstallInRoot()) and `su` left every
+>  # permissive_domains_on_user_builds list. (Android.bp never named the tool.)
+>  guard=re.search(r'// permissive check is performed only in user build \(not debuggable\)\.\n\s*if ([^\n{]*)\{\n[^\n]*\n\s*cmd := rule\.Command\(\)\.BuiltTool\("sepolicy-analyze"\)',go)
+>  lists=re.findall(r'permissive_domains_on_user_builds:\s*\[([^\]]*)\]',bp)
+>  c.need('root policy analyzer call sites retained',bool(guard) and guard.group(1).strip()=='!ctx.Config().Debuggable()' and bool(lists) and not any('"su"' in l for l in lists),
+>         {'guard':guard.group(1).strip() if guard else None,'permissive_lists':[l.strip() for l in lists]})
+501c521,523
+<     src=fields.get('LOCAL_SRC_FILES','')
+---
+>     # PrebuiltGmsCore companions use LOCAL_SRC_FILES := .../$(LOCAL_MODULE).apk;
+>     # expand only that variable and still reject any other Make expression.
+>     src=fields.get('LOCAL_SRC_FILES','').replace('$(LOCAL_MODULE)',fields['LOCAL_MODULE'])

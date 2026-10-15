@@ -17,7 +17,7 @@ No source code, blobs or keys live here. They are in the repositories listed bel
 | Kernel | GKI 6.6 (`6.6.x-android15-8-klimt-4k`), built from source with the ROM |
 | Partitions | A/B with dynamic partitions (`super`) and Virtual A/B; images are flashed with `fastboot update` |
 
-The ROM is **Evolution X 12.2** (branch `cnb`, Android 17, build ID CP2A), built as `lineage_klimt-cp2a-user`,
+The ROM is **Evolution X 12.3** (branch `cnb`, Android 17, build ID CP2A), built as `lineage_klimt-cp2a-user`,
 signed with my own private keys, with Google apps included (`WITH_GMS=true`).
 
 ## Repositories
@@ -29,40 +29,47 @@ signed with my own private keys, with Google apps included (`WITH_GMS=true`).
 | `kernel/xiaomi/klimt` | [iowaz/android_kernel_xiaomi_klimt](https://github.com/iowaz/android_kernel_xiaomi_klimt) | `17.0` | public | Kernel source, fork of misakazip-dev (unchanged) |
 | `kernel/xiaomi/klimt-prebuilt` | [misakazip-dev/android_kernel_xiaomi_klimt-prebuilt](https://github.com/misakazip-dev/android_kernel_xiaomi_klimt-prebuilt) | `17.0` | public | Builds the kernel from source |
 | `vendor/xiaomi/klimt` | iowaz/proprietary_vendor_xiaomi_klimt | `evox` | **private** | Proprietary blobs extracted from HyperOS OS3.0.335 plus MIUI Camera. Uses Git LFS |
-| `vendor/lineage` | iowaz/vendor_evolution | `cnb-klimt` | **private** | Evolution-X/vendor_evolution plus the security patch level and fingerprint override commits |
 | `hardware/interfaces` | [iowaz/hardware_interfaces](https://github.com/iowaz/hardware_interfaces) | `cnb-klimt` | public | Drops the HIDL `light@2.0` interface so the stock vendor blob is used |
-| `build/soong` | [iowaz/build_soong](https://github.com/iowaz/build_soong) | `cnb-klimt` | public | Allows the `miui` boot jar packages |
-| `hardware/xiaomi` | [LineageOS/android_hardware_xiaomi](https://github.com/LineageOS/android_hardware_xiaomi) | `lineage-24.0` | public | Xiaomi HALs (fingerprint, sensors) |
+| `build/soong` | [iowaz/build_soong](https://github.com/iowaz/build_soong) | `evox16` | public | Allows the `miui` boot jar packages (`cnb-klimt` is the 12.2 history) |
+| `frameworks/native` | [iowaz/frameworks_native](https://github.com/iowaz/frameworks_native) | `evox16` | public | libui stops asking the MediaTek mapper for SMPTE 2094-50 metadata it doesn't list |
+| `packages/apps/Settings` | [iowaz/packages_apps_Settings](https://github.com/iowaz/packages_apps_Settings) | `evox16` | public | Carrier network scan keeps the legacy fallback and error handling the MediaTek modem needs |
+| `system/memory/libdmabufheap` | [iowaz/android_system_memory_libdmabufheap](https://github.com/iowaz/android_system_memory_libdmabufheap) | `evox16` | public | Selects the legacy allocator independently of libion |
+| `hardware/xiaomi` | [iowaz/android_hardware_xiaomi](https://github.com/iowaz/android_hardware_xiaomi) | `evox16` | public | Xiaomi HALs (fingerprint, sensors), fork of LineageOS `lineage-24.0`: bounded UDFPS status reads |
 | `device/mediatek/sepolicy_vndr` | [LineageOS/android_device_mediatek_sepolicy_vndr](https://github.com/LineageOS/android_device_mediatek_sepolicy_vndr) | `lineage-24.0` | public | MediaTek vendor SELinux policy |
 | `vendor/evolution-priv/keys` | not in git | | **offline only** | Signing keys, generated once (see [Keys](#keys)) |
 
-Eight Evolution X projects carry small local changes but have no fork: bionic, frameworks/base, frameworks/av,
-frameworks/native, frameworks/opt/telephony, packages/apps/Evolver, packages/modules/Bluetooth and system/core.
-Most of the changes are upstream picks: the October 2026 security fixes, the Play Integrity fix default, and custom
-ROM hiding. The frameworks/native one is ours: libui stops asking the MediaTek mapper for a metadata type it doesn't
-know. They are kept as patches in the device tree under
-[`patches/tree/`](https://github.com/iowaz/android_device_xiaomi_klimt/tree/evox/patches/tree), applied with
-`patches/tree/apply.sh <tree root>`. Patches that are already in the tree are skipped.
+`vendor/lineage` is plain Evolution-X/vendor_evolution again since evox16: both of our old `cnb-klimt` commits
+(the security patch level and the fingerprint override) are upstream in 12.3.
+
+**Only changes that klimt needs get a fork.** As of evox16, 14 projects carry a local change. The five
+klimt-specific ones are the forks above (build/soong, frameworks/native, Settings, libdmabufheap,
+hardware/xiaomi). The other nine are generic fixes with no fork: frameworks/base, libcore, system/sepolicy,
+packages/modules/Bluetooth, packages/services/Telecomm, Sandbox, ThemeStore, AppLocker and Seedvault. The
+system/sepolicy one keeps `su` out of the user build's permissive domains, which Evolution X 12.3 added. All 14
+are exported as patches in the device tree under
+[`patches/tree/`](https://github.com/iowaz/android_device_xiaomi_klimt/tree/evox/patches/tree), each with its exact
+base commit, patch hashes and the expected final tree. Apply them with `patches/tree/apply.sh <tree root>`. It
+refuses a dirty project or a different base, and skips a project whose tree is already final, so the forks are
+skipped. The evox15 patch set is kept in `patches/tree-evox15/`. See [docs/evox16.md](docs/evox16.md) for what
+each change does.
 
 ### Without access to the private repositories
 
 - **Blobs:** extract your own from the HyperOS OS3.0.335 OTA with the device tree's `extract-files.py`
   (it reads `proprietary-files.txt`), then put the result in `vendor/xiaomi/klimt`.
-- **vendor_evolution:** use Evolution X's own `vendor_evolution` by removing its `extend-project` line from the
-  local manifest. Both of our commits came from upstream (the October 2026 security patch level and the bluejay
-  fingerprint override), so a recent `cnb` already has them.
+- **vendor_evolution:** nothing to do since evox16; the local manifest uses Evolution X's own.
 
 ### Why a manifest and not git submodules
 
 An Android tree is about 1,260 git repositories managed by [`repo`](https://gerrit.googlesource.com/git-repo).
 `repo` already pins, fetches and checks out every one of them, including ours, through a local manifest.
 Submodules would duplicate that for a handful of projects. They would also break `git clone --recursive` for
-anyone without access to the two private repositories. So this repository ships manifests instead:
+anyone without access to the private vendor repository. So this repository ships manifests instead:
 
 - [`manifests/local_manifests/klimt.xml`](manifests/local_manifests/klimt.xml) adds the klimt repositories and
   swaps in the forks on top of the latest Evolution X `cnb`. This is what you want for a new build.
 - [`manifests/snapshots/`](manifests/snapshots) pins every project at the commit used for each build (latest:
-  [`evox15.xml`](manifests/snapshots/evox15.xml), attempt 2 verified), as generated by
+  [`evox16.xml`](manifests/snapshots/evox16.xml), image-verified), as generated by
   [`snapshot-manifest.py`](build-setup/evox/snapshot-manifest.py) from `repo manifest -r`.
   - Evolution X force-pushes `cnb` often. Of the 312 GitHub projects in the evox10 snapshot, 23 were rebased upstream
     within days. Their old commits can still be fetched by SHA for now, but that is not guaranteed.
@@ -128,7 +135,7 @@ repo init -u https://github.com/Evolution-X/manifest -b cnb --git-lfs --depth=1 
 mkdir -p .repo/local_manifests
 cp <this repo>/manifests/local_manifests/klimt.xml .repo/local_manifests/
 repo sync -c --no-tags --no-clone-bundle -j8      # build-setup/evox/sync.sh; about an hour, ~140 GB
-bash device/xiaomi/klimt/patches/tree/apply.sh .  # the seven patched projects
+bash device/xiaomi/klimt/patches/tree/apply.sh .  # the patched projects without a fork
 ```
 
 On a newer `cnb` some patches may already be upstream (skipped) or may need a small rebase (`git am -3` stops
@@ -169,34 +176,34 @@ bash /mnt/c/XiaomiBuilds/build-setup/evox/start-build.sh evox14 updatepackage   
 bash /mnt/c/XiaomiBuilds/build-setup/evox/progress.sh evox14                    # one-line status
 ```
 
-The evox15 controlled test build uses [`build-evox15.sh`](build-setup/evox/build-evox15.sh),
-which starts the same build plus the 10 GB disk watchdog. Its source snapshot is pinned to device commit
-`a528622c4f52e603a1f3cfa4d998b60da6e0e5c9` and private vendor commit
-`74d378be9f0b832f2c83284474a0f5da72062ca2`. The initial attempt failed packaging with exit 1 at 10:33 Sao Paulo on
-2026-10-12. Attempt 2 started at 11:01 Sao Paulo with the reviewed naming repair.
-Attempt 2 completed at 11:51 with exit 0 in 50 minutes 29 seconds and passed image verification.
-It has not been flashed; camera and charging runtime tests remain pending.
-See [the charging and camera notes](docs/evox15.md) before treating it as a release.
+Since evox16, builds go through the attempt-isolated tooling in
+[`build-setup/evox/evox16`](build-setup/evox/evox16) (its [README](build-setup/evox/evox16/README.md) has the
+full contract). Each attempt gets its own ID, log/evidence folder and delivery folder; nothing from an earlier
+attempt is overwritten. A readiness JSON pins the whole frozen manifest (every project HEAD, checked clean before
+and after), the five public signing certificates, the disk budget and the checks that passed first.
 
-Start this wrapper once from WSL, after creating `C:\XiaomiBuilds\debug\noise15`:
+1. **Focused precheck** (optional, recommended after source changes): compiles only the changed modules and the
+   policy tests, about an hour instead of a failed full build.
 
-```bash
-setsid nohup bash /mnt/c/XiaomiBuilds/build-setup/evox/build-evox15.sh >/dev/null 2>&1 </dev/null &
-```
+   ```bash
+   bash /mnt/c/XiaomiBuilds/build-setup/evox/evox16/start-precheck.sh evox16-precheck05 \
+     /mnt/c/XiaomiBuilds/debug/evox16/PRECHECK_READY.json
+   ```
 
-Use one persistent monitor/verification supervisor after starting the build:
+2. **Full build and verification**: one detached controller runs `m -j12 updatepackage`, then the verifier.
 
-```powershell
-New-Item -ItemType Directory -Force C:\XiaomiBuilds\debug\noise15
-powershell -File C:\XiaomiBuilds\build-setup\evox\fix15\supervise15.ps1
-```
+   ```bash
+   bash /mnt/c/XiaomiBuilds/build-setup/evox/evox16/start.sh evox16-attempt01 \
+     /mnt/c/XiaomiBuilds/debug/evox16/BUILD_READY.json
+   python3 -B /mnt/c/XiaomiBuilds/build-setup/evox/evox16/controller.py status evox16-attempt01
+   ```
 
-The supervisor waits for the exit marker before running verification and refuses another active supervisor.
-It exits without extraction if the build failed; a failed build requires a deliberate new build invocation.
-It retries WSL connection timeouts without restarting the build. [`health15.py`](build-setup/evox/fix15/health15.py)
-records Ninja progress, log size/time, process count and build-subtree CPU time, including reaped children.
-A quiet analysis step is normal while CPU time increases. Flag a possible freeze only when progress, log size
-and CPU time all stay unchanged for at least 30 minutes. Monitor logs are under `debug/noise15/`.
+The controller and its watchdog identify the build by PID, `/proc` start time, boot ID and session, and stop
+only that build (disk below 10 GB on D: or 2 GB on either ext4 disk). They never restart a build. Quiet steps
+are not treated as a freeze. Progress, CPU and disk samples go to `/mnt/wsl/evox/logs/evox16/<attempt>/`. A
+fixed verifier can re-check a successful build without rebuilding (`verify.py --recheck`). See
+[docs/evox16.md](docs/evox16.md) for the evox16 run; the evox15 wrappers and notes are in
+[docs/evox15.md](docs/evox15.md).
 
 Typical times on this PC:
 
@@ -218,13 +225,22 @@ unpacks every image and runs two sets of checks.
 
 [`fixcheck*.sh`](build-setup/evox/cmp) checks that every fix from every build so far is still in the images.
 
-For evox15, [`verify-evox15.sh`](build-setup/evox/verify-evox15.sh) also checks the exact experimental HIS
-blob SHA/BuildId, both custom Health modules and their packaged binaries, and retained init/VINTF files.
-The strict report validator accepts only two documented legacy false failures and requires all ten new checks.
-Health provenance follows current generated Soong module/install rules through the built binaries into the package.
-VINTF checks compare packaged files to processed build output and retain strict source HAL semantics.
-Success is recorded in `C:\XiaomiBuilds\compare\evox15\VERIFIED.txt`; this marker is not a phone test.
-Use the queued supervisor rather than launching another extraction while it is waiting or running.
+Since evox16, [`verify.py`](build-setup/evox/evox16/verify.py) does this in a fresh, attempt-only folder, and
+only for a ZIP produced by that attempt (hash, size and mtime from the build's own exit record). It requires:
+- all 165 historical fix checks, matched by name (the two old false-failure waivers are gone);
+- the must-hold checks, now also with `android-info.txt`;
+- six image checks in [`image-checks/check_image.py`](build-setup/evox/evox16/image-checks/check_image.py):
+  - policy: recompiled policy, empty permissive domains, device labels;
+  - patch packaging: MIUI jars, libui/Gralloc, lights, libcore;
+  - private vendor compatibility: blob hashes, ELF dependencies, allocator and Wi-Fi shim;
+  - Health semantics;
+  - GMS/themes/apps;
+  - Doze packaging: TouchBridge bytecode, UDFPS/sensor producers, resolved AOD defaults.
+
+Only then does it write the delivery folder: the ZIP, the `-flash.bat`/`-flash.sh` helpers, `SHA256SUMS`,
+`RESULTS.json`, `COMPARISON-evox16.md` and `VERIFIED.txt`. The verified attempt is then copied to the usual flat
+names in `out-evox` (`lineage_klimt-evox16-img.zip` and its `-evox16` files). `VERIFIED.txt` is not a phone test.
+The evox15 verifier is described in [docs/evox15.md](docs/evox15.md).
 
 The must-hold checks compare against reference images (an earlier build, misakazip's build, the phone's own
 partitions) that are not in this repository.
@@ -269,7 +285,19 @@ relies on an A/B OTA, because the OTA writes to the other slot.
   RegionSampling threads, which pointed straight at an Android 17 metadata request the Android 16 mapper doesn't
   support. Check the TID before guessing.
 
-The build history, from the first failed build to evox15, is in [docs/history.md](docs/history.md).
+- **Compile the changed modules before the full build.** evox16's focused precheck found a javac error in one
+  of our own patches in an hour. A host-side test had passed because its stub copied the wrong API; stubs must
+  mirror the real signatures.
+- **A checker failure is not an image failure.** The image checks exit 1 for a real defect and 2 for missing
+  tools or evidence. In evox16 all four stops were checker bugs: a timeout, a regex, wrong source strings and a
+  Make parser. Each was confirmed against the reference builds before the checker was changed, then the same ZIP
+  was re-verified without rebuilding.
+- **A shallow checkout can't push a fork.** `repo sync --depth=1` leaves git unable to tell GitHub what it
+  already has, and large pushes fail with HTTP 500.
+  [`gh_replay_commits.py`](build-setup/evox/evox16/gh_replay_commits.py) recreates the commits through the
+  GitHub API instead, and only moves the branch when the SHAs match.
+
+The build history, from the first failed build to evox16, is in [docs/history.md](docs/history.md).
 
 ## Running it in CI
 
@@ -278,7 +306,7 @@ hours. A CI setup needs a self-hosted runner, or a cloud VM with:
 
 - Ubuntu 24.04, 16 or more cores, 64 GB RAM (or 32 GB plus 48 GB swap), and 500 GB of SSD. Keep the ccache
   between runs.
-- A GitHub token that can read the two private repositories.
+- A GitHub token that can read the private vendor repository.
 - The signing keys as an encrypted secret, unpacked into `vendor/evolution-priv/keys` for the build only.
 
 The job is then steps 2 to 5 above:

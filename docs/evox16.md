@@ -44,11 +44,11 @@ Only klimt-specific changes get a fork. The generic fixes stay as patches so the
 
 ## Build
 
-The build was driven by new attempt-isolated tooling in [`build-setup/evox/evox16`](../build-setup/evox/evox16):
+The build was driven by new attempt-isolated tooling in [`build-setup/archive/evox16-tooling`](../build-setup/archive/evox16-tooling):
 one detached controller per attempt, PID/boot/session ownership, a disk watchdog, a source lock, and a readiness
 file that pins the full frozen manifest, the five signing certificates and the checks that must pass first.
 
-1. **Focused precheck** ([`precheck.py`](../build-setup/evox/evox16/precheck.py)): 45 changed modules and policy
+1. **Focused precheck** ([`precheck.py`](../build-setup/archive/evox16-tooling/precheck.py)): 45 changed modules and policy
    tests compile before the full build. `precheck04` stopped at 92% after 1h02 on one error, in our Telecomm
    change: `Ringer.java` used the `android.util.Log` argument order with `android.telecom.Log`. Fixed in
    Telecomm `1029477e`. The host test had missed it because its stub copied the wrong signature; the stub now
@@ -60,18 +60,18 @@ file that pins the full frozen manifest, the five signing certificates and the c
 
 ## Verification
 
-[`verify.py`](../build-setup/evox/evox16/verify.py) copies the ZIP into the attempt's delivery folder, extracts
+[`verify.py`](../build-setup/archive/evox16-tooling/verify.py) copies the ZIP into the attempt's delivery folder, extracts
 it into a new folder and runs:
 
 - the must-hold checks: AVB chain, `super_empty`, `fastboot-info.txt` and `android-info.txt` identical to the
   author build and build9, DTBO payload and `vendor_boot` DTB identical to the phone's slot b, **888 modules,
   0 CRC mismatches**, the one known unresolved symbol, kernel `6.6.142-android15-8-klimt-4k`;
 - **all 165 historical fix checks** (the two old false-failure waivers are gone; each check is matched by name);
-- **six new image checks** ([`image-checks/check_image.py`](../build-setup/evox/evox16/image-checks/check_image.py)):
+- **six new image checks** ([`image-checks/check_image.py`](../build-setup/archive/evox16-tooling/image-checks/check_image.py)):
   policy, patch packaging, private vendor compatibility, Health semantics, GMS/themes/apps and Doze packaging.
 
 The first verification found no image defect but stopped on four checker bugs, each confirmed against the image
-and the reference builds before changing the checker ([diff](../build-setup/evox/evox16/image-checks/check_image.recheck02.diff)):
+and the reference builds before changing the checker ([diff](../build-setup/archive/evox16-tooling/image-checks/check_image.recheck02.diff)):
 a 45-second timeout too short for the full-build Ninja graph (55 s, 16 GB RAM), a regex for a trailing-dot
 `persist.sys.tap_gesture.` entry no build ever had, an analyzer check looking for strings the source never
 contained, and a GMS parser that could not read `$(LOCAL_MODULE).apk`. A verifier-only recheck (`recheck02`) of
@@ -92,7 +92,7 @@ the same ZIP passed everything without rebuilding.
   their bases (run `apply.sh` after syncing). The private vendor commit is `74d378be` on `evox`.
 - Device tree: [a80d3d1](https://github.com/iowaz/android_device_xiaomi_klimt/commit/a80d3d101e7d19f6f5460c36cfeabc7b980b5886).
 - The local checkout is shallow, so the fork commits were published through the GitHub Git Data API with
-  [`gh_replay_commits.py`](../build-setup/evox/evox16/gh_replay_commits.py), which only moves a branch when
+  [`gh_replay_commits.py`](../build-setup/archive/evox16-tooling/gh_replay_commits.py), which only moves a branch when
   GitHub's commit SHA equals the local one.
 
 ## Boot loop on the phone

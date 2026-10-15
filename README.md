@@ -83,15 +83,21 @@ anyone without access to the private vendor repository. So this repository ships
 
 ## The build machine
 
-The builds run on a Windows 11 PC (12 threads, 32 GB RAM) inside WSL2 (Ubuntu 24.04). The source and the build
-output live on two ext4 virtual disks attached to WSL, because an Android build on NTFS (`/mnt/c`) is far too slow.
+The builds run on a Windows 11 PC (12 threads, 32 GB RAM, two NVMe SSDs) inside WSL2 (Ubuntu 24.04). The source
+and the build output live on two ext4 virtual disks attached to WSL, because an Android build on NTFS (`/mnt/c`)
+is far too slow. Since 2026-10-15 everything on the Windows side is in one folder, `D:\android_rom_building`
+(`/mnt/d/android_rom_building` in WSL); its own `README.md` is the map.
 
 | What | Where (Windows) | Where (WSL) | Size |
 |---|---|---|---|
-| Source tree | `D:\EvoXBuild\evox.vhdx` | `/mnt/wsl/evox/src`, logs in `/mnt/wsl/evox/logs` | ~155 GB of 200 GB |
-| Build output, ccache | `D:\WitAquaBuild\build.vhdx` | `/mnt/wsl/build/evox-out` (`src/out` is a symlink to it), `/mnt/wsl/build/ccache` | ~270 GB of 480 GB |
-| Scripts (this repo's `build-setup/`) | `C:\XiaomiBuilds\build-setup` | `/mnt/c/XiaomiBuilds/build-setup` | |
-| Finished images | `D:\WitAquaBuild\out-evox` | `/mnt/d/WitAquaBuild/out-evox` | ~5.6 GB per build |
+| Source tree | `vhdx-images\source.vhdx` | `/mnt/wsl/evox/src`, logs in `/mnt/wsl/evox/logs` | ~165 GB of 200 GB |
+| Build output, ccache, reference images | `vhdx-images\build.vhdx` | `/mnt/wsl/build/evox-out` (`src/out` is a symlink to it), `/mnt/wsl/build/ccache`, `/mnt/wsl/build/compare` | ~270 GB of 480 GB |
+| The WSL distro and its swap | `vhdx-images\wsl-ubuntu-24.04\`, `vhdx-images\wsl-swap.vhdx` | `/` | |
+| This repository (the pipeline runs from it) | `repositories\android_custom_rom_building_klimt` | `/mnt/d/android_rom_building/repositories/...` | |
+| Readiness records, verifier reports, phone logs | `diagnostics\` | | |
+| Finished images (what you flash) | `output-zips\<build>\` | | ~5.4 GB per build |
+| adb / fastboot | `tools\platform-tools` | | |
+| Phone partition backup, stock firmware, key backup | `backups\` | | |
 
 `.wslconfig`:
 
@@ -100,7 +106,7 @@ output live on two ext4 virtual disks attached to WSL, because an Android build 
 memory=28GB
 processors=12
 swap=48GB
-swapFile=C:\\WSL\\swap.vhdx
+swapFile=D:\\android_rom_building\\vhdx-images\\wsl-swap.vhdx
 
 [experimental]
 autoMemoryReclaim=gradual
@@ -109,10 +115,9 @@ autoMemoryReclaim=gradual
 The soong analysis at the start of every build needs about 25 GB of RAM plus up to 24 GB of swap. While it
 runs, WSL may stop answering (`Wsl/Service/WSAETIMEDOUT`). The build keeps going; wait for it.
 
-The scripts in [`build-setup/`](build-setup) are copies of the ones used on the build PC, with the same layout,
-so their absolute paths (`/mnt/c/XiaomiBuilds/build-setup/...`, `/mnt/wsl/...`, `D:\...`) are the ones in the
-table above. To restore them, copy `build-setup/` to `C:\XiaomiBuilds\build-setup`. On another machine, change
-those paths.
+The scripts in [`build-setup/`](build-setup) use the build PC's absolute paths (`/mnt/d/android_rom_building`,
+`/mnt/wsl/...`); the pipeline keeps all of them in one file,
+[`paths.py`](build-setup/evox/pipeline/paths.py). On another machine, change that file.
 
 ## How a build goes
 
@@ -120,12 +125,13 @@ those paths.
 
 1. Install WSL2 with Ubuntu 24.04, put the `.wslconfig` above in place, and install the usual AOSP/LineageOS
    build packages plus `repo`, `git-lfs`, `ccache` and `python3`.
-2. Create and format the two disks (elevated PowerShell):
-   - Build disk: [`create-vhdx.ps1`](build-setup/create-vhdx.ps1), then
-     [`format-build-disk.ps1`](build-setup/format-build-disk.ps1).
-   - Source disk: [`create-evox-disk.ps1`](build-setup/evox/create-evox-disk.ps1).
+2. Create and format the two disks (elevated PowerShell), in [`build-setup/windows`](build-setup/windows):
+   - Build disk: [`create-vhdx.ps1`](build-setup/windows/create-vhdx.ps1), then
+     [`format-build-disk.ps1`](build-setup/windows/format-build-disk.ps1).
+   - Source disk: [`create-evox-disk.ps1`](build-setup/windows/create-evox-disk.ps1).
 3. After every Windows reboot or `wsl --shutdown`, run
-   [`mount-disks.ps1`](build-setup/evox/mount-disks.ps1) elevated to attach both disks again.
+   [`mount-disks.ps1`](build-setup/windows/mount-disks.ps1) elevated to attach both disks again, and
+   [`wsl-keepalive.ps1`](build-setup/windows/wsl-keepalive.ps1) so WSL keeps running while a build is detached.
 
 ### 2. Sources
 
@@ -135,11 +141,12 @@ repo init -u https://github.com/Evolution-X/manifest -b cnb --git-lfs --depth=1 
 mkdir -p .repo/local_manifests
 cp <this repo>/manifests/local_manifests/klimt.xml .repo/local_manifests/
 repo sync -c --no-tags --no-clone-bundle -j8      # build-setup/evox/sync.sh; about an hour, ~140 GB
-bash device/xiaomi/klimt/patches/tree/apply.sh .  # the patched projects without a fork
+bash device/xiaomi/klimt/patches/tree/apply.sh .  # reports "already final" with the forks
 ```
 
-On a newer `cnb` some patches may already be upstream (skipped) or may need a small rebase (`git am -3` stops
-and says where).
+For a release, the tree is synced to a frozen manifest instead (every project at an exact commit):
+[`make-frozen.py`](build-setup/evox/pipeline/make-frozen.py) derives it from the previous one, and the frozen
+manifests are kept in the private `iowaz/evox16_manifest` repository (one branch per build).
 
 ### 3. Keys
 
@@ -159,45 +166,38 @@ certificates are not the AOSP test ones, and writes a tarball backup.
 
 ### 4. Build
 
-[`env.sh`](build-setup/evox/env.sh) holds the build environment and [`build.sh`](build-setup/evox/build.sh)
-runs it:
+[`env.sh`](build-setup/evox/env.sh) holds the build environment. By hand, a build is:
 
 ```bash
 source build/envsetup.sh
 lunch lineage_klimt-cp2a-user
+m -j12 installclean    # empty the staging directories the images are packed from
 m -j12 updatepackage   # fastboot image zip: out/target/product/klimt/lineage_klimt-img.zip
-m -j12 otapackage      # optional: A/B OTA zip
 ```
 
-On the build PC this is one detached command, followed by a disk watchdog:
+On the build PC it goes through the [pipeline](build-setup/evox/pipeline) (its README has the details). The
+build name comes from the attempt ID, and every path from [`paths.py`](build-setup/evox/pipeline/paths.py):
 
 ```bash
-bash /mnt/c/XiaomiBuilds/build-setup/evox/start-build.sh evox14 updatepackage   # log: /mnt/wsl/evox/logs/evox14.log
-bash /mnt/c/XiaomiBuilds/build-setup/evox/progress.sh evox14                    # one-line status
+P=/mnt/d/android_rom_building/repositories/android_custom_rom_building_klimt/build-setup/evox/pipeline
+export KLIMT_BUILD=evox18
+python3 -B $P/ready.py <frozen manifest>                 # gates -> diagnostics\builds\evox18\BUILD_READY.json
+bash $P/start.sh evox18-attempt01 /mnt/d/android_rom_building/diagnostics/builds/evox18/BUILD_READY.json
+python3 -B $P/controller.py status evox18-attempt01
+python3 -B $P/promote.py evox18-attempt01                # -> D:\android_rom_building\output-zips\evox18
 ```
 
-Since evox16, builds go through attempt-isolated tooling, now
-[`build-setup/evox/evox17`](build-setup/evox/evox17) (its [README](build-setup/evox/evox17/README.md) has the
-full contract). Each attempt gets its own ID, log/evidence folder and delivery folder; nothing from an earlier
-attempt is overwritten. A readiness JSON pins the whole frozen manifest (every project HEAD, checked clean before
-and after), the five public signing certificates, the disk budget and the checks that passed first. One detached
-controller runs `m -j12 installclean`, then `m -j12 updatepackage`, then the verifier:
+- The readiness JSON pins the whole frozen manifest (every project HEAD, checked clean before and after), the
+  five public signing certificates, the disk budget and the checks that must pass first.
+- One detached controller runs `m -j12 installclean`, `m -j12 updatepackage`, then the verifier. Each attempt
+  gets its own ID and folders, and nothing from an earlier attempt is overwritten.
+- The controller and its watchdog identify the build by PID, `/proc` start time, boot ID and session. They stop
+  only that build (disk below 10 GB on D: or 2 GB on either ext4 disk) and never restart one.
+- A fixed verifier can re-check a successful build without rebuilding (`verify.py --recheck`).
 
-```bash
-bash /mnt/c/XiaomiBuilds/build-setup/evox/evox17/start.sh evox17-attempt01 \
-  /mnt/c/XiaomiBuilds/debug/evox17/BUILD_READY.json
-python3 -B /mnt/c/XiaomiBuilds/build-setup/evox/evox17/controller.py status evox17-attempt01
-```
-
-evox16 also had a focused precheck (`m <changed modules>`). It is gone: module goals install into the same
-staging directories the images are packed from, and that is how evox16 shipped a stray Telecom app.
-
-The controller and its watchdog identify the build by PID, `/proc` start time, boot ID and session, and stop
-only that build (disk below 10 GB on D: or 2 GB on either ext4 disk). They never restart a build. Quiet steps
-are not treated as a freeze. Progress, CPU and disk samples go to `/mnt/wsl/evox/logs/evox16/<attempt>/`. A
-fixed verifier can re-check a successful build without rebuilding (`verify.py --recheck`). See
-[docs/evox17.md](docs/evox17.md) and [docs/evox16.md](docs/evox16.md) for those runs; the evox15 wrappers and
-notes are in [docs/evox15.md](docs/evox15.md).
+There is no focused precheck any more: `m <module>` installs into the staging directories the images are packed
+from, and that is how evox16 shipped a stray Telecom app. The per-build copies of this tooling (evox16, evox17)
+and the evox1-15 scripts are in [`build-setup/archive`](build-setup/archive).
 
 Typical times on this PC:
 
@@ -205,50 +205,47 @@ Typical times on this PC:
 |---|---|---|
 | Full build (~188k ninja steps) | ~40 min | ~6 h |
 | Incremental build after device-tree changes | ~30 min | 1-2 h |
+| Same source again (evox18 after evox17) | ~30 min | under 1 h |
 
 ### 5. Verify
 
-[`verify-evox14.sh`](build-setup/evox/verify-evox14.sh) copies the image zip to `out-evox` (with `SHA256SUMS`),
-unpacks every image and runs two sets of checks.
-
-[`musthold.sh`](build-setup/evox/cmp/musthold.sh) runs before anything else and covers:
-- The AVB chain verifies.
-- `super_empty` and `fastboot-info.txt` are unchanged.
-- The device tree blob matches the phone's own.
-- All 888 kernel modules match the kernel's symbol CRCs.
-
-[`fixcheck*.sh`](build-setup/evox/cmp) checks that every fix from every build so far is still in the images.
-
-Since evox16, [`verify.py`](build-setup/evox/evox17/verify.py) does this in a fresh, attempt-only folder, and
-only for a ZIP produced by that attempt (hash, size and mtime from the build's own exit record). It requires:
-- all 165 historical fix checks, matched by name (the two old false-failure waivers are gone);
-- the must-hold checks, now also with `android-info.txt`;
-- seven image checks in [`image-checks/check_image.py`](build-setup/evox/evox17/image-checks/check_image.py):
+[`verify.py`](build-setup/evox/pipeline/verify.py) runs in a fresh, attempt-only folder, and only for a ZIP
+produced by that attempt (hash, size and mtime from the build's own exit record). It requires:
+- the must-hold checks ([`legacy/musthold.sh`](build-setup/evox/pipeline/legacy/musthold.sh)): the AVB chain;
+  `super_empty`, `fastboot-info.txt` and `android-info.txt` unchanged; the device tree blob and DTBO identical
+  to the phone's own; all 888 kernel modules matching the kernel's symbol CRCs;
+- all 165 historical fix checks (`legacy/fixcheck*.sh`), matched by name;
+- seven image checks in [`image-checks/check_image.py`](build-setup/evox/pipeline/image-checks/check_image.py):
   - policy: recompiled policy, the exact permissive domains (`su`, as upstream), device labels, upstream sepolicy;
   - patch packaging: MIUI jars, libui/Gralloc, lights, upstream libcore;
   - private vendor compatibility: blob hashes, ELF dependencies, the allocator symbols the blobs use, Wi-Fi shim;
   - Health semantics;
   - GMS/themes/apps;
   - Doze packaging: TouchBridge bytecode, UDFPS/sensor producers, resolved AOD defaults;
-  - install integrity (since evox17): every staged file is in the build's install list, no package is installed
-    twice, and the Telecom app variant matches the framework's loader.
+  - install integrity: every staged file is in the build's install list, no package is installed twice, and
+    the Telecom app (bound to its producer, binder contract read from its DEX) matches the framework's loader.
 
-Only then does it write the delivery folder: the ZIP, the `-flash.bat`/`-flash.sh` helpers, `SHA256SUMS`,
-`RESULTS.json`, `COMPARISON-evox17.md` and `VERIFIED.txt`. The verified attempt is then copied to the usual flat
-names in `out-evox` (`lineage_klimt-evox17-img.zip` and its `-evox17` files). **`VERIFIED.txt` is not a phone
-test**; since evox17 it says "NOT boot-tested".
-The evox15 verifier is described in [docs/evox15.md](docs/evox15.md).
+Only then does it stage the delivery, which [`promote.py`](build-setup/evox/pipeline/promote.py) moves to
+`D:\android_rom_building\output-zips\<build>\`: `lineage_klimt-<build>-img.zip`, its `-flash.bat`/`-flash.sh`
+helpers, `SHA256SUMS`, `RESULTS.json`, `COMPARISON.md`, `README.md` and `VERIFIED.txt`. **`VERIFIED.txt` is not
+a phone test**: it says "NOT boot-tested".
 
 The must-hold checks compare against reference images (an earlier build, misakazip's build, the phone's own
 partitions) that are not in this repository.
 
 ### 6. Flash
 
-[`flash-evox.ps1`](build-setup/evox/flash-evox.ps1) runs `adb reboot bootloader`, then
-`fastboot update --skip-reboot lineage_klimt-<name>-img.zip`:
+From `D:\android_rom_building\output-zips\<build>\`, with the phone in the bootloader (`adb reboot bootloader`):
+
+```bat
+lineage_klimt-<build>-flash.bat /flash
+```
+
+It checks the ZIP's hash and that the phone is a `klimt`, runs `fastboot update --skip-reboot` with the
+`fastboot.exe` in `D:\android_rom_building\tools\platform-tools`, and leaves the reboot to you.
 
 - **First install, or after changing keys:** wipe afterwards with `fastboot -w` and Format data in recovery.
-- **Updating a build signed with the same keys:** flash without a wipe ("dirty").
+- **Updating a build signed with the same keys:** flash without a wipe ("dirty"), as every build since evox8.
 
 Firmware is not part of the ROM. Both slots should have the same HyperOS firmware (OS3.0.335) before anyone
 relies on an A/B OTA, because the OTA writes to the other slot.
@@ -260,7 +257,7 @@ relies on an A/B OTA, because the OTA writes to the other slot.
 - **Do not set `OUT_DIR` to a path outside the tree.** Soong's test packaging breaks. Make `out` a symlink to the
   other disk instead.
 - **Watch the host disk.** The VHDX files grow during a build, and a full host disk corrupts the ext4 inside
-  them. [`dwatch.sh`](build-setup/evox/dwatch.sh) stops the build when D: drops below 10 GB.
+  them. [`dwatch.sh`](build-setup/archive/pre-evox16/dwatch.sh) stops the build when D: drops below 10 GB.
 - **Keep `.repo/manifests` on the commit the tree was synced from.** The build runs `repo manifest -r`, and an
   aborted sync once left a newer manifest there that broke a build an hour in.
 - **Upstream moves fast.** Evolution X rebases `cnb`, so compare commits by subject, not SHA. Keep every local
@@ -300,7 +297,7 @@ relies on an A/B OTA, because the OTA writes to the other slot.
   failure seen on klimt, or for something klimt cannot work without.
 - **A shallow checkout can't push a fork.** `repo sync --depth=1` leaves git unable to tell GitHub what it
   already has, and large pushes fail with HTTP 500.
-  [`gh_replay_commits.py`](build-setup/evox/evox16/gh_replay_commits.py) recreates the commits through the
+  [`gh_replay_commits.py`](build-setup/evox/tools/gh_replay_commits.py) recreates the commits through the
   GitHub API instead, and only moves the branch when the SHAs match.
 
 The build history, from the first failed build to evox17, is in [docs/history.md](docs/history.md).

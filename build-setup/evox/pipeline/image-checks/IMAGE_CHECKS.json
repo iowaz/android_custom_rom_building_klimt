@@ -1,0 +1,72 @@
+[
+  {
+    "name": "image-policy",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+    "argv": [
+      "python3",
+      "/mnt/d/android_rom_building/repositories/android_custom_rom_building_klimt/build-setup/evox/pipeline/image-checks/check_image.py",
+      "policy"
+    ],
+    "coverage": "policy"
+  },
+  {
+    "name": "image-patch_packaging",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+    "argv": [
+      "python3",
+      "/mnt/d/android_rom_building/repositories/android_custom_rom_building_klimt/build-setup/evox/pipeline/image-checks/check_image.py",
+      "patch_packaging"
+    ],
+    "coverage": "patch_packaging"
+  },
+  {
+    "name": "image-private_compatibility",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+    "argv": [
+      "python3",
+      "/mnt/d/android_rom_building/repositories/android_custom_rom_building_klimt/build-setup/evox/pipeline/image-checks/check_image.py",
+      "private_compatibility"
+    ],
+    "coverage": "private_compatibility"
+  },
+  {
+    "name": "image-health_semantics",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+    "argv": [
+      "python3",
+      "/mnt/d/android_rom_building/repositories/android_custom_rom_building_klimt/build-setup/evox/pipeline/image-checks/check_image.py",
+      "health_semantics"
+    ],
+    "coverage": "health_semantics"
+  },
+  {
+    "name": "image-gms_themes_apps",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+    "argv": [
+      "python3",
+      "/mnt/d/android_rom_building/repositories/android_custom_rom_building_klimt/build-setup/evox/pipeline/image-checks/check_image.py",
+      "gms_themes_apps"
+    ],
+    "coverage": "gms_themes_apps"
+  },
+  {
+    "name": "image-doze_packaging",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+    "argv": [
+      "python3",
+      "/mnt/d/android_rom_building/repositories/android_custom_rom_building_klimt/build-setup/evox/pipeline/image-checks/check_image.py",
+      "doze_packaging"
+    ],
+    "coverage": "doze_packaging"
+  },
+  {
+    "name": "image-install_integrity",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+    "argv": [
+      "python3",
+      "/mnt/d/android_rom_building/repositories/android_custom_rom_building_klimt/build-setup/evox/pipeline/image-checks/check_image.py",
+      "install_integrity"
+    ],
+    "coverage": "install_integrity"
+  }
+]

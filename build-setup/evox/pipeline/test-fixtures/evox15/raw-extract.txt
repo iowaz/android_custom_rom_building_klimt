@@ -1,0 +1,9 @@
+evox system: Linux rev 1.0 ext2 filesystem 
+evox system_ext: Linux rev 1.0 ext2 filesystem 
+evox product: Linux rev 1.0 ext2 filesystem 
+evox vendor: EROFS filesystem, compat: SB_C
+evox odm: EROFS filesystem, compat: SB_C
+evox vendor_dlkm: EROFS filesystem, compat: SB_C
+evox system_dlkm: EROFS filesystem, compat: SB_C
+evox odm_dlkm: EROFS filesystem, compat: SB_C
+9.0G	/mnt/wsl/build/compare/evox/fs

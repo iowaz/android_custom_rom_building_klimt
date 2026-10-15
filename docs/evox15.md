@@ -12,9 +12,9 @@ It has not been flashed; charging and camera runtime validation remain pending.
 - Private proprietary vendor: `74d378be9f0b832f2c83284474a0f5da72062ca2` on `evox`.
 - [Attempt 2 manifest](../manifests/snapshots/evox15.xml): generated from the corrected build's `repo manifest -r`.
 - [Attempt 1 manifest](../manifests/snapshots/evox15-attempt1.xml): preserves the failed initial attempt.
-- [Build script](../build-setup/evox/build-evox15.sh), [verification](../build-setup/evox/verify-evox15.sh),
-  [ten new image checks](../build-setup/evox/fix15/check-image.py) and
-  [strict report validator](../build-setup/evox/fix15/validate-reports.py).
+- [Build script](../build-setup/archive/pre-evox16/build-evox15.sh), [verification](../build-setup/archive/pre-evox16/verify-evox15.sh),
+  [ten new image checks](../build-setup/archive/pre-evox16/fix15/check-image.py) and
+  [strict report validator](../build-setup/archive/pre-evox16/fix15/validate-reports.py).
 
 The vendor binary remains in the private vendor repository. The public device tree's guarded extraction
 helper reproduces the camera modification from the exact stock input and refuses an unknown input.
@@ -105,6 +105,6 @@ version, comments and insignificant formatting are normalized; unexpected proces
 All ten gates remain, and the legacy failure whitelist is unchanged. Revalidation passed on the same extracted
 image without rebuilding or re-extracting it; the original failed-verifier reports were preserved locally.
 
-[Negative verifier checks](../build-setup/evox/fix15/verifier-negative-tests.py) exercise 14 module-provenance
+[Negative verifier checks](../build-setup/archive/pre-evox16/fix15/verifier-negative-tests.py) exercise 14 module-provenance
 positive/negative cases and reject nine changed XML definitions, including duplicate or wrong producers,
 changed Health versions/instances, added HALs/attributes and processing instructions.

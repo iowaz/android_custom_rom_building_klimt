@@ -1,0 +1,110 @@
+
+################ M1. sha256 of the Evo images
+433eb34ca872267c38b7cf4cd7ca8a099fe03648256791bcd3ac669a16b83962  boot.img
+c988921a5785522dc10e8ca124cc963a02328fdf6a92bb5462f4331a7a8e6efe  dtbo.img
+ffae26023e5a6f3e4ee769387a1acedbdefd26e51cef92f1442a226f457dbfd5  init_boot.img
+7d7e810e09bc537f3474d9796cef6b25f59a333ac8151d83d6bb2342271fcaf0  odm.img
+340af03d7edc0675fe352c58d66c9f084cee5289d98b6f1248c899148af17b1f  odm_dlkm.img
+8dbd2687b252c183ee76fba22511a08348a13051d57f0490ccd181b194ddde5c  product.img
+1f03dda3936027c07a17a5d31b7e54fe59e8a5f11bc7a0dfe419aa4897e4acb4  super_empty.img
+583ec4422ea1109f456fd50b0ea90dc59f69333b912e224639b1f2caa382faba  system.img
+79d97b93bc56ae7f88de6596750a9739c6d3cb16e6a27710f119ec4594936ac8  system_dlkm.img
+f250d2e5a34fa74d55d79f084e76639a77ff870827123b030c13444a001d10f9  system_ext.img
+1f03dda3936027c07a17a5d31b7e54fe59e8a5f11bc7a0dfe419aa4897e4acb4  unsparse_super_empty.img
+097f939d954c90a82b994dc93a643df6eabdb8c0ccde8e764abd5280c7212829  vbmeta.img
+b3c9be112792c1b606c151d843d586c3d494a5119eb54886e247cc24b9d2c8a5  vbmeta_system.img
+9fbda2cef7119fc124e652bebc20b7fbc99d26cb707ea97280a57de07f6ef70c  vbmeta_vendor.img
+cab894a04a57e0aafe30ad411569c1ec446509193718b4e6d55b7aeb5c35f8b7  vendor.img
+06bbffcf00c73c6ab39cb609414b7bedd5408c91db884e210bd508eaec78f924  vendor_boot.img
+dbd7f17e9656c010084bfe713950b3792f5d773c8cae2ea010a55bf86a282b76  vendor_dlkm.img
+
+################ M2. avbtool verify_image --follow_chain_partitions (Evo)
+Verifying image vbmeta.img using embedded public key
+vbmeta: Successfully verified SHA256_RSA4096 vbmeta struct in vbmeta.img
+boot: Chained but ROLLBACK_SLOT (which is 3) and KEY (which has sha1 2597c218aae470a130f61162feaae70afd97f011) not specified
+--
+Verifying image boot.img using embedded public key
+vbmeta: Successfully verified footer and SHA256_RSA4096 vbmeta struct in boot.img
+boot: Successfully verified sha256 hash of boot.img for image of 17354752 bytes
+vbmeta_system: Chained but ROLLBACK_SLOT (which is 2) and KEY (which has sha1 2597c218aae470a130f61162feaae70afd97f011) not specified
+--
+Verifying image vbmeta_system.img using embedded public key
+vbmeta: Successfully verified SHA256_RSA4096 vbmeta struct in vbmeta_system.img
+system: Successfully verified sha1 hashtree of system.img for image of 1633144832 bytes
+vbmeta_vendor: Chained but ROLLBACK_SLOT (which is 4) and KEY (which has sha1 2597c218aae470a130f61162feaae70afd97f011) not specified
+--
+Verifying image vbmeta_vendor.img using embedded public key
+vbmeta: Successfully verified SHA256_RSA4096 vbmeta struct in vbmeta_vendor.img
+vendor: Successfully verified sha1 hashtree of vendor.img for image of 1614721024 bytes
+dtbo: Successfully verified sha256 hash of dtbo.img for image of 141648 bytes
+init_boot: Successfully verified sha256 hash of init_boot.img for image of 2191360 bytes
+vendor_boot: Successfully verified sha256 hash of vendor_boot.img for image of 37654528 bytes
+odm: Successfully verified sha1 hashtree of odm.img for image of 1421135872 bytes
+odm_dlkm: Successfully verified sha1 hashtree of odm_dlkm.img for image of 8192 bytes
+product: Successfully verified sha1 hashtree of product.img for image of 4255461376 bytes
+system_dlkm: Successfully verified sha1 hashtree of system_dlkm.img for image of 7303168 bytes
+system_ext: Successfully verified sha1 hashtree of system_ext.img for image of 1489248256 bytes
+vendor_dlkm: Successfully verified sha1 hashtree of vendor_dlkm.img for image of 39931904 bytes
+exit=0
+
+################ M3. super_empty vs author / build9
+super_empty: IDENTICAL to author
+super_empty: IDENTICAL to build9
+Metadata size: 1296 bytes
+Metadata max size: 65536 bytes
+Metadata slot count: 3
+  Name: odm_a
+  Group: xiaomi_dynamic_partitions_a
+  Name: odm_b
+  Group: xiaomi_dynamic_partitions_b
+  Name: odm_dlkm_a
+  Group: xiaomi_dynamic_partitions_a
+  Name: odm_dlkm_b
+  Group: xiaomi_dynamic_partitions_b
+  Name: product_a
+  Group: xiaomi_dynamic_partitions_a
+  Name: product_b
+  Group: xiaomi_dynamic_partitions_b
+  Name: system_a
+  Group: xiaomi_dynamic_partitions_a
+  Name: system_b
+  Group: xiaomi_dynamic_partitions_b
+  Name: system_dlkm_a
+  Group: xiaomi_dynamic_partitions_a
+  Name: system_dlkm_b
+  Group: xiaomi_dynamic_partitions_b
+  Name: system_ext_a
+  Group: xiaomi_dynamic_partitions_a
+  Name: system_ext_b
+  Group: xiaomi_dynamic_partitions_b
+  Name: vendor_a
+  Group: xiaomi_dynamic_partitions_a
+  Name: vendor_b
+BOARD_SUPER_PARTITION_SIZE := 11811160064
+BOARD_XIAOMI_DYNAMIC_PARTITIONS_PARTITION_LIST := \
+
+################ M4. fastboot-info.txt / android-info.txt vs author and build9
+fastboot-info.txt == author
+fastboot-info.txt == b9
+android-info.txt == author
+android-info.txt == b9
+
+################ M5. dtbo / vendor_boot dtb vs live slot b (PartitionsBackup)
+b35f7c2a1d324d0531d7055a656f99df5e35d2a7e6602ccb46463bed17e19d6b payload=141648 file=8388608 /mnt/c/XiaomiBuilds/PartitionsBackup/dtbo_b.img
+b35f7c2a1d324d0531d7055a656f99df5e35d2a7e6602ccb46463bed17e19d6b payload=141648 file=8388608 /mnt/wsl/build/compare/evox/img/dtbo.img
+b35f7c2a1d324d0531d7055a656f99df5e35d2a7e6602ccb46463bed17e19d6b payload=141648 file=8388608 /mnt/wsl/build/compare/b9/img/dtbo.img
+/mnt/c/XiaomiBuilds/PartitionsBackup/dtbo_b.img /mnt/wsl/build/compare/evox/img/dtbo.img differ: byte 143432, line 131
+(dtbo whole file differs: AVB footer/signature region; payload compared above)
+afa6f397968e82d08ece9c2195140c3944317b4e4e49b61cbe0388ae5a5dcd4e  /mnt/wsl/build/compare/live/unpack/XiaomiBuilds_vendor_boot_b/dtb
+afa6f397968e82d08ece9c2195140c3944317b4e4e49b61cbe0388ae5a5dcd4e  /tmp/evx_vb/dtb
+afa6f397968e82d08ece9c2195140c3944317b4e4e49b61cbe0388ae5a5dcd4e  /mnt/wsl/build/compare/live/unpack/b9_vendor_boot/dtb
+vendor_boot dtb IDENTICAL to live slot b
+
+################ M6. Module CRCs vs Evo Module.symvers (vendor_dlkm + vendor_boot ramdisk + system_dlkm)
+Module.symvers: 9434 symbols
+modules 888; versioned imports 46963; distinct symbols 6814; CRC MISMATCHES vs kernel 0; UNRESOLVED 1
+  unresolved mtk_drm_gateic_set_backlight
+
+################ M7. Kernel identity
+Linux version 6.6.142-android15-8-klimt-4k (build-user@build-host) (Android (15071444, +pgo, +bolt, +lto, +mlgo, based on r596125) clang version 22.0.2 (https://android.googlesource.com/toolchain/llvm-project de03d430485c884861198b25459851f429cbdbad), LLD 22.0.2 (/mnt/disks/build-disk/src/googleplex-android/llvm-r596125-release/out/llvm-project/llvm de03d430485c884861198b25459851f429cbdbad)) # SMP PREEMPT 
+vermagic pwm-mtk-disp.ko: 6.6.118-android15-8-g703e820e9fbb-4k SMP preempt mod_unload modversions aarch64

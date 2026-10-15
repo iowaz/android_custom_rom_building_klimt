@@ -1,0 +1,173 @@
+== evox12 checks (still present)
+FAIL USB HALs labelled mtk_hal_usb_exec
+OK   touchfeature props labelled
+OK   touchfeature may set its props
+OK   mtk_hal_usb extcon/usb sysfs rules
+OK   fingerprint HAL reads gesture_prop
+FAIL fingerprint HAL may use power HAL
+OK   UDFPS location 640|2518|105
+OK   KlimtTouchBridge.apk installed
+OK   libudfpshandler uses tap_gesture props
+OK   TouchBridge uses tap_gesture props
+OK   CarrierConfig RRO has VIVO cid 530 VoLTE
+OK   vendor hals.conf = stock 3 + sensors.xiaomi.v2.so
+OK   sensors.xiaomi.v2.so in vendor/lib64
+OK   sensors.xiaomi.v2 exports sensorsHalGetSubHal_2_1
+OK   ro.vendor.sensors.xiaomi.udfps=true
+OK   RRO dozeComponent = DozeService
+OK   RRO UDFPS sensor = org.lineageos.sensor.udfps
+OK   persist.bluetooth.a2dp_offload.disabled=true (vendor build.prop)
+OK   a2dp_offload_disabled audio policy present
+OK   ro.build.fingerprint = bluejay canary
+OK   no userdebug/test-keys in any build.prop
+OK   ro.debuggable=0
+OK   no vendor_boot-debug in img zip
+OK   framework-res signed with OUR platform key (46993ca00fb248da)
+OK   MiuiCamera signed with OUR platform key (46993ca00fb248da)
+OK   otacerts = our releasekey (testkey symlink)
+OK   MiuiCamera.apk in product/priv-app
+OK   MiuiCamera has classes8.dex (AudioParaManger stub)
+OK   system/lib64/libcamera_algoup_jni.xiaomi.so
+OK   system/lib64/libcamera_ispinterface_jni.xiaomi.so
+OK   system/lib64/libcamera_mianode_jni.xiaomi.so
+OK   system/lib64/libmtkisp_metadata_sys.so
+OK   system/lib64/vendor.mediatek.hardware.camera.isphal-V1-ndk.so
+OK   system/lib64/vendor.mediatek.hardware.camera.isphal@1.0.so
+OK   public.libraries-xiaomi.txt
+OK   privapp/default permissions + hiddenapi allowlist
+OK   vendor.camera.aux.packagelist has com.android.camera
+OK   platform_app_36 camera rules in vendor sepolicy
+OK   vendor/lib64/libui_vendor.so present
+OK   libui_vendor SONAME
+OK   libui_vendor links graphics.common-V7
+OK   libmicamera_hal_core links libui_vendor
+OK   libcom.xiaomi.grallocutils links libui_vendor
+OK   only source-built libs still need libui.so
+OK   health service binary
+OK   health service uses battery/input_suspend
+OK   health VINTF fragment
+OK   health init rc
+OK   sepolicy: health writes sysfs_batteryinfo
+OK   rc: input_suspend chown at boot
+OK   LineageParts present (Charging control UI)
+OK   powershare service binary
+OK   powershare uses wireless/reverse_chg_mode
+OK   powershare VINTF fragment
+OK   sepolicy: powershare writes sysfs_batteryinfo
+OK   rc: reverse_chg_mode chown at boot
+OK   RRO config_dozeAlwaysOnDisplayAvailable=true
+OK   RRO config_dozeAlwaysOnEnabled=false
+OK   RRO config_dozeSupportsAodWallpaper=false
+OK   doze.display.supported=true
+OK   DolbyAtmos.apk in system_ext/priv-app
+OK   DolbyAtmos signed with OUR platform key (46993ca00fb248da)
+OK   MusicFX/AudioFX overridden (absent)
+OK   Dolby DAP effect still declared
+OK   system SPL 2026-10-01
+OK   vendor SPL unchanged 2026-02-01
+OK   framework.jar has getDefaultPifCodename
+OK   framework.jar has PICKER_ORDER
+OK   framework.jar has no getPreferredASeriesCodename
+OK   Evolver uses getDefaultPifCodename
+OK   Evolver has no A_SERIES_ORDER
+OK   services.jar has shouldHideFromUid
+OK   services.jar hides org.evolution. packages
+OK   libc has the framework-dir artifact list
+OK   libc has the new ROM artifact prefixes
+OK   runtime APEX rebuilt after the libc
+OK   init no longer spoofs sys.oem_unlock_allowed (ee96af1583)
+OK   ANetworkSession threadLoop/interrupt not exported (7eaa22020c)
+OK   frameworks/base: Fix security vulnerabilities in PduParser.java
+OK   frameworks/base: Fix potential OOM in PduParser by using stream skip
+OK   packages/modules/Bluetooth: Remove unused ext_attrs from playerapplicationsetting_cb
+OK   frameworks/opt/telephony: RESTRICT AUTOMERGE: Fix remote DoS in decodeWapPdu (b/517376969)
+OK   SystemUIResKlimt.apk present
+OK   RRO targets com.android.systemui (static)
+OK   RRO pixel_pitch = 56.82
+OK   sensor_location = 640|2518|105
+OK   XiaomiParts.apk in system_ext/priv-app
+OK   package org.lineageos.settings
+OK   sharedUserId android.uid.system
+OK   persistent and directBootAware
+OK   ThermalService, ThermalTileService, BootCompletedReceiver, ThermalActivity declared
+OK   Settings > Battery injection (ia.battery)
+OK   QS tile (BIND_QUICK_SETTINGS_TILE)
+OK   no singleUser anywhere (persistent app)
+OK   signed with the platform key
+OK   dex writes /sys/class/thermal/thermal_message/sconfig
+OK   pt-BR resources
+OK   system_app may write sysfs_therm (sconfig)
+OK   mpbe ioctl 0x6703 allowed
+OK   batterysecret may read/write plain sysfs files
+OK   batterysecret may read plain sysfs dirs
+OK   54 new sysfs_wakeup genfscon (94 -> 148)
+OK   genfscon platform/1c01a000.spmi/spmi-0/0-04/wakeup
+OK   genfscon virtual/gpsmdl-agent/gpsmdl-agent/wakeup
+OK   genfscon platform/battery-manager/power_supply/battery/wakeup
+OK   genfscon platform/soc/13ab0000.i2c/i2c-7/7-0033/wakeup
+OK   genfscon platform/1c01a000.spmi/spmi-0/0-0e/1c01a000.spmi:mt6379@e:tcpc/tcpc/type_c_port0/wakeup
+OK   mtk_hal_power may search hal_fingerprint_default /proc
+OK   mtk_hal_power may read hal_fingerprint_default /proc files
+OK   mtk_hal_camera may setattr vendor_data_file
+OK   persist.vendor.vilte_support=0
+OK   persist.vendor.viwifi_support=0
+OK   persist.vendor.volte_support=1
+== libui (SMPTE 2094-50 support check)
+OK   system libui.so rebuilt (differs from evox12)
+OK   frameworks/native carries the patch
+== citsensorservice
+OK   binary in /odm/bin/hw
+OK   binary NEEDs libui_vendor.so, not libui.so
+OK   init rc in /odm/etc/init
+OK   VINTF fragment in /odm/etc/vintf/manifest
+OK   binary NEEDs sensors-V3-ndk, not V2 (aidl_bump)
+OK   android.hardware.sensors-V3-ndk.so in /vendor/lib64
+OK   file_contexts labels it citsensorservice_exec
+OK   domain + init transition
+OK   may add its service
+OK   composer may call it
+== MiSys watermark dirs
+OK   xiaomi_misys_common may create vendor_data_file dirs
+== dontaudit unlabeled property reads
+OK   mtk_hal_camera default_prop read dontaudited
+OK   hal_audio_default default_prop read dontaudited
+OK   mnld default_prop read dontaudited
+== property labels
+OK   vendor.camera.sensor.logsystem -> vendor_camera_skynet_prop
+OK   persist.vendor.camera.st_repair. -> vendor_mtk_camera_prop
+OK   6 TEE status props -> vendor_payment_security_prop
+OK   mitee_mtdservice may set them
+== FeliCa script, USB product string
+OK   klimt_felica may call system_server
+OK   USB product written as Xiaomi 15T Pro
+OK   no ${ro.product.marketname} left in vendor rc (comments aside)
+== evox14
+OK   dio mapper has dedicated stock label
+OK   camera dio mapper read
+OK   camera dio mapper write
+OK   camera dio mapper open
+OK   camera dio mapper ioctl
+OK   camera dio mapper map
+OK   camera vendor data append
+OK   vendor.camera. uses stock vendor_mtkcam_prop
+OK   persist.vendor.camera. uses stock vendor_mtkcam_prop
+OK   camera may set vendor_mtkcam_prop
+OK   kickidle has stock label
+OK   composer may set kickidle
+OK   blackbox has dedicated stock label
+OK   MiSys may read blackbox
+OK   citsensorservice may open/read dmabuf_system_heap_device
+OK   citsensorservice may open/read dmabuf_system_secure_heap_device
+OK   citsensor system_prop read has stock dontaudit
+OK   citsensor may set its framebuffer property
+OK   framebuffer property has an exact boolean label
+OK   evox15 HIS reviewed controlled candidate SHA
+OK   evox15 HIS distinct deterministic BuildId
+OK   evox15 selected android.hardware.health-service.klimt from device health source
+OK   evox15 selected android.hardware.health-service.klimt_recovery from device health source
+OK   evox15 packaged device health binary equals built output
+OK   evox15 health binary replaced generic baseline
+OK   evox15 packaged recovery health equals built output
+OK   evox15 retained android.hardware.health-service.klimt.rc
+OK   evox15 retained android.hardware.health-service.klimt.xml
+OK   evox15 recovery health init retained

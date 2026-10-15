@@ -42,16 +42,16 @@ branch head; the other two are the deliberate evox15 pins below.
 
 ## Build
 
-Tooling: [`build-setup/evox/evox17`](../build-setup/evox/evox17), the evox16 controller with these changes:
+Tooling: [`build-setup/archive/evox17-tooling`](../build-setup/archive/evox17-tooling), the evox16 controller with these changes:
 - no focused precheck;
 - `m installclean` before `m updatepackage`, failing if any staged partition survives;
 - seven image checks, including the new `install_integrity` (see the [review](evox16-review.md#what-changes-in-the-process));
 - the checks for evox16's optional patches now check that those projects are the reviewed upstream commits;
 - the marker says "static image checks passed, NOT boot-tested".
 
-The frozen manifest was generated with [`make-frozen.py`](../build-setup/evox/evox17/make-frozen.py) from
+The frozen manifest was generated with [`make-frozen.py`](../build-setup/archive/evox17-tooling/make-frozen.py) from
 evox16's. It is on the private `iowaz/evox16_manifest` repository, branch `evox17-manifest`. The readiness record
-([`ready/BUILD_READY.evox17-attempt01.json`](../build-setup/evox/evox17/ready/BUILD_READY.evox17-attempt01.json))
+([`ready/BUILD_READY.evox17-attempt01.json`](../build-setup/archive/evox17-tooling/ready/BUILD_READY.evox17-attempt01.json))
 passed eight gates, including the evox16 negative test of the new check and the five semantic source checks.
 
 `evox17-attempt01`:
@@ -87,7 +87,7 @@ passed eight gates, including the evox16 negative test of the new check and the 
   - Tool output is now decoded tolerantly, because `dexdump` of the legacy Telecom APK emits non-UTF-8 bytes.
 
   The revised checker passed 45 unit tests and a dry run of all seven modes, then a verifier-only recheck of the
-  same ZIP (`recheck01`, with [`TOOL_REVIEW.recheck01.json`](../build-setup/evox/evox17/ready/TOOL_REVIEW.recheck01.json)).
+  same ZIP (`recheck01`, with [`TOOL_REVIEW.recheck01.json`](../build-setup/archive/evox17-tooling/ready/TOOL_REVIEW.recheck01.json)).
 
 ## Compared with evox15 (the build that runs on the phone)
 

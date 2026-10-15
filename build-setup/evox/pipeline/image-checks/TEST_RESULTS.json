@@ -1,0 +1,10 @@
+{
+  "tests_run": 45,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "skipped_details": [],
+  "passed": true,
+  "host": "posix",
+  "scope": "helper/negative fixture tests only; no actual EVOX17 image verification performed"
+}

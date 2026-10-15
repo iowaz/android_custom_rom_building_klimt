@@ -63,6 +63,24 @@ def image_relative(relative):
  """Extracted system-as-root keeps /system under fs/system/system; staging has it at system/."""
  parts=Path(relative).parts
  return str(Path(*parts[1:])) if parts[:2]==('system','system') else relative
+def telecom_service_contract(dex):
+ """Classify dexdump -d output of a Telecom APK by what its TelecomService.onBind returns.
+
+ mainline (TelecomShim): onBind asks android.telecom.TelecomServiceInitializerRepository and no class
+ implements ITelecomLoader. legacy (Telecom): an ITelecomLoader.Stub subclass is returned instead.
+ """
+ blocks=re.split(r'(?=^Class #\d+\s*-?\s*$)',dex,flags=re.M)
+ def descriptor(b):
+  m=re.search(r"Class descriptor\s*:\s*'([^']+)'",b);return m[1] if m else None
+ def superclass(b):
+  m=re.search(r"Superclass\s*:\s*'([^']+)'",b);return m[1] if m else None
+ service=[b for b in blocks if descriptor(b)=='Lcom/android/server/telecom/components/TelecomService;']
+ if len(service)!=1:return None
+ loader=any(superclass(b)=='Lcom/android/internal/telecom/ITelecomLoader$Stub;' for b in blocks)
+ initializer='Landroid/telecom/TelecomServiceInitializerRepository;' in service[0]
+ if initializer and not loader:return 'mainline'
+ if loader and not initializer:return 'legacy'
+ return 'ambiguous'
 def stray_staged(staged,installable):
  """Staged files the product does not install. Kernel module trees are copied outside it."""
  stray=sorted(set(staged)-set(installable))
@@ -193,7 +211,7 @@ class Check:
  def run(self,argv,label,defect_exit=False):
   self.counter+=1;log=self.report/f'raw-supplemental-{self.mode}-{self.counter:03d}-{re.sub("[^a-zA-Z0-9_-]","_",label)}.txt'
   # A full-build combined.ninja load measured 54.5 s / 16 GB RSS (attempt01); 45 s timed out.
-  try:r=subprocess.run(argv,cwd=S,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=900)
+  try:r=subprocess.run(argv,cwd=S,text=True,errors='replace',stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=900)
   except (OSError,subprocess.TimeoutExpired) as e:raise ToolFailure(str(e)) from e
   log.write_text(r.stdout);self.raw.append({'argv':argv,'exit':r.returncode,'log':str(log)})
   if r.returncode:raise (Defect if defect_exit else ToolFailure)(label+' failed: '+str(log))
@@ -432,14 +450,18 @@ def private_compatibility(c):
  upstream_head(c,'system/memory/libdmabufheap')
  vv=c.vars.get('VendorVars',{})
  c.need('allocator uses the upstream default implementation',vv.get('libdmabufheap',{}).get('legacy_impl') in (None,'false') and vv.get('libion',{}).get('legacy_impl') in (None,'false'),{'libdmabufheap':vv.get('libdmabufheap'),'libion':vv.get('libion')})
- f=c.module('libdmabufheap','system/lib64/libdmabufheap.so','system/memory/libdmabufheap');c.elf(c.image('system/lib64/libdmabufheap.so'));c.reaches_source(f,'system/memory/libdmabufheap/BufferAllocator.cpp')
- vendor=c.image('vendor/lib64/libdmabufheap.so');c.elf(vendor)
+ # Both the system and the vendor variants are bound to their current producers and to the
+ # ION-free source (review finding E17-003); the blobs load the vendor one.
+ for name,rel in [('libdmabufheap','system/lib64/libdmabufheap.so'),('libdmabufheap.vendor','vendor/lib64/libdmabufheap.so')]:
+  f=c.module(name,rel,'system/memory/libdmabufheap');c.elf(c.image(rel));c.reaches_source(f,'system/memory/libdmabufheap/BufferAllocator.cpp')
+ vendor=c.image('vendor/lib64/libdmabufheap.so')
  exported={l.split()[-1] for l in c.run([c.tool('llvm-nm'),'-D','--defined-only',str(vendor)],'vendor-libdmabufheap-exports').splitlines() if l.strip()}
  required=set(c.ref['allocator_vendor_abi'])
  c.need('vendor libdmabufheap exports every symbol the blobs resolve from it',required<=exported,sorted(required-exported))
- f=c.module('libion','system/lib64/libion.so','system/memory/libion');c.elf(c.image('system/lib64/libion.so'));c.reaches_source(f,'system/memory/libion/ion.c')
- text=c.disassemble(f,'ion_open');instructions=parse_instructions(text)
- c.need('actual libion ion_open keeps stub backend',len(instructions)==2 and instructions[0][1]=='mov' and re.search(r'w0,\s*#-0x1\b',instructions[0][2]) is not None and instructions[1][1]=='ret')
+ for name,rel in [('libion','system/lib64/libion.so'),('libion.vendor','vendor/lib64/libion.so')]:
+  f=c.module(name,rel,'system/memory/libion');c.elf(c.image(rel));c.reaches_source(f,'system/memory/libion/ion.c')
+  text=c.disassemble(f,'ion_open');instructions=parse_instructions(text)
+  c.need('actual '+name+' ion_open keeps stub backend',len(instructions)==2 and instructions[0][1]=='mov' and re.search(r'w0,\s*#-0x1\b',instructions[0][2]) is not None and instructions[1][1]=='ret')
  wifi=c.module('libwifi-hal-mtk-shim','vendor/lib64/libwifi-hal-mtk-shim.so','device/xiaomi/klimt/wifi');text=c.elf(c.image(wifi['_relative']))
  c.need('Wi-Fi shim exports actual entry point',bool(re.search(r'GLOBAL\s+DEFAULT\s+\d+\s+init_wifi_vendor_hal_func_table\b',text)))
  c.reaches_source(wifi,'device/xiaomi/klimt/wifi/wifi_hal_shim.cpp')
@@ -635,11 +657,13 @@ def install_integrity(c):
  c.need('every staged file is a product install (kernel module trees excepted)',not other,other)
  c.need('kernel module trees present',len([k for k in kernel if k.endswith('.ko')])>=600,len(kernel))
  # The image must hold exactly the staged APKs, and no package identity twice.
- image_apks=set();inventory=[];badging={}
+ image_apks=set();inventory=[];badging={};links=[]
  for apk in sorted(c.fs.rglob('*.apk')):
   if not (apk.is_file() or apk.is_symlink()):continue
   rel=image_relative(str(apk.relative_to(c.fs)));image_apks.add(rel)
-  if apk.is_symlink():continue
+  # A link would hide its package identity from every gate below (review finding E17-002).
+  # evox15 and evox16 images had none, so any link is unreviewed.
+  if apk.is_symlink():links.append({'relative':rel,'target':os.readlink(apk)});continue
   digest=c.identify(apk)
   if digest not in badging:
    text=c.run([c.tool('aapt2'),'dump','badging',str(apk)],'install-badging-'+apk.stem)
@@ -647,6 +671,7 @@ def install_integrity(c):
    if not m:raise ToolFailure('Image APK package identity unavailable: '+rel)
    badging[digest]=m[1]
   inventory.append({'relative':rel,'sha256':digest,'package':badging[digest]})
+ c.need('no installed APK is a symlink',not links,links)
  staged_apks={s for s in staged if s.endswith('.apk')}
  c.need('image APK set equals staged product installs',image_apks==staged_apks,{'image_only':sorted(image_apks-staged_apks),'staged_only':sorted(staged_apks-image_apks)})
  c.need('every image APK is a product install',image_apks<=installable,sorted(image_apks-installable))
@@ -661,6 +686,13 @@ def install_integrity(c):
  c.need('Telecom app variant matches the framework loader (mainline='+mainline+')',telecom==[want],telecom)
  selected=c.selected()
  c.need('product selects the matching Telecom app',('TelecomShim' in selected)==(mainline=='true') and ('Telecom' in selected)==(mainline!='true'),sorted(x for x in selected if x.startswith('Telecom')))
+ # The path alone proves nothing about the payload (review finding E17-001): bind the installed APK
+ # to its current producer and read the binder contract of its TelecomService from the DEX.
+ module='TelecomShim' if mainline=='true' else 'Telecom'
+ f=c.module(module,want,'packages/services/Telecomm')
+ dex=c.run([c.tool('dexdump'),'-d',str(c.image(want))],'telecom-service-dex')
+ contract=telecom_service_contract(dex)
+ c.need('packaged TelecomService returns the '+('mainline ITelecomService initializer' if mainline=='true' else 'legacy ITelecomLoader'),contract==('mainline' if mainline=='true' else 'legacy'),contract)
 
 def main():
  parser=argparse.ArgumentParser();parser.add_argument('mode',choices=sorted(MODES));args=parser.parse_args();c=None;exit_code=0

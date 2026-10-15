@@ -1,7 +1,7 @@
 [
   {
     "name": "evox17-policy",
-    "script_sha256": "bc5576486c065705d30688963737afd99ec49ac3be691fdba8141412b54a6d8b",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
     "argv": [
       "python3",
       "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
@@ -11,7 +11,7 @@
   },
   {
     "name": "evox17-patch_packaging",
-    "script_sha256": "bc5576486c065705d30688963737afd99ec49ac3be691fdba8141412b54a6d8b",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
     "argv": [
       "python3",
       "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
@@ -21,7 +21,7 @@
   },
   {
     "name": "evox17-private_compatibility",
-    "script_sha256": "bc5576486c065705d30688963737afd99ec49ac3be691fdba8141412b54a6d8b",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
     "argv": [
       "python3",
       "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
@@ -31,7 +31,7 @@
   },
   {
     "name": "evox17-health_semantics",
-    "script_sha256": "bc5576486c065705d30688963737afd99ec49ac3be691fdba8141412b54a6d8b",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
     "argv": [
       "python3",
       "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
@@ -41,7 +41,7 @@
   },
   {
     "name": "evox17-gms_themes_apps",
-    "script_sha256": "bc5576486c065705d30688963737afd99ec49ac3be691fdba8141412b54a6d8b",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
     "argv": [
       "python3",
       "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
@@ -51,7 +51,7 @@
   },
   {
     "name": "evox17-doze_packaging",
-    "script_sha256": "bc5576486c065705d30688963737afd99ec49ac3be691fdba8141412b54a6d8b",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
     "argv": [
       "python3",
       "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
@@ -61,7 +61,7 @@
   },
   {
     "name": "evox17-install_integrity",
-    "script_sha256": "bc5576486c065705d30688963737afd99ec49ac3be691fdba8141412b54a6d8b",
+    "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
     "argv": [
       "python3",
       "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",

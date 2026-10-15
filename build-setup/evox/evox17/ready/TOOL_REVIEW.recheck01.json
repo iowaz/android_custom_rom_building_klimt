@@ -1,0 +1,115 @@
+{
+  "approved": true,
+  "attempt": "evox17-attempt01",
+  "source_snapshot_sha256": "e4a040190cfa52f2ccb90c3e98091b47914029e83723654dc82100693b49a31f",
+  "tooling_sha256": {
+    "build.sh": "94e8b6f2b7dadeb6ff60b7cbd9dcc32bd0ee0e790dc2ecc4f6a6cb48c5ec291d",
+    "check-health-his.py": "ee26b014e05339938065a9980e71582a698d9d91391f1dee89c5b2df48a312c2",
+    "controller.py": "d7cfb9ff9f60b99ddd30a5e204fa47c4b2a5dfb3abdbe58ff8fc1387cf750756",
+    "create-ports.py": "3da7644071979eb66881bb56c43341bc3d10d36deb8e7c023b94dadf6c348c16",
+    "evox12-libui.sha256": "64445e503d73af458909e3ad60978f98c028e60dda0e0ae70d8b49778d5cc867",
+    "expected-legacy-checks.json": "7d65fc3d7b4fde81ed431a785ac58c85d257c3125f6c2fa0a8975e3fb047bafd",
+    "extract.sh": "72b0b2008fcc864d1f1f96feb15c697027c8bfe8881552b31d208dd6b8efb6d2",
+    "gh_replay_commits.py": "4cfc87bac24f3d13c6f6f6efbd53f4b0c980858894dc14d628cff572589b0584",
+    "historical-inputs.json": "9175753e316991cd2f5b5e53789016c58f9f735614b45785ef0fcf109cced74f",
+    "image-checks/IMAGE_CHECKS.json": "3e2112aae1952727242f58e4a07f16aea9236fcb3b0fec8b68b3bdbbf5785f7a",
+    "image-checks/TEST_RESULTS.json": "14eb1c694a28ef99333f65e5b70f205ae1da4b5cbc680c01000baf9e9264a10b",
+    "image-checks/TEST_RESULTS.linux.json": "da2ee84906739755e1ec47cf146451a6fdc6349911792679cd0392627b9ad243",
+    "image-checks/check_image.py": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+    "image-checks/references.json": "cb444f1020791291bb72f3e80523c0c795653e25cd6014396528effffbb0376f",
+    "image-checks/tests.py": "8bb69fc5f1a79fafb3049a7b2a59ddf627856cacd9831e41d58a70cd29f36cb3",
+    "launch.py": "c0ec9c7dab1d42d79f7f9fdbc2e2a55aa541bf215778481556b3349d27d429ed",
+    "legacy/fixcheck.sh": "9c63eba81ceda306a2971be3cc6d792df064c8eaec3108b3d2570a2cf5a17b60",
+    "legacy/fixcheck10.sh": "c46e6d38372b2b36dc7f82c3f5aacf9c93d37fe1b32aec29fbd6ca6f8bb8e93a",
+    "legacy/fixcheck11.sh": "cd70f4ea3f05c3c9c4cafb1ce6d2ed5fcd21df4c1ef30405277b5fcca7969709",
+    "legacy/fixcheck12.sh": "72b3875e1797df691c2825d0ed7192b4a4ca2ea5b862cba69b13fe98a51858f3",
+    "legacy/fixcheck13.sh": "db6daf23ee28615810e4773915a31635846665454c68fe463ea3ccd406e1cb27",
+    "legacy/fixcheck14.sh": "76bcbda66ea8df0630a344bd4947425e19caa9e38267dbd6ba6a838df6bc15ab",
+    "legacy/fixcheck7.sh": "c3850bcbba0ee80effb6cb33a7ecb030c070c1cfc9ccfbcf9159570afb7d76c0",
+    "legacy/fixcheck8.sh": "a21e5da4e89c1b7a32f6e0a9813f6a0e248bd292e04511eebe1e98fab9c97df4",
+    "legacy/fixcheck9.sh": "af1f06f4fa0224ba07aef8fb2fe2c15e667b6a8de2e677a7d72e20c15dfa1ab6",
+    "legacy/musthold.sh": "e66c06734ad6f0a5aaf26abef38d83526dd7fe7ff954731fa5a5d134598350d9",
+    "make-frozen.py": "ab7b1351b5b0e5b5148be2b55791b9ebbb63778cde795ba4e5409f73f9afc96f",
+    "producer-check.py": "eeaeebf7f3453b5e2bfb32981650480c625d321ef33fbf9cb849473aad090a91",
+    "report-gates.py": "59606f695269e2d9a25f9c856794b6884c4d5293a6ec8b8e56abe8b33fe300ea",
+    "source-gate.py": "c00597c9f1327608282c9f24774658c1e81d9c1b65c1622de2830efd004413d0",
+    "start.sh": "8285e3f1964711ddeafea561134e53911dca91a1420209af3a6bba920ea7b965",
+    "tests.py": "04e8cb0b5c1ebdcd56353c3c9fed42d835a864691d8434f914542a07f91380a6",
+    "verify.py": "62a8e0160aba2892d3f1efa36c28e0eac9731dea121578f659c8f3382680b476"
+  },
+  "image_checks": [
+    {
+      "name": "evox17-policy",
+      "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+      "argv": [
+        "python3",
+        "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
+        "policy"
+      ],
+      "coverage": "policy"
+    },
+    {
+      "name": "evox17-patch_packaging",
+      "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+      "argv": [
+        "python3",
+        "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
+        "patch_packaging"
+      ],
+      "coverage": "patch_packaging"
+    },
+    {
+      "name": "evox17-private_compatibility",
+      "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+      "argv": [
+        "python3",
+        "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
+        "private_compatibility"
+      ],
+      "coverage": "private_compatibility"
+    },
+    {
+      "name": "evox17-health_semantics",
+      "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+      "argv": [
+        "python3",
+        "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
+        "health_semantics"
+      ],
+      "coverage": "health_semantics"
+    },
+    {
+      "name": "evox17-gms_themes_apps",
+      "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+      "argv": [
+        "python3",
+        "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
+        "gms_themes_apps"
+      ],
+      "coverage": "gms_themes_apps"
+    },
+    {
+      "name": "evox17-doze_packaging",
+      "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+      "argv": [
+        "python3",
+        "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
+        "doze_packaging"
+      ],
+      "coverage": "doze_packaging"
+    },
+    {
+      "name": "evox17-install_integrity",
+      "script_sha256": "c907ff9d5a10a40874e7db884cf672340b3b82291530ab3e69334026024d67d7",
+      "argv": [
+        "python3",
+        "/mnt/c/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py",
+        "install_integrity"
+      ],
+      "coverage": "install_integrity"
+    }
+  ],
+  "evidence": "evox17-attempt01 built (exit 0, 1h17m37s) and passed the original verification: archive gate, must-hold (super_empty, fastboot-info and android-info identical to author and build9; DTBO payload and vendor_boot DTB identical to live slot b; 888 modules, 0 CRC mismatches; the one known unresolved symbol; kernel 6.6.142-android15-8-klimt-4k), all 165 historical checks, and all seven supplemental image checks including install_integrity (no stray staged file, image APK set equals the staged set, only the two reviewed evox15 overlay duplicates, TelecomShim is the only com.android.server.telecom APK). Report: C:/XiaomiBuilds/compare/evox17/evox17-attempt01.\n\nThis recheck applies the three verifier gaps found by the independent Codex evox17 review (C:/Users/diogo/Documents/Codex/2026-10-14/ru/work/evox17/codex-review-evox17/EVOX17_FINDINGS.json). None is an image defect; each strengthens a gate:\nE17-001 (high): the Telecom gate trusted the installed path and package name. It now binds the selected Telecom APK to its current producer (module/install/ninja/image byte equality) and classifies the packaged TelecomService binder contract from dexdump (mainline = TelecomServiceInitializerRepository and no ITelecomLoader.Stub subclass). Validated on the real evox16 APKs: Telecom.apk -> legacy, TelecomShim.apk -> mainline; unit tests include a legacy payload at the shim path.\nE17-002 (medium): symlinked APKs skipped identity checks. Installed APK symlinks are now rejected (the evox15, evox16 and evox17 images have none).\nE17-003 (medium): the vendor libdmabufheap was not bound to its producer. libdmabufheap.vendor and libion.vendor are now bound like the system variants (producer/install/image bytes, source edge to BufferAllocator.cpp / ion.c), and libion.vendor's ion_open is checked to be the stub.\nAlso: Check.run decodes tool output with errors='replace' (dexdump of the 2.6 MB legacy Telecom.apk emits non-UTF-8 bytes; without it the checker would crash).\nDry run of all seven modes of the revised checker against the attempt01 extraction: see dryrun results in C:/XiaomiBuilds/debug/evox17/recheck01-dryrun. 45/45 helper and negative tests pass on Linux. Original attempt evidence, extraction and reports are preserved; the recheck uses rechecks/recheck01.",
+  "original_check_image_sha256": "bc5576486c065705d30688963737afd99ec49ac3be691fdba8141412b54a6d8b",
+  "reviewer": "Claude, with the independent Codex evox17 review (codex-review-evox17/EVOX17_FINDINGS.json)"
+}

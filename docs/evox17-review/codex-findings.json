@@ -1,0 +1,49 @@
+{
+  "findings": [
+    {
+      "id": "E17-001",
+      "severity": "high",
+      "area": "tooling",
+      "summary": "The Telecom variant gate trusts the installed pathname and package name without binding the APK payload to its selected producer.",
+      "evidence": [
+        "C:/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py:637-663 compares image/staged APK path sets and selects TelecomShim versus Telecom by path, package identity and Soong variables; it never compares Telecom APK hashes with the current producer.",
+        "check_image.py:643 computes the image hash only for badging-cache use. No mode calls Check.module for TelecomShim or Telecom; Check.module at lines 234-243 already implements producer/install/image hash binding for other artifacts.",
+        "Read-only in-memory execution of the actual install_integrity function passed all eight assertions with a legacy-payload marker at system/priv-app/TelecomShim/TelecomShim.apk, while staged bytes represented the selected shim. The regular wrong-path control failed as expected. Reproducer and limits are in EVOX17_INDEPENDENT_REVIEW.md, Appendix A.",
+        "The prior failure mechanism and the identical com.android.server.telecom identity of both variants are documented in ../EVOX16_REVIEW_DISPOSITION.json:root_cause and ../codex-review/EVOX16_INDEPENDENT_REVIEW.md:Boot-loop root cause."
+      ],
+      "recommendation": "Bind the selected Telecom APK to its actual current module/install producer and compare producer, staged and extracted-image bytes. Prefer this for all regular installed APKs. Add a negative test that places the legacy payload at the shim pathname; do not treat path equality as payload or Binder-protocol validation. This is a verifier defect, not evidence that the running attempt contains the wrong APK."
+    },
+    {
+      "id": "E17-002",
+      "severity": "medium",
+      "area": "tooling",
+      "summary": "Symlinked APKs bypass package-identity, duplicate-package and Telecom checks.",
+      "evidence": [
+        "C:/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py:639-649 adds a symlink APK to image_apks, then continues at line 642 without adding a package record to inventory.",
+        "check_image.py:650-663 gates package duplicates and Telecom using that incomplete inventory. The staged scan at line 632 explicitly includes symlinks, so an install-listed symlink can satisfy both APK path-set assertions.",
+        "Read-only in-memory execution of install_integrity rejected an ordinary duplicate com.android.server.telecom APK, but passed all eight assertions when the same duplicate path was represented as a symlink. Appendix A preserves the reproducer.",
+        "image-checks/tests.py:106-117 tests symlink handling for obsolete-artifact absence, not the install_integrity package inventory. The saved evox16 negative report stops at the earlier stray-staged-files assertion."
+      ],
+      "recommendation": "Either reject installed APK symlinks explicitly, with reviewed exceptions if needed, or resolve them against the extracted Android partition layout and include their package identities in every applicable gate. Handle absolute Android links, missing targets, cycles and containment explicitly. Add both positive and negative symlink fixtures."
+    },
+    {
+      "id": "E17-003",
+      "severity": "medium",
+      "area": "tooling",
+      "summary": "The new allocator check does not bind the vendor libdmabufheap implementation to its current producer.",
+      "evidence": [
+        "C:/XiaomiBuilds/build-setup/evox/evox17/image-checks/check_image.py:432-439 verifies the upstream source HEAD, source selection and producer identity for system/lib64/libdmabufheap.so, but checks vendor/lib64/libdmabufheap.so only for AArch64 ELF identity and presence of 15 exported names.",
+        "The vendor library is never passed to Check.module or Check.installed_target. A stale legacy vendor library retaining those exports can satisfy the new ABI assertion even when the system variant is correctly rebuilt from BufferAllocator.cpp.",
+        "C:/XiaomiBuilds/build-setup/evox/evox17/image-checks/references.json:allocator_vendor_abi and allocator_vendor_abi_evidence explicitly concern proprietary vendor consumers; the checked producer at line 435 is the system variant.",
+        "The preserved legacy and ION-free sources retain the relevant BufferAllocator APIs. Their exported-name overlap is intentional and therefore cannot identify which implementation the vendor image packages."
+      ],
+      "recommendation": "Resolve the vendor libdmabufheap module variant from the generated module/install graph, compare its producer, staging and image hashes, and verify its graph consumes BufferAllocator.cpp. Keep the 15-symbol subset assertion as a separate ABI check. Apply the same producer binding to vendor libion if claiming its backend is verified. This does not justify reverting the upstream allocator."
+    }
+  ],
+  "verdicts": {
+    "black_aod": "KEEP",
+    "smpte_guard": "KEEP",
+    "allocator_upstream": "OK",
+    "su_upstream": "OK"
+  }
+}

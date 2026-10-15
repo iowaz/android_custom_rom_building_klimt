@@ -50,6 +50,20 @@ class Tests(unittest.TestCase):
   recs=[{'relative':'product/overlay/A.apk','package':'p'},{'relative':'product/overlay/B.apk','package':'p'}]
   self.assertEqual(m.unexpected_duplicates(m.duplicate_apk_packages(recs),{'p':['product/overlay/B.apk','product/overlay/A.apk']}),{})
   self.assertIn('p',m.unexpected_duplicates(m.duplicate_apk_packages(recs+[{'relative':'system/app/C.apk','package':'p'}]),{'p':['product/overlay/A.apk','product/overlay/B.apk']}))
+ def telecom_dex(self,service_body,extra=''):
+  return ("Class #0            -\n  Class descriptor  : 'Lcom/android/server/telecom/components/TelecomService;'\n  Superclass        : 'Landroid/app/Service;'\n"+service_body+"\n"+extra)
+ def legacy_class(self,name):
+  return "Class #1            -\n  Class descriptor  : '"+name+"'\n  Superclass        : 'Lcom/android/internal/telecom/ITelecomLoader$Stub;'\n"
+ def test_telecom_mainline_contract(self):
+  self.assertEqual(m.telecom_service_contract(self.telecom_dex('invoke-static {}, Landroid/telecom/TelecomServiceInitializerRepository;.getInitializer:()')),'mainline')
+ def test_telecom_legacy_contract(self):
+  self.assertEqual(m.telecom_service_contract(self.telecom_dex('new-instance v0, Lcom/android/server/telecom/components/TelecomService$1;',self.legacy_class('Lcom/android/server/telecom/components/TelecomService$1;'))),'legacy')
+ def test_telecom_legacy_payload_at_shim_path_rejected(self):
+  # A legacy payload is legacy wherever it is installed; the gate compares the contract, not the path.
+  self.assertNotEqual(m.telecom_service_contract(self.telecom_dex('nop',self.legacy_class('Lx$1;'))),'mainline')
+ def test_telecom_missing_or_mixed_contract(self):
+  self.assertIsNone(m.telecom_service_contract("Class #0            -\n  Class descriptor  : 'Lother;'\n"))
+  self.assertEqual(m.telecom_service_contract(self.telecom_dex('Landroid/telecom/TelecomServiceInitializerRepository;',self.legacy_class('Lx$1;'))),'ambiguous')
  def test_query_implicit_dependencies(self):
   self.assertEqual(m.parse_query('out/a:\n  input: rule\n    one\n    | two\n    || three\n  outputs:\n    out/b\n'),['one','two','three'])
  def test_resource_default(self):

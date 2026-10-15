@@ -2,21 +2,23 @@
 
 Since 2026-10-15 everything on the Windows side lives in one folder, `D:\android_rom_building`
 (`/mnt/d/android_rom_building` in WSL). Before that it was spread over `C:\XiaomiBuilds` (a junction to
-`D:\XiaomiBuilds`), `D:\WitAquaBuild`, `D:\EvoXBuild`, `C:\adb`, `C:\WSL`, the WSL distro's default place in
-`AppData` and the Codex session folders.
+`D:\XiaomiBuilds`), `D:\WitAquaBuild`, `D:\EvoXBuild`, `C:\adb`, `C:\WSL`, `C:\tmp`, `C:\xu`, `Downloads`,
+the WSL distro's default place in `AppData` and the Codex session folders.
 
 ```
 D:\android_rom_building\
   README.md               the map, and how to flash
   output-zips\<build>\    the image ZIP, its flash helpers, SHA256SUMS, VERIFIED.txt, RESULTS.json ...
   tools\platform-tools\   adb.exe, fastboot.exe (used by the flash helpers)
+  tools\                  also miflash_unlock\ (6.5 and 7.6), ghostlock\, drivers\ (Xiaomi USB drivers)
   vhdx-images\            source.vhdx (/mnt/wsl/evox), build.vhdx (/mnt/wsl/build), wsl-swap.vhdx,
                           wsl-ubuntu-24.04\ext4.vhdx (the distro)
-  repositories\           this repository (the pipeline runs from it) and the frozen-manifest repository
+  repositories\           this repository (the pipeline runs from it), the frozen-manifest repository,
+                          a local clone of xiaomi-unlock-helper
   diagnostics\            builds\<build>\ (readiness, reports, flash logs), device\, codex-sessions\, logs\
   backups\                PartitionsBackup (the phone's partitions), stock-firmware, signing-keys, boot-images
   archive\                the WitAqua era, old notes, the scripts as they were before the move
-  scripts\                mount-disks.ps1, wsl-keepalive.ps1, watch-build.sh, one-time\ (this move)
+  scripts\                mount-disks.ps1, wsl-keepalive.ps1, watch-attempt.sh, one-time\ (this move)
   to-delete\              obsolete files that exist nowhere else; the owner deletes them
 ```
 
@@ -56,10 +58,15 @@ Done in this order (logs in `diagnostics\logs`, scripts in `scripts\one-time`):
    - the klimt Codex sessions went to `diagnostics\codex-sessions`, and this repository and the
      frozen-manifest repository to `repositories` (`repo`'s manifest URL was updated);
    - unique but obsolete files went to `to-delete` (the evox16 boot-loop ZIP, the WitAqua v4.0 ZIP, evox16's
-     source bundles, the old `C:\XiaomiBuilds`), 16 GB for the owner to delete.
+     source bundles, the old `C:\XiaomiBuilds`, old platform-tools downloads), 17.4 GB for the owner to delete.
+5. **After evox18, the last strays** (`reorganize-windows-phase-c.ps1`): `C:\tmp` (a device-diagnostics folder,
+   an adb log, a GhostLock boot payload), `C:\xu\repo` (the xiaomi-unlock-helper clone), the Mi Unlock 7.6 tool
+   and Xiaomi drivers from `Downloads`, and two more klimt Codex sessions. Each file was hash-checked at the
+   destination before its source was removed; Mi Unlock 6.5 in `Downloads` was an exact copy and was removed.
 
 Result: D: free space went from 47 GB to 71 GB, and C: gained about 94 GB: the swap file (48 GB) moved to D:,
-plus the duplicate ZIPs and the old copies.
+plus the duplicate ZIPs and the old copies. evox18's build, its ZIP and its extractions then took D: back to
+27.6 GB free (`build.vhdx` 425.8 GB, 251 GB used inside).
 
 **The compaction gain is temporary.** Both build disks are dynamic VHDX files. `fstrim` unmaps freed blocks and
 `diskpart compact vdisk` gives them back to D:, but the next build or image extraction writes to free blocks
@@ -71,7 +78,7 @@ about 30 GB. To keep D: from filling:
   [`relocate-vhdx.ps1`](../build-setup/windows/relocate-vhdx.ps1) (elevated; it unmounts the disks) after
   `fstrim`.
 
-The verifier refuses to start below 38 GB free on D:.
+A build does not start below 45 GB free on D: (set by `ready.py`), and the verifier does not start below 38 GB.
 
 The build scripts were reorganized at the same time: one generic [pipeline](../build-setup/evox/pipeline)
 instead of a copy per build, and [evox18](evox18.md) was built with it from evox17's source to prove that

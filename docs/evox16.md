@@ -1,6 +1,8 @@
 # evox16 controlled test build
 
-Status on 2026-10-14: built and image-verified, **not flashed**. `evox16` is the build name: it is still
+Status on 2026-10-14: built and image-verified, then **dirty-flashed to slot b, where it boot-loops**
+(`system_server` crashes in Telecom setup; see [Boot loop on the phone](#boot-loop-on-the-phone)). The phone was
+restored to evox15 the same night without a wipe. **Do not flash this image.** `evox16` is the build name: it is still
 Android 17 (`cp2a`, build ID `CP2A.260605.016`, security patch 2026-10-01). What changed is Evolution X itself,
 from 12.2 to **12.3**, plus a review of every upstream change that touches a klimt patch.
 
@@ -73,7 +75,7 @@ a 45-second timeout too short for the full-build Ninja graph (55 s, 16 GB RAM), 
 contained, and a GMS parser that could not read `$(LOCAL_MODULE).apk`. A verifier-only recheck (`recheck02`) of
 the same ZIP passed everything without rebuilding.
 
-## Verified image
+## Verified image (boot-loops; do not flash)
 
 - Archive: `lineage_klimt-evox16-img.zip` (5,663,178,762 bytes, 19 fastboot entries, same set as evox15).
 - SHA-256: `bba4b20753f86d62cff99a4553cfedc0038991c393ddf2bd91a361d05b549438`.
@@ -91,11 +93,50 @@ the same ZIP passed everything without rebuilding.
   [`gh_replay_commits.py`](../build-setup/evox/evox16/gh_replay_commits.py), which only moves a branch when
   GitHub's commit SHA equals the local one.
 
-## Not yet tested on the phone
+## Boot loop on the phone
 
-- AOD and double-tap: the TouchBridge wake/doze change and the black-AOD overlay are compiled and packaged
-  correctly, but the earlier stuck-AOD report has not been reproduced or shown fixed.
-- Fingerprint (UDFPS refresh-rate release changed upstream), Bluetooth codecs and LHDC, Wi-Fi, SIM/eSIM carrier
-  scan, charging (evox15's Health fix is included), camera (the video lens-switch watchdog is not fixed), themes,
-  App Lock and Sandbox on a second user.
-- It is signed with the same keys as evox15, so the README's rule allows a dirty flash; that has not been tried.
+On 2026-10-14 around 23:00 Sao Paulo, the verified ZIP was dirty-flashed over evox15 on slot b. It used
+`fastboot update --skip-reboot`, without `-w`, and the slot and firmware were unchanged. The flash itself was
+clean: exit 0, 0 errors, no erase. ADB came up after 26 s, but the boot never completed. `system_server` crashed
+53 times, about every 5 seconds, always with the same exception:
+
+```
+java.lang.SecurityException: Binder invocation to an incorrect interface
+  at com.android.internal.telecom.ITelecomLoader$Stub.onTransact
+  at com.android.internal.telecom.ITelecomService$Stub$Proxy.getSimCallManager
+  at android.telecom.TelecomManager.getSimCallManager
+  at com.android.server.telecom.TelecomLoaderService$LoaderServiceConnection.onServiceConnected(TelecomLoaderService.java:83)
+```
+
+Evolution X 12.3's frameworks/base has two `TelecomLoaderService` variants:
+- **Mainline** (`services/telecom/mainline`) registers the binder returned by the Telecom app directly as the
+  `telecom` service, so it expects an `ITelecomService`.
+- **Platform** (`services/telecom/platform`) first unwraps an `ITelecomLoader` and calls `createTelecomService()`.
+
+The image's `system_server` ran the mainline variant, but the Telecom app (`packages/services/Telecomm`,
+`TelecomService.onBind`) returned an `ITelecomLoader` binder. The first `TelecomManager` call therefore reached the
+wrong interface and killed the system process. All the other "The system died" app crashes follow from that.
+
+The cause is a mismatch between the framework and the Telecom app in the 12.3 sources and build configuration.
+It is not one of our patches: the only Telecomm changes are in `Ringer.java` (call flash and two log calls),
+which is not on this path. Which build flag selects the variant, and why the two sides disagree, has not been
+investigated yet.
+
+Nothing in verification boots the image. The precheck compiled `services` and `Telecom` separately, and the
+image checks inspect files and producers, so a handshake between two correctly built modules passed every gate.
+A future build needs a boot test (an emulator, or a careful flash with a known-good build ready to restore)
+before it is called ready.
+
+Restore: rebooted to the bootloader and flashed the verified evox15 ZIP (`63982b33…3f90a`) the same way, still
+on slot b with no wipe. Exit 0, 0 errors, no erase. It booted in 36 s with no `system_server` crashes. evox16 never
+reached the lock screen, so the credential-encrypted user data was never unlocked by it.
+
+The device logs are kept locally in `C:\XiaomiBuilds\debug\evox16\device-bootloop-20261014\`: bugreport, full
+logcat, crash and events buffers, the dropbox `system_server_crash` records and getprop. The flash logs are
+`C:\XiaomiBuilds\flash-evox16.log` and `flash-evox15-restore.log`.
+
+## Not tested on the phone
+
+It never booted, so none of the runtime items below were reached: AOD and double-tap (TouchBridge wake/doze
+change and black-AOD overlay), fingerprint (UDFPS refresh-rate release changed upstream), Bluetooth codecs and
+LHDC, Wi-Fi, SIM/eSIM carrier scan, charging, camera, themes, App Lock and Sandbox on a second user.

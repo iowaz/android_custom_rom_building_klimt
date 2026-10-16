@@ -38,6 +38,12 @@ class Tests(unittest.TestCase):
  def test_stray_staged_file_rejected(self):
   other,kernel=m.stray_staged(['system/priv-app/Telecom/Telecom.apk','system/priv-app/TelecomShim/TelecomShim.apk','vendor_dlkm/lib/modules/a.ko','vendor_dlkm/lib/modules/modules.load'],{'system/priv-app/TelecomShim/TelecomShim.apk'})
   self.assertEqual(other,['system/priv-app/Telecom/Telecom.apk']);self.assertEqual(len(kernel),2)
+ def test_install_listing_follows_soong_rename(self):
+  with tempfile.TemporaryDirectory() as d:
+   p=Path(d);(p/'.installable_files.previous').write_text('a\n')
+   self.assertEqual(m.install_listing(p),p/'.installable_files.previous')
+   (p/'.installable_files').write_text('a\n')
+   self.assertEqual(m.install_listing(p),p/'.installable_files')
  def test_stray_kernel_allowance_is_narrow(self):
   other,kernel=m.stray_staged(['vendor_dlkm/lib/modules/sub/a.ko','vendor_dlkm/etc/x.conf','system/bin/property_info_checker'],set())
   self.assertEqual(sorted(other),['system/bin/property_info_checker','vendor_dlkm/etc/x.conf','vendor_dlkm/lib/modules/sub/a.ko']);self.assertEqual(kernel,[])

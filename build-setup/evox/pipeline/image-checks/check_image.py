@@ -81,6 +81,12 @@ def telecom_service_contract(dex):
  if initializer and not loader:return 'mainline'
  if loader and not initializer:return 'legacy'
  return 'ambiguous'
+def install_listing(product_out):
+ """This build's install list. Soong's cleanOldFiles() (ui/build/kati.go) leaves .installable_files in place
+ only when it equals the previous build's list; when the list changed it removes stale installs and renames
+ it to .installable_files.previous. evox19 added one file, so only .previous was left."""
+ current=product_out/'.installable_files'
+ return current if current.exists() else product_out/'.installable_files.previous'
 def stray_staged(staged,installable):
  """Staged files the product does not install. Kernel module trees are copied outside it."""
  stray=sorted(set(staged)-set(installable))
@@ -648,7 +654,7 @@ def install_integrity(c):
  owner=next((p/'owner.json' for p in Path(os.environ['EVOX_READY']).resolve().parents if (p/'owner.json').is_file()),None)
  if not owner:raise ToolFailure('Attempt owner record unavailable')
  started=json.loads(owner.read_text())['started_ns']
- listing=P/'.installable_files';c.identify(listing)
+ listing=install_listing(P);c.identify(listing)
  c.need('install list written by this attempt',listing.stat().st_mtime_ns>=started)
  installable={x.removeprefix('out/target/product/klimt/') for x in listing.read_text().split()}
  staged=[str(p.relative_to(P)) for part in ['system','system_ext','product','vendor','odm','vendor_dlkm','system_dlkm','odm_dlkm'] if (P/part).is_dir() for p in (P/part).rglob('*') if p.is_file() or p.is_symlink()]

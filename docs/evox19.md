@@ -1,7 +1,8 @@
 # evox19: AOD takes touch, double tap and fingerprint again
 
-Status on 2026-10-16: built and image-checked (`evox19-attempt01`, verifier recheck `recheck01`), promoted to
-`D:\android_rom_building\output-zips\evox19`. **Not flashed, not boot-tested.**
+Status on 2026-10-16: built and image-checked (`evox19-attempt01`, verifier recheck `recheck01`), then
+**dirty-flashed to slot b, where it boots, and AOD takes the fingerprint and double tap** (see
+[On the phone](#on-the-phone)).
 
 evox19 is evox17 plus one device tree commit. On evox17 the phone ignores taps, double taps and the fingerprint
 on AOD (always-on or AOD while charging); only the power button wakes it.
@@ -73,13 +74,18 @@ historical checks, and the seven image checks (policy 31, patch packaging 33, pr
 45, GMS/themes/apps 674, Doze 62, install integrity 16). `promote.py` moved the delivery to
 `output-zips\evox19`.
 
-## What to check on the phone
+## On the phone
+
+Dirty-flashed on 2026-10-16 with `lineage_klimt-evox19-flash.bat /flash` (`fastboot update --skip-reboot`, slot b,
+no wipe; 296 s, every partition OKAY), then rebooted: `sys.boot_completed=1` after 34 s, `system_server` stable,
+no crashes in the crash buffer.
 
 1. `dumpsys input`: `goodix_ts` has `ConfigurationFile: /vendor/usr/idc/goodix_ts.idc`,
-   `EnableForInactiveViewport: true`, and stays `DIRECT` while the display is `DOZE`.
-2. Fingerprint on AOD unlocks. This is the open question: AOSP's own AOD fingerprint path waits for the screen to be
-   ON before scanning; now the touch arrives while the panel is still in doze. If the spot does not light or the
-   scan fails, turn the screen on at the AOD finger-down (stock does, 9 ms after the touch).
-3. Double tap on AOD wakes, with Evolution X's AOD double-tap setting on (`doze_double_tap_gesture`;
-   `PulsingGestureListener` ignores AOD double taps without it or `doze_tap_gesture`).
-4. No pocket wakes, and AOD drain unchanged.
+   `EnableForInactiveViewport: true`, and the mapper stays `DIRECT` while the phone is `Dozing`.
+2. **Fingerprint on AOD unlocks.** The owner locked the phone, waited past the 4 s window and unlocked with the
+   fingerprint; logcat shows the lock at 09:12:12.9 and `authenticationState updated: Succeeded(FINGERPRINT,
+   DeviceEntryAuthentication)` at 09:13:09.8, 57 s into AOD, through the UDFPS touch overlay. The open question
+   from the plan (whether the spot lights and captures while the panel is in doze) is answered: it does.
+3. **Double tap on AOD wakes** (owner's test, with Evolution X's AOD double-tap setting on).
+
+Still to watch: pocket wakes and AOD drain over a normal day.

@@ -11,7 +11,7 @@ PIPELINE = Path(__file__).resolve().parent
 EVOX_SETUP = PIPELINE.parent                       # build-setup/evox (env.sh, sync.sh, ...)
 ROOT = Path(os.environ.get('KLIMT_ROOT', '/mnt/d/android_rom_building'))
 
-# Inside WSL, on the two build disks (vhdx-images\source.vhdx and build.vhdx)
+# Inside WSL, on the build disk (vhdx-images\build.vhdx); /mnt/wsl/evox is a bind mount of /mnt/wsl/build/evox
 SRC = Path('/mnt/wsl/evox/src')                    # the Android tree; src/out is a symlink to OUT
 OUT = Path('/mnt/wsl/build/evox-out')
 ZIP = OUT / 'target/product/klimt/lineage_klimt-img.zip'

@@ -6,9 +6,11 @@ This file only adds the rules an agent (Claude, Codex, ...) must follow when wor
 ## Where things are on the build PC
 
 Everything lives under `D:\android_rom_building` (`/mnt/d/android_rom_building` in WSL); its own `README.md`
-is the map. The Android tree is `/mnt/wsl/evox/src` and the build output `/mnt/wsl/build/evox-out`, on the two
-VHDX disks in `D:\android_rom_building\vhdx-images` (attach them with
-[`build-setup/windows/mount-disks.ps1`](build-setup/windows/mount-disks.ps1), elevated, after a reboot).
+is the map. The Android tree is `/mnt/wsl/evox/src` and the build output `/mnt/wsl/build/evox-out`, both on
+`D:\android_rom_building\vhdx-images\build.vhdx` (`/mnt/wsl/evox` is a bind mount of `/mnt/wsl/build/evox`).
+After a reboot, [`build-setup/windows/mount-disks.ps1`](build-setup/windows/mount-disks.ps1) (elevated)
+attaches the disk and makes the bind mount. Keep the path `/mnt/wsl/evox/src`: the scripts, the build output
+and ccache depend on it. WSL's swap is on C: on purpose (`C:\WSL\swap.vhdx`); do not move it to D:.
 Builds run through [`build-setup/evox/pipeline`](build-setup/evox/pipeline), straight from this repository's
 clone in `D:\android_rom_building\repositories`.
 

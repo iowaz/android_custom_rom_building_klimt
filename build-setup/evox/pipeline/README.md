@@ -11,7 +11,7 @@ Run it from WSL, from this repository on the build PC:
 
 | What | Where |
 |---|---|
-| Android tree / build output | `/mnt/wsl/evox/src` / `/mnt/wsl/build/evox-out` (`src/out` is a symlink) |
+| Android tree / build output | `/mnt/wsl/evox/src` / `/mnt/wsl/build/evox-out` (`src/out` is a symlink). Both are on `build.vhdx`: `/mnt/wsl/evox` is a bind mount of `/mnt/wsl/build/evox` |
 | Attempt folders (status, build.log, verify.log, locks) | `/mnt/wsl/evox/logs/<build>/<attempt>` |
 | Frozen manifest, readiness, per-attempt records | `D:\android_rom_building\diagnostics\builds\<build>\` |
 | Verifier reports | `...\diagnostics\builds\<build>\reports\<attempt>[\rechecks\<recheckNN>]` |
@@ -43,7 +43,7 @@ survived: images are packed from the staging directories, so a leftover install 
 loop). Never run `m <module>` in this tree between builds.
 
 The controller identifies its build by PID, `/proc` start time, boot ID and session, and a watchdog stops only
-that build if a disk runs low (D: 10 GB, either ext4 disk 2 GB). It never restarts a build. A new attempt
+that build if a disk runs low (D: 10 GB, the ext4 disk 2 GB). It never restarts a build. A new attempt
 always gets a new ID, and nothing in an attempt is overwritten.
 
 ## Verification

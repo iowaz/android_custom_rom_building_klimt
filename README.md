@@ -76,7 +76,7 @@ anyone without access to the private vendor repository. So this repository ships
   - Three are already gone: frameworks/base's base commit, `system_memory_libdmabufheap` (repository deleted)
     and one ThemeIcons commit.
   - So the snapshot is a record of the build, not a guaranteed way to rebuild it bit for bit. A full copy of
-    the source disk is the only way to do that.
+    the source tree (`/mnt/wsl/evox`) is the only way to do that.
 - [`manifests/local_manifests/klimt-live.xml`](manifests/local_manifests/klimt-live.xml) is the local manifest
   actually installed on the build PC. The klimt projects there were switched to their iowaz branches by hand
   after the first sync.
@@ -84,15 +84,14 @@ anyone without access to the private vendor repository. So this repository ships
 ## The build machine
 
 The builds run on a Windows 11 PC (12 threads, 32 GB RAM, two NVMe SSDs) inside WSL2 (Ubuntu 24.04). The source
-and the build output live on two ext4 virtual disks attached to WSL, because an Android build on NTFS (`/mnt/c`)
+and the build output live on an ext4 virtual disk attached to WSL, because an Android build on NTFS (`/mnt/c`)
 is far too slow. Since 2026-10-15 everything on the Windows side is in one folder, `D:\android_rom_building`
 (`/mnt/d/android_rom_building` in WSL); its own `README.md` is the map, and
 [docs/build-pc-layout.md](docs/build-pc-layout.md) describes it and the reorganization that created it.
 
 | What | Where (Windows) | Where (WSL) | Size |
 |---|---|---|---|
-| Source tree | `vhdx-images\source.vhdx` | `/mnt/wsl/evox/src`, logs in `/mnt/wsl/evox/logs` | ~165 GB of 200 GB |
-| Build output, ccache, reference images | `vhdx-images\build.vhdx` | `/mnt/wsl/build/evox-out` (`src/out` is a symlink to it), `/mnt/wsl/build/ccache`, `/mnt/wsl/build/compare` | ~270 GB of 480 GB |
+| Source tree, build output, ccache, reference images | `vhdx-images\build.vhdx` (one disk since 2026-10-15) | `/mnt/wsl/build/evox` bind-mounted at `/mnt/wsl/evox`: the tree in `/mnt/wsl/evox/src`, logs in `/mnt/wsl/evox/logs`; `/mnt/wsl/build/evox-out` (`src/out` is a symlink to it), `/mnt/wsl/build/ccache`, `/mnt/wsl/build/compare` | ~415 GB of 640 GB |
 | The WSL distro | `vhdx-images\wsl-ubuntu-24.04\` | `/` | |
 | WSL's swap (on C:, a different drive from the build disks) | `C:\WSL\swap.vhdx` | | up to 48 GB |
 | This repository (the pipeline runs from it) | `repositories\android_custom_rom_building_klimt` | `/mnt/d/android_rom_building/repositories/...` | |
@@ -127,12 +126,14 @@ The scripts in [`build-setup/`](build-setup) use the build PC's absolute paths (
 
 1. Install WSL2 with Ubuntu 24.04, put the `.wslconfig` above in place, and install the usual AOSP/LineageOS
    build packages plus `repo`, `git-lfs`, `ccache` and `python3`.
-2. Create and format the two disks (elevated PowerShell), in [`build-setup/windows`](build-setup/windows):
-   - Build disk: [`create-vhdx.ps1`](build-setup/windows/create-vhdx.ps1), then
-     [`format-build-disk.ps1`](build-setup/windows/format-build-disk.ps1).
-   - Source disk: [`create-evox-disk.ps1`](build-setup/windows/create-evox-disk.ps1).
+2. Create and format the build disk (elevated PowerShell), in [`build-setup/windows`](build-setup/windows):
+   [`create-vhdx.ps1`](build-setup/windows/create-vhdx.ps1), then
+   [`format-build-disk.ps1`](build-setup/windows/format-build-disk.ps1); make it 640 GB, and put the tree in
+   its `evox/` folder. (This PC first had a separate source disk,
+   [`create-evox-disk.ps1`](build-setup/windows/create-evox-disk.ps1); it was merged into the build disk.)
 3. After every Windows reboot or `wsl --shutdown`, run
-   [`mount-disks.ps1`](build-setup/windows/mount-disks.ps1) elevated to attach both disks again, and
+   [`mount-disks.ps1`](build-setup/windows/mount-disks.ps1) elevated to attach the disk and bind-mount the tree
+   at `/mnt/wsl/evox`, and
    [`wsl-keepalive.ps1`](build-setup/windows/wsl-keepalive.ps1) so WSL keeps running while a build is detached.
 
 ### 2. Sources
@@ -194,7 +195,7 @@ python3 -B $P/promote.py evox18-attempt01                # -> D:\android_rom_bui
 - One detached controller runs `m -j12 installclean`, `m -j12 updatepackage`, then the verifier. Each attempt
   gets its own ID and folders, and nothing from an earlier attempt is overwritten.
 - The controller and its watchdog identify the build by PID, `/proc` start time, boot ID and session. They stop
-  only that build (disk below 10 GB on D: or 2 GB on either ext4 disk) and never restart one.
+  only that build (disk below 10 GB on D: or 2 GB on the ext4 disk) and never restart one.
 - A fixed verifier can re-check a successful build without rebuilding (`verify.py --recheck`).
 
 There is no focused precheck any more: `m <module>` installs into the staging directories the images are packed

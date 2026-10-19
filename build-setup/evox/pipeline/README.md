@@ -53,7 +53,8 @@ record), extracts it, and requires:
 
 - the must-hold checks ([`legacy/musthold.sh`](legacy/musthold.sh)): AVB, `super_empty`, `fastboot-info.txt`,
   `android-info.txt`, DTBO and `vendor_boot` DTB against the phone's slot b, 888 modules with 0 CRC mismatches;
-- all 165 historical fix checks ([`legacy/fixcheck14.sh`](legacy/fixcheck14.sh) and the files it chains to,
+- all 184 fix checks, the 165 historical ones plus 19 for the evox20 device-metadata pass
+  ([`legacy/fixcheck20.sh`](legacy/fixcheck20.sh) and the files it chains to,
   matched by name against [`expected-legacy-checks.json`](expected-legacy-checks.json));
 - seven image checks ([`image-checks/check_image.py`](image-checks/check_image.py), registered with their hash in
   `IMAGE_CHECKS.json`): policy, patch packaging, private compatibility, Health semantics, GMS/themes/apps, Doze

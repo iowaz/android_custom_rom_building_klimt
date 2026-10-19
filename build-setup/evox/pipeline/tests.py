@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Focused ownership/failure/coverage tests; no Android build or verification."""
-import ast,importlib.util,json,os
+import ast,importlib.util,json,os,re
 os.environ.setdefault('KLIMT_BUILD','evox99')
 from pathlib import Path
 import signal,subprocess,sys,tempfile,time,unittest
@@ -74,10 +74,16 @@ class Gates(unittest.TestCase):
             subprocess.run([sys.executable,'-B',str(B/'controller.py'),'watchdog',str(p)],check=True,timeout=2)
             self.assertEqual(json.loads((p/'watchdog-terminal.json').read_text())['reason'],'build-process-gone')
     def fixture(self,p):
-        old=B/'test-fixtures/evox15'  # copies of the evox15 verifier reports
-        (p/'raw-musthold.txt').write_bytes((old/'raw-musthold.txt').read_bytes())
+        old=B/'test-fixtures/evox15'  # copies of the evox15 verifier reports, carried forward to the current gate
+        kernel=('Linux version 6.6.142-android15-8-klimt-4k (build-user@build-host)',
+                'Linux version 6.6.142-android15-8 (android-build@r-06b84ad74750c689-xc7u)')  # evox20 kernel string
+        (p/'raw-musthold.txt').write_text((old/'raw-musthold.txt').read_text().replace(*kernel))
         (p/'raw-extract.txt').write_bytes((old/'raw-extract.txt').read_bytes())
         f=(old/'raw-fixcheck15.txt').read_text().replace('FAIL ','OK   ').replace('evox15 ','retained HIS/Health ')
+        f=f.replace('OK   system SPL 2026-10-01\n','OK   system SPL 2026-10-05\n')  # evox20 moved the system SPL
+        if not f.endswith('\n'):f+='\n'
+        have={re.sub(r'\([0-9a-f]{16}\)','(certificate)',l[5:].strip()) for l in f.splitlines() if l.startswith('OK   ')}
+        f+=''.join('OK   '+n+'\n' for n in json.loads((B/'expected-legacy-checks.json').read_text()) if n not in have)  # checks added since evox15
         (p/'raw-fixcheck.txt').write_text(f)
     def test_semantic_report_fixture_accepts_exact_coverage(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -96,6 +102,16 @@ class Gates(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);self.fixture(p)
             f=p/'raw-musthold.txt';f.write_text(f.read_text().replace('mtk_drm_gateic_set_backlight','unknown_symbol'))
+            with self.assertRaises(ValueError):gates.validate(p)
+    def test_report_old_kernel_suffix_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp);self.fixture(p)
+            f=p/'raw-musthold.txt';f.write_text(f.read_text().replace('6.6.142-android15-8 (android-build@','6.6.142-android15-8-klimt-4k (android-build@'))
+            with self.assertRaises(ValueError):gates.validate(p)
+    def test_report_old_kernel_builder_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp);self.fixture(p)
+            f=p/'raw-musthold.txt';f.write_text(f.read_text().replace('(android-build@','(build-user@'))
             with self.assertRaises(ValueError):gates.validate(p)
     def test_no_module_shadowed_by_a_local(self):
         # verify.py once assigned a local `paths`, which shadowed the paths module inside main() (evox18 recheck01).

@@ -14,7 +14,7 @@ bash "$(dirname "$(realpath "$0")")/fixcheck8.sh" 2>&1 | grep -E "^(OK|FAIL)"
 echo "== security patch level"
 BP=$F/system/system/build.prop
 grep -hE '^ro\.(build\.version|vendor\.build)\.security_patch=' $BP $F/vendor/build.prop | sed 's/^/     /'
-ok "system SPL 2026-10-01" "grep -q '^ro.build.version.security_patch=2026-10-01' $BP"
+ok "system SPL 2026-10-05" "grep -q '^ro.build.version.security_patch=2026-10-05$' $BP"
 ok "vendor SPL unchanged 2026-02-01" "grep -q '^ro.vendor.build.security_patch=2026-02-01' $F/vendor/build.prop"
 
 echo "== PIF default (frameworks/base 3a2e4dd70, Evolver 4433167)"

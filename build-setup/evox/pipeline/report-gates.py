@@ -14,7 +14,7 @@ def validate(report):
         'fastboot-info.txt == author','fastboot-info.txt == b9','android-info.txt == author','android-info.txt == b9',
         'vendor_boot dtb IDENTICAL to live slot b','modules 888;',
         'CRC MISMATCHES vs kernel 0; UNRESOLVED 1','  unresolved mtk_drm_gateic_set_backlight',
-        'Linux version 6.6.142-android15-8-klimt-4k']
+        'Linux version 6.6.142-android15-8 (android-build@']
     for value in required:
         if value not in text:raise ValueError('Must-hold missing: '+value)
     if any(x in text for x in ['DIFFERS','Traceback','No such file','  MISMATCH']):

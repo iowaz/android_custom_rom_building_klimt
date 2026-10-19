@@ -4,6 +4,7 @@
 # evox20 checks: evox14 coverage plus the device-metadata consistency pass (notes/evox20-implementation-plan.md).
 F=${EVOX_EXTRACT}/fs
 SP=$F/system/system/build.prop
+PP=$F/product/etc/build.prop
 # The build.props gen_build_prop.py writes; Make writes vendor/build.prop, which ALLBP adds.
 IDBP="$SP $F/system_ext/etc/build.prop $F/product/etc/build.prop $F/odm/etc/build.prop $F/vendor_dlkm/etc/build.prop $F/odm_dlkm/etc/build.prop $F/system_dlkm/etc/build.prop"
 ALLBP="$IDBP $F/vendor/build.prop"
@@ -17,37 +18,43 @@ absent(){ local re=$1; shift; local f; for f in "$@"; do [ -f "$f" ] || return 1
 only(){ local re=$1 val=$2; shift 2; local f vals; for f in "$@"; do [ -f "$f" ] || return 1; done
   vals=$(grep -hE "^($re)=" "$@" | sed 's/^[^=]*=//'); [ -n "$vals" ] || return 1
   ! printf '%s\n' "$vals" | grep -qvxF -- "$val"; }
+# each <prop ERE> <value> <files...>: only() for every file on its own, so every file must set the prop.
+each(){ local re=$1 val=$2; shift 2; local f; for f in "$@"; do only "$re" "$val" "$f" || return 1; done; }
 # no_rc_match <ERE>: no init .rc matches (system/etc/init must exist; other init dirs are searched when present).
 no_rc_match(){ local d dirs=(); for d in $F/system/system/etc/init $F/system_ext/etc/init $F/product/etc/init $F/vendor/etc/init $F/odm/etc/init; do
   [ -d "$d" ] && dirs+=("$d"); done; [ -d $F/system/system/etc/init ] && ! grep -rqE "$1" "${dirs[@]}"; }
 bash "$(dirname "$(realpath "$0")")/fixcheck14.sh"
 
 echo '== evox20 build identity'
-ok "every ro.build.display.id is ZP11.260918.007 release-keys" "only 'ro\.build\.display\.id' 'ZP11.260918.007 release-keys' $IDBP"
-ok "every ro.build.flavor is bluejay_beta-user" "only 'ro\.build\.flavor' bluejay_beta-user $IDBP"
-ok "every ro.build.description is the canary description" "only 'ro\.build\.description' '$DESC' $IDBP"
-ok "every ro.build.version.security_patch is 2026-10-05" "only 'ro\.build\.version\.security_patch' 2026-10-05 $IDBP"
-ok "every partition build.id is ZP11.260918.007" "only 'ro\.([a-z_]+\.)?build\.id' ZP11.260918.007 $IDBP"
-ok "every partition build.version.incremental is 16484274" "only 'ro\.([a-z_]+\.)?build\.version\.incremental' 16484274 $IDBP"
-ok "every partition build.fingerprint is the canary print" "only 'ro\.([a-z_]+\.)?build\.fingerprint' '$CANARY' $ALLBP"
+ok "every ro.build.display.id is ZP11.260918.007 release-keys" "each 'ro\.build\.display\.id' 'ZP11.260918.007 release-keys' $SP $PP"
+ok "every ro.build.flavor is bluejay_beta-user" "each 'ro\.build\.flavor' bluejay_beta-user $SP $PP"
+ok "every ro.build.description is the canary description" "each 'ro\.build\.description' '$DESC' $SP $PP"
+ok "every ro.build.version.security_patch is 2026-10-05" "each 'ro\.build\.version\.security_patch' 2026-10-05 $SP $PP"
+ok "every partition build.id is ZP11.260918.007" "each 'ro\.([a-z_]+\.)?build\.id' ZP11.260918.007 $IDBP"
+ok "every partition build.version.incremental is 16484274" "each 'ro\.([a-z_]+\.)?build\.version\.incremental' 16484274 $IDBP"
+ok "every partition build.fingerprint is the canary print" "each 'ro\.([a-z_]+\.)?build\.fingerprint' '$CANARY' $ALLBP"
 
 echo '== evox20 product identity unchanged (decision D1)'
 for kv in brand=Xiaomi device=klimt manufacturer=Xiaomi model=2506BPN68G; do
-  ok "every partition product.${kv%%=*} is ${kv#*=}" "only 'ro\.product\.([a-z_]+\.)?${kv%%=*}' ${kv#*=} $ALLBP"
+  ok "every partition product.${kv%%=*} is ${kv#*=}" "each 'ro\.product\.([a-z_]+\.)?${kv%%=*}' ${kv#*=} $ALLBP"
 done
+ok "every partition product.name is klimt, vendor klimt_global" "each 'ro\.product\.([a-z_]+\.)?name' klimt $IDBP && only 'ro\.product\.vendor\.name' klimt_global $F/vendor/build.prop"
+ok "ro.product.board is klimt" "only 'ro\.product\.board' klimt $ALLBP"
+ok "static attestation IDs unchanged (odm: klimt, Xiaomi)" "only 'ro\.product\.device_for_attestation' klimt $ALLBP && only 'ro\.product\.manufacturer_for_attestation' Xiaomi $ALLBP && absent '^ro\.product\.(brand|model|name)_for_attestation=' $ALLBP"
+ok "odm and vendor marketname and cert unchanged" "each 'ro\.product\.([a-z_]+\.)?marketname' 'Xiaomi 15T Pro' $F/odm/etc/build.prop $F/vendor/build.prop && each 'ro\.product\.([a-z_]+\.)?cert' 2506BPN68G $F/odm/etc/build.prop $F/vendor/build.prop"
 ok "init keeps the klimt attestation IDs" "strings $INIT | grep -qx klimt_global && strings $INIT | grep -qx 2506BPN68G"
 
 echo '== evox20 no project-diagnostic properties'
 ok "no ro.evolution* in any build.prop" "absent '^ro\.evolution' $ALLBP"
 ok "no ro.lineage* in any build.prop" "absent '^ro\.lineage' $ALLBP"
 ok "no persist.sys.evox* in any build.prop" "absent '^persist\.sys\.evox' $ALLBP"
-ok "no init rc gives persist.sys.evox props a value" "no_rc_match 'setprop +persist\.sys\.evox[^ ]* +[^\" ]'"
+ok "no init rc gives persist.sys.evox props a value" "no_rc_match 'setprop +persist\.sys\.evox[^ ]* +([^\" ]|\"[^\"])'"
 
 echo '== evox20 kernel identity'
 T=/mnt/wsl/build/compare/tools; export LD_LIBRARY_PATH=$T/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 B20=${EVOX_TMP}/evx20_boot; PV=${EVOX_TMP}/evx20-proc-version.txt
-test -e $B20 || $T/unpack_bootimg --boot_img ${EVOX_EXTRACT}/img/boot.img --out $B20 >/dev/null 2>&1
-(lz4 -dc $B20/kernel 2>/dev/null || gzip -dc $B20/kernel 2>/dev/null || cat $B20/kernel) | strings | grep -m1 '^Linux version ' > $PV
+rm -rf $B20; $T/unpack_bootimg --boot_img ${EVOX_EXTRACT}/img/boot.img --out $B20 >/dev/null 2>&1
+(lz4 -dc $B20/kernel 2>/dev/null || gzip -dc $B20/kernel 2>/dev/null || cat $B20/kernel 2>/dev/null) | strings | grep -m1 '^Linux version ' > $PV
 sed 's/^/     /' $PV
 HOST=$(sed -n 's/^ro\.build\.host=//p' $SP)
 ok "kernel release 6.6.142-android15-8 (no local suffix)" "grep -q '^Linux version 6\.6\.142-android15-8 (' $PV"

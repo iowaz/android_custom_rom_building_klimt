@@ -172,7 +172,7 @@ def main(attempt,recheck=None,tool_review=None):
         with open(report/filename,'xb') as f:
             subprocess.run(argv,cwd=S,env=env,stdout=f,stderr=subprocess.STDOUT,check=True)
     with open(report/'raw-fixcheck.txt','xb') as f:
-        subprocess.run(['bash',str(B/'legacy/fixcheck20.sh')],cwd=S,env=env,stdout=f,stderr=subprocess.STDOUT,check=True)
+        subprocess.run(['bash',str(B/'legacy/fixcheck21.sh')],cwd=S,env=env,stdout=f,stderr=subprocess.STDOUT,check=True)
         subprocess.run(['python3','-B',str(B/'check-health-his.py')],cwd=S,env=env,stdout=f,stderr=subprocess.STDOUT,check=True)
     spec=importlib.util.spec_from_file_location('report_gates',B/'report-gates.py')
     gates=importlib.util.module_from_spec(spec);spec.loader.exec_module(gates)

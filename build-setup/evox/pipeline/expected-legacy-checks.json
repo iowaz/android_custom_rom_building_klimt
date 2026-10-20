@@ -186,5 +186,11 @@
   "no init rc gives persist.sys.evox props a value",
   "kernel release 6.6.142-android15-8 (no local suffix)",
   "kernel builder android-build@ROM build host",
-  "kernel build #1 with a UTC timestamp"
+  "kernel build #1 with a UTC timestamp",
+  "libc filters the five */overlay dirs",
+  "libc no longer fakes the /data/local/tmp inode",
+  "no packaged policy rule names an adbroot type",
+  "adbroot types stay declared for the contexts",
+  "no adb_root binary or init service",
+  "no prop file sets persist.sys.usb.config"
 ]

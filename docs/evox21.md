@@ -1,9 +1,10 @@
 # evox21: bionic's overlay hiding, and no adb root policy in the user build
 
-Status on 2026-10-20: **building** (`evox21-attempt01`, started 11:00); not image-checked yet, **not flashed**.
-The source and the gates below are up for review before anything goes on the phone.
+Status on 2026-10-20: built and image-checked (`evox21-attempt01`, every check passed on the first attempt),
+promoted to `output-zips\evox21`; **not flashed**. The source and the gates are up for review before anything goes
+on the phone.
 
-evox21 is evox20 plus three project changes, the follow-up to two Duck Detector scans of evox20
+evox21 is evox20 plus three project changes, the follow-up to the Duck Detector scan of evox20
 (`D:\android_rom_building\duck_detector_report_2506BPN68G_20261020_125849.txt`, app build 1036). The task list is
 `D:\android_rom_building\evolution_x_klimt_build_tasks_20261020.md` (rev 3). Only two of its tasks change the
 build; the rest are the phone's state during the scan and are listed under [On the phone](#on-the-phone).
@@ -93,15 +94,38 @@ image checks registered, the source comparison, the task plan, the policy replay
 
 ## Build
 
-`bash pipeline/start.sh evox21-attempt01 ...` at 11:00 after `ready.py`: `m installclean`, then `m updatepackage`.
-Soong re-analysed the tree (about 30 min, about 24 GB of swap at its peak, WSL stopped answering new connections
-meanwhile, as expected), then Ninja: 15,606 steps, including `bionic/custom_rom_hide.cpp`, the runtime APEX
-and the sepolicy neverallow checks. Results follow when the attempt finishes.
+`bash pipeline/start.sh evox21-attempt01 ...` at 11:00 after `ready.py`: `m installclean`, then `m updatepackage`:
+exit 0 at 12:08, `updatepackage` 1h02m. Soong re-analysed the tree (about 30 min; at its peak WSL's 28 GB of RAM
+were full and 24 GB of swap in use, and WSL stopped answering new connections for a while, as expected), then
+Ninja ran 15,515 steps, among them `bionic/custom_rom_hide.cpp`, the runtime APEX and the sepolicy neverallow
+checks. Soong's "ninja may be stuck" at 11:50 was `add_img_to_target_files` writing the partition images.
+
+- ZIP: 5,661,642,110 bytes, SHA-256 `f956fed67323c9c5057764eef715637aae19748f6a57e9b904335a5236dda6ae`.
 
 ## Verification
 
-Follows the build: the controller runs `verify.py` (must-hold checks, the 194 fix checks, the seven image checks),
-then `promote.py` moves the delivery to `output-zips\evox21`.
+**Everything passed on the first verification** (12:37), with evox20's counts: the must-hold checks (888 modules,
+0 CRC mismatches, DTB/DTBO identical to the phone's slot b), **194/194 fix checks** (the six evox21 checks OK), and
+the seven image checks (policy 31, patch packaging 33, private compatibility 115, Health 45, GMS/themes/apps 674,
+Doze 62, install integrity 16). `promote.py` moved the delivery to `output-zips\evox21`; `sha256sum -c SHA256SUMS`
+passes for all ten files, and the flash helper differs from evox20's only in the ZIP name and hash.
+
+File by file against evox20 (`filesystem-files.json`, 12,663 files on both, 146 differ, none added or removed):
+
+- from bionic: `bootstrap/libc.so` (and its hwasan copy), `bootstrap/linker64`, the static `snapuserd`, and
+  `com.android.runtime.apex`;
+- from the policy: `system_ext_sepolicy.cil`, its mapping hash, `odm/etc/selinux/precompiled_sepolicy` and its
+  system_ext hash;
+- from the build date: `org.lineageos.platform` (jar, odex, vdex), whose Evolution X display version carries it
+  (`v12.3-20261019` -> `v12.3-20261020`, evox20's build constant), and the 29 APEX service `.odex`/`.art` files
+  dexpreopted against the system server classpath it sits on;
+- build dates in every `build.prop`, plus `ro.vendor.build.version.incremental`, which is the build number
+  (Task 2); `product/etc/build-manifest.xml` (the manifest);
+- all 96 `system_dlkm` kernel modules. `diagnostics\builds\evox21\module-sections.py` compares them section by
+  section: 95 have the same section contents as evox20 and differ only in file layout, so their signature bytes
+  differ too, with the same build-time key (signer serial `065FE6B3…`, as in evox19 and evox20); the 96th is
+  `kheaders.ko`, which embeds a header tarball with timestamps. The 517 `vendor_dlkm` modules are byte-identical.
+  The kernel `Image` is the same size and differs in 55 bytes, the build timestamp in its version string.
 
 ## Not build changes
 

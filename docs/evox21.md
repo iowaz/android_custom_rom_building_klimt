@@ -185,7 +185,24 @@ scan used 1036): Danger 1, Warning 4 (evox20: 1 and 5).
   - `framework-res.apk mapped from 3 devices`: the three devices are product, system and userdata, never vendor,
     before and after the bionic filter. The only files named `*framework-res.apk` are framework-res itself and
     Evolution X's `vendor/pixel-style` overlay `Pixelframework-res.apk` (plus its idmap on /data), not the
-    ROM-named overlays. Renaming that module should clear it.
+    ROM-named overlays.
   - Dangerous Apps' 3 UIDs without a package are `org.evolution.updater`, `org.omnirom.omnijaws` and
     `org.lineageos.profiles`: the framework hides them from PackageManager, but their processes answer
     `getpriority`, so the hiding is what shows.
+
+A second scan at 13:23 with **adb and wireless debugging turned off** confirms the Task 3 and Task 4 fixes the
+13:08 scan could not measure: Danger 1, Warning 2.
+
+- **SELinux: CLEAR, Enforcing** — the probe ran and reported `adbd -> adbroot binder: Denied` with every other
+  edge denied. Task 3 confirmed on-device.
+- **ADB Runtime: CLEAR**, and the `persist.sys.usb.config` property signal is gone (EMPTY). Task 4 confirmed.
+- **Custom ROM** stays a warning for the `framework-res.apk` maps trace, and **Dangerous Apps** for the hidden
+  ROM-app UIDs. **Owner decision (2026-10-20): leave both.** The maps trace is Evolution X's `Pixelframework-res`
+  file name, not a klimt change; the UIDs are legitimate ROM apps whose "mismatch" is the package-hiding feature
+  working. Either can be dealt with per-device (disable the apps) rather than in the build.
+- **TEE** `SELF_CHAIN_SPLIT` stays — TrickyStore is on (Task 5). Turning the Evolver switch off clears it; no build
+  change. `vdinfos-20261020-1324.json` shows attestation otherwise all-MATCH (StrongBox, verified+locked, Google
+  root, patch levels), with only the accepted vendor-lineage split (Task 2) among its build rows.
+
+**No evox22 build change follows from this scan.** Everything it flagged that was a klimt build issue is fixed; the
+rest is accepted or is the TrickyStore config choice.

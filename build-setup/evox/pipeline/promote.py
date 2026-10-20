@@ -28,7 +28,8 @@ def main():
     assert (report / 'VERIFIED.txt').is_file() and results['runtime_unvalidated'] is True
     assert results['historical']['musthold'] == 'pass'
     historic = results['historical']['checks']
-    assert len(historic) == 165 and all(v['pass'] is True for v in historic)
+    expected = json.loads((Path(__file__).resolve().parent / 'expected-legacy-checks.json').read_text())
+    assert sorted(v['name'] for v in historic) == sorted(expected) and all(v['pass'] is True for v in historic)
     assert {v['coverage'] for v in results['supplemental']} == MODES and all(v['exit'] == 0 for v in results['supplemental'])
     archive = staged / f'lineage_klimt-{BUILD}-img.zip'
     assert Path(results['archive']).resolve() == archive.resolve(), (results['archive'], archive)

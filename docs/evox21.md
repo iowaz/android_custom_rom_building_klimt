@@ -1,8 +1,7 @@
 # evox21: bionic's overlay hiding, and no adb root policy in the user build
 
 Status on 2026-10-20: built and image-checked (`evox21-attempt01`, every check passed on the first attempt),
-promoted to `output-zips\evox21`; **not flashed**. The source and the gates are up for review before anything goes
-on the phone.
+reviewed, then **dirty-flashed to slot b, where it boots** (see [After the flash](#after-the-flash)).
 
 evox21 is evox20 plus three project changes, the follow-up to the Duck Detector scan of evox20
 (`D:\android_rom_building\duck_detector_report_2506BPN68G_20261020_125849.txt`, app build 1036). The task list is
@@ -148,7 +147,7 @@ File by file against evox20 (`filesystem-files.json`, 12,663 files on both, 146 
 
 ## On the phone
 
-Not flashed. Flashing only on the owner's request: slot b, `lineage_klimt-evox21-flash.bat /flash`
+Flashed on the owner's request after the review: slot b, `lineage_klimt-evox21-flash.bat /flash`
 (`fastboot update --skip-reboot`, no wipe), with `output-zips\evox20` ready to restore the same way.
 
 1. Before flashing, with adb on: `diagnostics\builds\evox21\runtime-check.sh before` on evox20; after the boot,
@@ -164,3 +163,29 @@ Not flashed. Flashing only on the owner's request: slot b, `lineage_klimt-evox21
 4. Re-run the same Duck Detector build and compare with the 2026-10-20 12:58 report. Expected: no ROM-named overlay
    in the Custom ROM traces, `/data/local/tmp` stock; `adbd -> adbroot` denied with SELinux Enforcing; no ADB Runtime
    or `persist.sys.usb.config` item; the TEE finding gone only with TrickyStore off; build identity as evox20.
+
+## After the flash
+
+Dirty-flashed on 2026-10-20 at 13:01 with `lineage_klimt-evox21-flash.bat /flash` (slot b, no wipe; 292 s, 111
+steps OKAY), then `fastboot reboot`: `sys.boot_completed=1` after 27 s. `runtime-check.sh after` passes as on
+evox20; packages are identical (708); no crash, FATAL or ANR; fingerprint unlock works. Record:
+`diagnostics\builds\evox21\RUNTIME.md`.
+
+The first Duck Detector scan (13:08, about a minute after boot, adb on, TrickyStore on; app build 1038, the evox20
+scan used 1036): Danger 1, Warning 4 (evox20: 1 and 5).
+
+- **Fixed:** the 11 ROM-named overlay files are gone from the Custom ROM traces (`nativeFiles: Clean`, `Product
+  overlays: Clean`), and Evolution-X with them: "2 ROM signatures" became "Modified System" only.
+  `/data/local/tmp` stays stock ("Shell tmp view: Clean").
+- **Not measured:** the SELinux probe's carrier service was killed before it answered, so every policy edge,
+  `adbd -> adbroot` included, reads "Unavailable". The image has no adbroot rule (fixcheck21); a later scan has to
+  show the edge denied.
+- **Unchanged:** TEE `SELF_CHAIN_SPLIT` (TrickyStore), ADB Runtime and `persist.sys.usb.config=adb` (adb was on).
+- **Still flagged, with a cause found:**
+  - `framework-res.apk mapped from 3 devices`: the three devices are product, system and userdata, never vendor,
+    before and after the bionic filter. The only files named `*framework-res.apk` are framework-res itself and
+    Evolution X's `vendor/pixel-style` overlay `Pixelframework-res.apk` (plus its idmap on /data), not the
+    ROM-named overlays. Renaming that module should clear it.
+  - Dangerous Apps' 3 UIDs without a package are `org.evolution.updater`, `org.omnirom.omnijaws` and
+    `org.lineageos.profiles`: the framework hides them from PackageManager, but their processes answer
+    `getpriority`, so the hiding is what shows.

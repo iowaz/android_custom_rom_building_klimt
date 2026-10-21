@@ -15,7 +15,8 @@ echo "== security patch level"
 BP=$F/system/system/build.prop
 grep -hE '^ro\.(build\.version|vendor\.build)\.security_patch=' $BP $F/vendor/build.prop | sed 's/^/     /'
 ok "system SPL 2026-10-05" "grep -q '^ro.build.version.security_patch=2026-10-05$' $BP"
-ok "vendor SPL unchanged 2026-02-01" "grep -q '^ro.vendor.build.security_patch=2026-02-01' $F/vendor/build.prop"
+source "$(dirname "$(realpath "$0")")/metadata-reference.sh" || exit 2
+ok "vendor SPL matches the selected build reference" "reference_vendor_spl '$F/vendor/build.prop'"
 
 echo "== PIF default (frameworks/base 3a2e4dd70, Evolver 4433167)"
 FW=$F/system/system/framework/framework.jar

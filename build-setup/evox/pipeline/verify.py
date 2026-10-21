@@ -39,8 +39,8 @@ printf '%s  %s\\n' 'DIGEST' 'ARCHIVE' | sha256sum -c -
 command -v fastboot >/dev/null
 product=$(fastboot getvar product 2>&1)
 printf '%s\\n' "$product"
-printf '%s' "$product" | grep -qE 'product: *klimt([[:space:]]|$)'
-fastboot update --skip-reboot 'ARCHIVE'
+test "$(printf '%s\\n' "$product" | grep -cE '^(\\(bootloader\\)[[:space:]]*)?product:[[:space:]]*klimt[[:space:]]*$')" = 1
+fastboot --slot=b update --skip-reboot 'ARCHIVE'
 echo 'Update complete. Reboot the phone when ready.'
 '''.replace('DIGEST',digest).replace('ARCHIVE',archive.name),newline='\n')
     bat=dest/(stem+'-flash.bat')
@@ -61,7 +61,7 @@ if exist "%~dp0..\\..\\tools\\platform-tools\\fastboot.exe" set "FASTBOOT=%~dp0.
 if errorlevel 1 exit /b 2
 powershell.exe -NoProfile -Command "if (@(Select-String -LiteralPath 'product-check.txt' -Pattern '^(?:\\(bootloader\\)\\s*)?product:\\s*klimt\\s*$' -CaseSensitive).Count -ne 1) { exit 2 }"
 if errorlevel 1 exit /b 2
-"%FASTBOOT%" update --skip-reboot "ARCHIVE"
+"%FASTBOOT%" --slot=b update --skip-reboot "ARCHIVE"
 if errorlevel 1 exit /b 1
 echo Update complete. Reboot the phone when ready.
 exit /b 0
@@ -166,7 +166,7 @@ def main(attempt,recheck=None,tool_review=None):
         bad=z.testzip()
         if bad:raise RuntimeError('ZIP CRC failed: '+bad)
         write_json(report/'archive-inventory.json',[dict(name=i.filename,bytes=i.file_size,compressed=i.compress_size,crc=i.CRC) for i in entries],True)
-    env=dict(os.environ,EVOX_EXTRACT=str(extract),EVOX_TMP=str(extract/'tmp'),EVOX_READY=str(evidence/'effective-ready.json' if recheck else attempt/'BUILD_READY.json'),EVOX_REPORT=str(report))
+    env=dict(os.environ,KLIMT_BUILD=BUILD,EVOX_EXTRACT=str(extract),EVOX_TMP=str(extract/'tmp'),EVOX_READY=str(evidence/'effective-ready.json' if recheck else attempt/'BUILD_READY.json'),EVOX_REPORT=str(report))
     for filename,argv in [('raw-extract.txt',['bash',str(B/'extract.sh'),str(archive),str(extract)]),
                           ('raw-musthold.txt',['bash',str(B/'legacy/musthold.sh')])]:
         with open(report/filename,'xb') as f:
@@ -176,7 +176,7 @@ def main(attempt,recheck=None,tool_review=None):
         subprocess.run(['python3','-B',str(B/'check-health-his.py')],cwd=S,env=env,stdout=f,stderr=subprocess.STDOUT,check=True)
     spec=importlib.util.spec_from_file_location('report_gates',B/'report-gates.py')
     gates=importlib.util.module_from_spec(spec);spec.loader.exec_module(gates)
-    historical=gates.validate(report)
+    historical=gates.validate(report,BUILD)
     if int(BUILD.removeprefix('evox')) >= 26:
         subprocess.run(['python3','-B',str(B/'check-metadata26.py')],cwd=S,env=env,check=True)
     supplemental=image_checks(ready,env,report)
@@ -207,9 +207,11 @@ Archive: `{archive.name}`. SHA256: `{digest}`. Source inputs match the frozen pr
     if review:shutil.copyfile(tool_review,dest/'TOOL_REVIEW.json')
     (dest/'README.md').write_text(f'''# {BUILD} image — {attempt_id}
 
-Build target: lineage_klimt-cp2a-user. Static image checks passed. **Not boot-tested**: keep the evox15 ZIP ready to restore before flashing.
+Build target: lineage_klimt-cp2a-user. Static image checks passed. **Not boot-tested**. Keep the previous boot-tested ZIP available. Rollback to an older vendor security patch level is unvalidated.
 
-The fastboot image ZIP contains the same 19 artifacts as Evox15. Supplied Windows `.bat` and Linux `.sh` wrappers check the ZIP hash and Klimt product, use `fastboot update --skip-reboot`, preserve data and leave reboot to the operator. Run only after separately authorizing the phone operation. They require the phone already in fastboot and a working fastboot installation.
+The fastboot image ZIP contains the same 19 artifacts as Evox15. Supplied Windows `.bat` and Linux `.sh` wrappers check the ZIP hash and Klimt product, select slot b with `fastboot --slot=b update --skip-reboot`, omit data wiping and leave reboot to the operator. Run only after separately authorizing the phone operation. They require the phone already in fastboot and a working fastboot installation.
+
+The update writes slot b and selects it as active. In Windows run `{scripts[1].name} /flash`; in Linux run `bash ./{scripts[0].name} --flash`. These commands are supplied for the operator; package preparation does not run them.
 
 See COMPARISON.md and RESULTS.json for image/source evidence. `sha256sum -c SHA256SUMS` validates the complete delivery set.
 ''')

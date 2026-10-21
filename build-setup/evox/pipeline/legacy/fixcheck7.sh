@@ -29,7 +29,8 @@ echo "== user variant / FP override"
 grep -hE '^ro\.(build|system|system_ext|product|vendor|odm|vendor_dlkm|odm_dlkm|system_dlkm)\.build\.(fingerprint|type|tags)=|^ro\.build\.(fingerprint|type|tags|description)=|^ro\.debuggable=|^ro\.adb\.secure=' \
   $F/system/system/build.prop $F/system_ext/etc/build.prop $F/product/etc/build.prop $F/vendor/build.prop $F/odm/etc/build.prop \
   $F/vendor_dlkm/etc/build.prop $F/odm_dlkm/etc/build.prop $F/system_dlkm/etc/build.prop 2>/dev/null | sort | uniq -c | sed 's/^/     /'
-ok "ro.build.fingerprint = bluejay canary" "grep -q '^ro.build.fingerprint=google/bluejay_beta/bluejay:CANARY/ZP11.260918.007/16484274:user/release-keys' $F/system/system/build.prop"
+source "$(dirname "$(realpath "$0")")/metadata-reference.sh" || exit 2
+ok "ro.build.fingerprint matches the selected build reference" "reference_fingerprint '$F/system/system/build.prop'"
 ok "no userdebug/test-keys in any build.prop" "! grep -rlE 'userdebug|test-keys' $F/system/system/build.prop $F/system_ext/etc/build.prop $F/product/etc/build.prop $F/vendor/build.prop $F/odm/etc/build.prop $F/vendor_dlkm/etc/build.prop $F/odm_dlkm/etc/build.prop $F/system_dlkm/etc/build.prop"
 grep -lE 'userdebug|test-keys' $F/*/build.prop $F/*/etc/build.prop $F/system/system/build.prop 2>/dev/null | sed 's/^/     still has userdebug|test-keys: /'
 ok "ro.debuggable=0" "grep -rq '^ro.debuggable=0' $F/system/system/build.prop $F/vendor/build.prop $O/vendor_ramdisk 2>/dev/null || ! grep -rq '^ro.debuggable=1' $F/system/system/build.prop $F/vendor/build.prop"

@@ -3,7 +3,8 @@
 import json,re
 from pathlib import Path
 B=Path(__file__).resolve().parent
-def validate(report):
+def validate(report,build):
+    if not re.fullmatch(r'evox[0-9]+',build):raise ValueError('Invalid build profile')
     text=(report/'raw-musthold.txt').read_text()
     extracted=(report/'raw-extract.txt').read_text()
     if any(x in extracted for x in ['extract failed','Traceback','Unsupported filesystem']):
@@ -13,8 +14,13 @@ def validate(report):
     required=['exit=0','super_empty: IDENTICAL to author','super_empty: IDENTICAL to build9',
         'fastboot-info.txt == author','fastboot-info.txt == b9','android-info.txt == author','android-info.txt == b9',
         'vendor_boot dtb IDENTICAL to live slot b','modules 888;',
-        'CRC MISMATCHES vs kernel 0; UNRESOLVED 1','  unresolved mtk_drm_gateic_set_backlight',
-        'Linux version 6.6.142-android15-8 (android-build@']
+        'CRC MISMATCHES vs kernel 0; UNRESOLVED 1','  unresolved mtk_drm_gateic_set_backlight']
+    if int(build.removeprefix('evox')) >= 26:
+        kernel=re.findall(r'^Linux version .*$',text,re.M)
+        if len(kernel)!=1 or not kernel[0].startswith('Linux version 6.6.142-android15-8-gf6a5b29f9fe5-ab26 (builder@pangu-build-component-system-247-r6kfm) ') or not kernel[0].endswith('#1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'):
+            raise ValueError('Kernel identity differs from the selected build reference')
+    else:
+        required.append('Linux version 6.6.142-android15-8 (android-build@')
     for value in required:
         if value not in text:raise ValueError('Must-hold missing: '+value)
     if any(x in text for x in ['DIFFERS','Traceback','No such file','  MISMATCH']):
@@ -33,8 +39,9 @@ def validate(report):
     if set(names)!=set(expected):raise ValueError('Coverage identity mismatch: missing='+str(sorted(set(expected)-set(names)))+' extra='+str(sorted(set(names)-set(expected))))
     failed=[name for name,passed in records if not passed]
     if failed:raise ValueError('Patch packaging failures: '+str(failed))
-    return {'musthold':'pass','checks':[{'name':n,'pass':p} for n,p in records],
+    return {'musthold':'pass','profile':build,'checks':[{'name':n,'pass':p} for n,p in records],
             'historical_module_count':888,'unresolved_symbol':'mtk_drm_gateic_set_backlight'}
 if __name__=='__main__':
     import sys
-    print(json.dumps(validate(Path(sys.argv[1])),indent=2))
+    import paths
+    print(json.dumps(validate(Path(sys.argv[1]),paths.current_build()),indent=2))

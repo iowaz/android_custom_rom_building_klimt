@@ -1,6 +1,6 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current review candidate: **evox26**, building on 2026-10-21; not flashed or boot-tested.
+Current review candidate: **evox26**, compiled and image-checked (recheck01) on 2026-10-21; not flashed or boot-tested.
 The [source review index](docs/evox26-publication.md) links the published branches, exact commits,
 manifest and review disposition. Evox25 is the preceding booted build; see [history](docs/history.md).
 

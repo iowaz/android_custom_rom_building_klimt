@@ -18,3 +18,11 @@ The initial identity review correctly raised timestamp and future-upgrade concer
 The platform SPL override was already present in Evox25. The new reported vendor SPL increase is separate and explicit. The preceding boot image and source prove the preserved boot SPL; actual Evox26 AVB/kernel/module evidence remains pending compilation. No data-preserving rollback to an older vendor SPL is promised.
 
 Source and detailed limitations: [Evox26](evox26.md). No flash was performed or authorized by the build/publication task.
+
+## Post-compilation verifier repair
+
+The initial review covered changed verifier code and missed three unchanged historical expectations: the CI kernel banner in report-gates.py, the Pixel fingerprint in fixcheck7.sh and the February vendor SPL in fixcheck9.sh. Automatic verification correctly stopped. Repair a74fceb makes those expectations build-aware, retains all 194 check identities (two labels are profile-neutral), and explicitly selects slot b in both delivery helpers. No ROM source or ZIP was changed.
+
+Claude Opus 5.5 High reviewed this repair and the flashing helpers. The first pass requested proof that the new metadata helper was included in the tooling hash and tested through its actual shell call path. Both were supplied; a follow-up review passed with no blocking defects. All 30 pipeline tests pass. The full recheck01 then passed all historical, metadata and seven supplemental image tracks, plus source-manifest and immutable archive checks, before promotion. Only after that were VERIFIED.txt and the flash helpers delivered.
+
+The resulting package is image-checked and ready for an operator-authorized flash. No phone operation or boot test was performed. The reported vendor SPL/rollback and future fixed-fingerprint upgrade-discriminator limits above remain open runtime/design constraints.

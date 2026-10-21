@@ -34,7 +34,7 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 
 | evox25 | 2026-10-21 | attempt01 built in 1h01m; image-checked; dirty-flashed slot b and booted | Restore Xiaomi/klimt hardware product identity after Evox24-full's modem failure. 111 OKAY / 0 FAILED, no erase/format; checked app/UID, Android ID and Downloads state preserved. eSIM registration recovered; owner confirms connectivity. eTitulo/Bradesco Saude security refusals persist. Fresh VD Infos reports 15 mismatches; Duck still reports generation/readback certificate divergence. See [evox25 details](evox25.md). |
 
-| evox26 | 2026-10-21 | build started; image checks pending | Xiaomi kernel/build metadata profile, vendor reported SPL alignment, retained packages and no framework/RRO change. [Details](evox26.md); not flashed. |
+| evox26 | 2026-10-21 | attempt01 built in 1h03m; image-checked (recheck01); not flashed or boot-tested | Xiaomi kernel/build metadata profile and reported vendor SPL alignment; optional packages retained and no framework/RRO change. Verifier-only recovery retained all 194 checks, added 112 metadata assertions and passed all seven supplemental tracks. Unchanged ZIP prepared with explicit slot-b, no-wipe, skip-reboot helpers. [Details](evox26.md). |
 
 ## Open items
 

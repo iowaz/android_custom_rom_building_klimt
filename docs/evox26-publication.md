@@ -1,6 +1,6 @@
 # Evox26 source publication
 
-Review branches are named `evox26`. Source HEADs are the exact revisions of the running attempt; publication does not amend them or modify the active pipeline. The kernel, native, interfaces and earlier framework changes are included to make the complete custom source state easy to inspect.
+Review branches are named `evox26`. Source HEADs are the exact revisions compiled by attempt01; publication does not amend them. The later verifier-only repair is recorded in the build notes and changes no ROM source revision. The kernel, native, interfaces and earlier framework changes are included to make the complete custom source state easy to inspect.
 
 | Source project | Review branch | Exact commit |
 |---|---|---|
@@ -20,3 +20,5 @@ The existing private `vendor/lineage` and `vendor/xiaomi/klimt` forks remain pri
 The [build notes](evox26.md) and [independent-review disposition](evox26-review.md) state the implemented metadata and remaining flash/rollback limits. The runtime comparison input is retained in [references](../build-setup/evox/references/evox25-prop-fix.sh); it was not executed for this build. [Focused validation scripts](../build-setup/evox/validation/evox26/README.md) show the pre-build generator and negative-case checks without installing modules or issuing phone commands.
 
 Build compilation and automatic static image verification are separate from this publication. No build-completion, boot-test or flash claim is made by a source push. The evolving private attempt logs remain the authority for build progress.
+
+Post-build tooling repair [a74fceb](https://github.com/iowaz/android_custom_rom_building_klimt/commit/a74fceb952eebb65feb8ff1e3354f75eba83eea3) is published on this recipe repository's evox26 branch. The same compiled ZIP passed full recheck01 and was promoted locally; no firmware ZIP, private diagnostic capture or review packet is published here. See the [build result](evox26.md) for image checks, archive digest and runtime limitations.

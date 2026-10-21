@@ -1,0 +1,21 @@
+# Evox26 - Xiaomi build metadata consistency
+
+Prepared on 2026-10-21 for `lineage_klimt-cp2a-user`. This is a personal metadata profile, not an official Xiaomi build or evidence of additional proprietary security fixes. No flash is authorized by this build task.
+
+Device source is `12a38ffebe1e021897ebb367826c4b803b31cdad`; build/make is `4923147cc6c6fede608eba7807350d32007246e7`. The unchanged kernel source is `f6a5b29f9fe59e4849680d50232f8b5758aa8c11`. The 1,263-project snapshot is `manifests/snapshots/evox26.xml`. No upstream sync was performed.
+
+The kernel uses `builder@pangu-build-component-system-247-r6kfm`, the requested `Thu Aug 6 00:00:00 UTC 2026` timestamp, and release `6.6.142-android15-8-gf6a5b29f9fe5-ab26`. A standard device config fragment supplies CONFIG_LOCALVERSION. The suffix records the real kernel source and local build number 26. Kernel code, prebuilt vendor modules, symbol CRC checks and loader behavior are unchanged.
+
+Build fingerprints, IDs, incrementals, flavor, description, host, user and known codenames use the owner's klimt_global reference from the [published comparison input](../build-setup/evox/references/evox25-prop-fix.sh) (private workspace original: `tools/evox25-prop-fix.sh`). Make vendor generation now honors ID and incremental overrides, matching Soong. The source patch is exported in the device exact-base bundle. Hardware product/SKU identity remains Xiaomi/klimt/2506BPN68G, with vendor product klimt_global. Platform and partition build timestamps remain actual; only the kernel timestamp is pinned. The boot fingerprint compatibility alias is included.
+
+Reported vendor SPL is changed from 2026-02-01 to 2026-10-05 as requested. The platform already reported 2026-10-05 in Evox25. Boot AVB SPL remains 2026-02-01; the preceding image and source confirm that value. No proprietary blob or firmware update accompanies the reported vendor SPL change. KeyMint behavior and rollback to a lower vendor SPL are unvalidated; no data-preserving rollback is promised. These are pre-flash review items, not compilation validation.
+
+Optional package removal is deferred because the namespace set includes device and platform dependencies. No RRO or framework resource change was made: fe:02/fe:03/fe:32 are filesystem device IDs in memory maps, not feature declarations. Read-only sysfs names identify product_b, system_b and userdata. The detector trace's precise cause is unresolved.
+
+Each task received Claude Opus 5.5 High review. A separate verifier review passed. Raw inputs/results, canonical-model records, findings and primary-agent dispositions remain private under `diagnostics/builds/evox26/reviews` and `REVIEW_DISPOSITION.md`. The initial kernel run reported mixed model usage; a separate confirmation used only Opus 5.5. Initial identity/SPL objections were addressed or retained as explicit flash-time limits. These reviews do not establish runtime compatibility. The public disposition is [evox26-review.md](evox26-review.md).
+
+Preflight checks: 22 pipeline tests, 46 image-checker tests, nine actual generator/fallback checks and ten metadata positive/negative cases passed. The existing 194 historical checks and 888-module validation remain required. An additional fail-closed metadata gate covers eight build.prop files and the unpacked kernel banner. The controller runs installclean before updatepackage and then performs static image verification. No module-only build was run.
+
+Evox26 changes the package-upgrade digest on its first migration from the Pixel profile. Reusing the same fixed fingerprint/incremental in a later build will not distinguish future upgrades. Before an Evox27 dirty flash, implement and review a unique upgrade discriminator or another reliable upgrade/cache solution. This pass does not change framework package-upgrade logic or clear user caches.
+
+Status: evox26-attempt01 was launched through the gated controller on 2026-10-21 at 16:29 BRT, with an independent WSL keepalive. The launch confirmed an independent controller session and its log descriptor. Compilation and automatic static verification are pending. No Evox26 image has been boot-tested. Static image-check results must be reported separately after compilation.

@@ -11,6 +11,18 @@ ALLBP="$IDBP $F/vendor/build.prop"
 INIT=$F/system/system/bin/init
 CANARY='google/bluejay_beta/bluejay:CANARY/ZP11.260918.007/16484274:user/release-keys'
 DESC='bluejay_beta-user CANARY ZP11.260918.007 16484274 release-keys'
+BID=ZP11.260918.007; INC=16484274; FLAVOR=bluejay_beta-user
+DISPLAY_ID='ZP11.260918.007 release-keys'
+KERNEL_RELEASE='6.6.142-android15-8'; BUILDER=android-build
+IDCHECKBP="$IDBP"
+if [[ ${KLIMT_BUILD:-evox25} =~ ^evox([0-9]+)$ ]] && (( 10#${BASH_REMATCH[1]} >= 26 )); then
+  CANARY='Xiaomi/klimt_global/klimt:17/OS3.3.260806.171839609/OS3.0.335.0.XOSMIXM:user/release-keys'
+  BID=OS3.3.260806.171839609; INC=OS3.0.335.0.XOSMIXM; FLAVOR=klimt_global-user
+  DISPLAY_ID=$BID
+  DESC="klimt_global-user 17 $BID $INC release-keys"
+  KERNEL_RELEASE='6.6.142-android15-8-gf6a5b29f9fe5-ab26'; BUILDER=builder
+  IDCHECKBP="$ALLBP"
+fi
 ok(){ if eval "$2" >/dev/null 2>&1; then echo "OK   $1"; else echo "FAIL $1"; fi; }
 # absent <ERE> <files...>: every file exists and no line matches.
 absent(){ local re=$1; shift; local f; for f in "$@"; do [ -f "$f" ] || return 1; done; ! grep -qE "$re" "$@"; }
@@ -26,13 +38,13 @@ no_rc_match(){ local d dirs=(); for d in $F/system/system/etc/init $F/system_ext
 bash "$(dirname "$(realpath "$0")")/fixcheck14.sh"
 
 echo '== evox20 build identity'
-ok "every ro.build.display.id is ZP11.260918.007 release-keys" "each 'ro\.build\.display\.id' 'ZP11.260918.007 release-keys' $SP $PP"
-ok "every ro.build.flavor is bluejay_beta-user" "each 'ro\.build\.flavor' bluejay_beta-user $SP $PP"
-ok "every ro.build.description is the canary description" "each 'ro\.build\.description' '$DESC' $SP $PP"
+ok "every ro.build.display.id matches the selected build reference" "each 'ro\.build\.display\.id' '$DISPLAY_ID' $SP $PP"
+ok "every ro.build.flavor matches the selected build reference" "each 'ro\.build\.flavor' '$FLAVOR' $SP $PP"
+ok "every ro.build.description matches the selected build reference" "each 'ro\.build\.description' '$DESC' $SP $PP"
 ok "every ro.build.version.security_patch is 2026-10-05" "each 'ro\.build\.version\.security_patch' 2026-10-05 $SP $PP"
-ok "every partition build.id is ZP11.260918.007" "each 'ro\.([a-z_]+\.)?build\.id' ZP11.260918.007 $IDBP"
-ok "every partition build.version.incremental is 16484274" "each 'ro\.([a-z_]+\.)?build\.version\.incremental' 16484274 $IDBP"
-ok "every partition build.fingerprint is the canary print" "each 'ro\.([a-z_]+\.)?build\.fingerprint' '$CANARY' $ALLBP"
+ok "every partition build.id matches the selected build reference" "each 'ro\.([a-z_]+\.)?build\.id' '$BID' $IDCHECKBP"
+ok "every partition build.version.incremental matches the selected build reference" "each 'ro\.([a-z_]+\.)?build\.version\.incremental' '$INC' $IDCHECKBP"
+ok "every partition build.fingerprint matches the selected build reference" "each 'ro\.([a-z_]+\.)?build\.fingerprint' '$CANARY' $ALLBP"
 
 echo '== evox20 product identity unchanged (decision D1)'
 for kv in brand=Xiaomi device=klimt manufacturer=Xiaomi model=2506BPN68G; do
@@ -57,6 +69,6 @@ rm -rf $B20; $T/unpack_bootimg --boot_img ${EVOX_EXTRACT}/img/boot.img --out $B2
 (lz4 -dc $B20/kernel 2>/dev/null || gzip -dc $B20/kernel 2>/dev/null || cat $B20/kernel 2>/dev/null) | strings | grep -m1 '^Linux version ' > $PV
 sed 's/^/     /' $PV
 HOST=$(sed -n 's/^ro\.build\.host=//p' $SP)
-ok "kernel release 6.6.142-android15-8 (no local suffix)" "grep -q '^Linux version 6\.6\.142-android15-8 (' $PV"
-ok "kernel builder android-build@ROM build host" "[ -n '$HOST' ] && grep -qF '(android-build@$HOST) ' $PV"
+ok "kernel release matches the selected build reference" "grep -qF 'Linux version $KERNEL_RELEASE (' $PV"
+ok "kernel builder and ROM build host match the selected reference" "[ -n '$HOST' ] && grep -qF '($BUILDER@$HOST) ' $PV"
 ok "kernel build #1 with a UTC timestamp" "grep -qE ' #1 SMP PREEMPT .* UTC [0-9]{4}\$' $PV"

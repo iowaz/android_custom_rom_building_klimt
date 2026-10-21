@@ -177,6 +177,8 @@ def main(attempt,recheck=None,tool_review=None):
     spec=importlib.util.spec_from_file_location('report_gates',B/'report-gates.py')
     gates=importlib.util.module_from_spec(spec);spec.loader.exec_module(gates)
     historical=gates.validate(report)
+    if int(BUILD.removeprefix('evox')) >= 26:
+        subprocess.run(['python3','-B',str(B/'check-metadata26.py')],cwd=S,env=env,check=True)
     supplemental=image_checks(ready,env,report)
     write_json(report/'filesystem-files.json',inventory(extract/'fs'),True)
     write_json(report/'image-files.json',inventory(extract/'img'),True)

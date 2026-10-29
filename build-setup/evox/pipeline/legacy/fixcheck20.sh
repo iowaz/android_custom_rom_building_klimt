@@ -20,7 +20,8 @@ if [[ ${KLIMT_BUILD:-evox25} =~ ^evox([0-9]+)$ ]] && (( 10#${BASH_REMATCH[1]} >=
   BID=OS3.3.260806.171839609; INC=OS3.0.335.0.XOSMIXM; FLAVOR=klimt_global-user
   DISPLAY_ID=$BID
   DESC="klimt_global-user 17 $BID $INC release-keys"
-  KERNEL_RELEASE='6.6.142-android15-8-gf6a5b29f9fe5-ab26'; BUILDER=builder
+  # The kernel release ends in -ab<build number> (evox26: ab26, evox27: ab27).
+  KERNEL_RELEASE="6.6.142-android15-8-gf6a5b29f9fe5-ab$((10#${BASH_REMATCH[1]}))"; BUILDER=builder
   IDCHECKBP="$ALLBP"
 fi
 ok(){ if eval "$2" >/dev/null 2>&1; then echo "OK   $1"; else echo "FAIL $1"; fi; }

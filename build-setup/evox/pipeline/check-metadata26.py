@@ -16,7 +16,7 @@ def read_props(path):
         result[key]=val
     return result
 
-def validate(fs,kernel):
+def validate(fs,kernel,build='evox26'):
     count=0
     build_epoch=read_props(fs/PARTS["system"])["ro.build.date.utc"]
     if not build_epoch.isdigit() or int(build_epoch)<1785974400:raise ValueError("platform date predates the requested kernel reference date")
@@ -34,14 +34,16 @@ def validate(fs,kernel):
         if part=='vendor':require(p,'ro.vendor.build.security_patch','2026-10-05')
         for key,val in p.items():
             if re.fullmatch(r'ro\.(?:[a-z_]+\.)?build\.(?:fingerprint|id|flavor|description|host|user|version\.incremental|version\.known_codenames)',key) and any(x in val for x in ['bluejay','ZP11.260918.007','16484274','CANARY','r-06b84ad74750c689-xc7u']):raise ValueError('legacy metadata '+key)
-    if not kernel.startswith('Linux version 6.6.142-android15-8-gf6a5b29f9fe5-ab26 (builder@'+HOST+') '):raise ValueError('kernel release/builder mismatch')
+    # The kernel release ends in -ab<build number> (evox26: ab26, evox27: ab27).
+    label='ab'+str(int(re.fullmatch(r'evox([0-9]+)',build).group(1)))
+    if not kernel.startswith('Linux version 6.6.142-android15-8-gf6a5b29f9fe5-'+label+' (builder@'+HOST+') '):raise ValueError('kernel release/builder mismatch')
     if not kernel.rstrip().endswith('#1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'):raise ValueError('kernel timestamp mismatch')
     return count+2
 
 def main():
     extract=Path(os.environ['EVOX_EXTRACT']);report=Path(os.environ['EVOX_REPORT'])/'metadata26.json'
     try:
-        count=validate(extract/'fs',(Path(os.environ['EVOX_TMP'])/'evx20-proc-version.txt').read_text())
+        count=validate(extract/'fs',(Path(os.environ['EVOX_TMP'])/'evx20-proc-version.txt').read_text(),os.environ['KLIMT_BUILD'])
         result={'pass':True,'assertions':count,'runtime_validated':False}
     except (OSError,ValueError,KeyError) as e:result={'pass':False,'error':str(e),'runtime_validated':False}
     report.write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result));return 0 if result['pass'] else 1

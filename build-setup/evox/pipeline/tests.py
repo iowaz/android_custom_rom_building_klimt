@@ -139,6 +139,13 @@ class Gates(unittest.TestCase):
             p=Path(tmp);self.evox26_fixture(p);f=p/'raw-musthold.txt'
             f.write_text(f.read_text()+next(l for l in f.read_text().splitlines() if l.startswith('Linux version '))+'\n')
             with self.assertRaises(ValueError):gates.validate(p,'evox26')
+    def test_kernel_label_follows_the_build_number(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp);self.evox26_fixture(p);f=p/'raw-musthold.txt'
+            with self.assertRaises(ValueError):gates.validate(p,'evox27')
+            f.write_text(f.read_text().replace('gf6a5b29f9fe5-ab26','gf6a5b29f9fe5-ab27'))
+            self.assertEqual(gates.validate(p,'evox27')['musthold'],'pass')
+            with self.assertRaises(ValueError):gates.validate(p,'evox26')
     def test_kernel_profiles_do_not_accept_each_other(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);self.fixture(p)

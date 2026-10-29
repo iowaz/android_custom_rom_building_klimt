@@ -15,9 +15,11 @@ def validate(report,build):
         'fastboot-info.txt == author','fastboot-info.txt == b9','android-info.txt == author','android-info.txt == b9',
         'vendor_boot dtb IDENTICAL to live slot b','modules 888;',
         'CRC MISMATCHES vs kernel 0; UNRESOLVED 1','  unresolved mtk_drm_gateic_set_backlight']
-    if int(build.removeprefix('evox')) >= 26:
+    number=int(build.removeprefix('evox'))
+    if number >= 26:
+        # The kernel release ends in -ab<build number> (evox26: ab26, evox27: ab27).
         kernel=re.findall(r'^Linux version .*$',text,re.M)
-        if len(kernel)!=1 or not kernel[0].startswith('Linux version 6.6.142-android15-8-gf6a5b29f9fe5-ab26 (builder@pangu-build-component-system-247-r6kfm) ') or not kernel[0].endswith('#1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'):
+        if len(kernel)!=1 or not kernel[0].startswith(f'Linux version 6.6.142-android15-8-gf6a5b29f9fe5-ab{number} (builder@pangu-build-component-system-247-r6kfm) ') or not kernel[0].endswith('#1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'):
             raise ValueError('Kernel identity differs from the selected build reference')
     else:
         required.append('Linux version 6.6.142-android15-8 (android-build@')

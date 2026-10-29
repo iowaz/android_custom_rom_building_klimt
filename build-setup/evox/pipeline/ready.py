@@ -115,7 +115,10 @@ def main():
         'semantic_checks': [{k: s[k] for k in ('project', 'purpose', 'head', 'pass', 'evidence')} for s in sem],
         'image_checks': image_checks,
         # evox16/17: the compile never grew D:; verification and delivery used ~25 GiB.
-        'minimum_start_gib': {'host': 45, 'source': 10, 'output': 70},
+        # evox27: output 45 (was 70). evox26 went from 86 to 51 GiB free on the build disk, all of it the
+        # verifier's extraction (compare/evox26, 35 GiB); ccache is capped at 20 GiB and full, and out/ is
+        # rewritten in place. build.vhdx is at 629 of its 640 GiB, so D: can lose at most ~11 GiB.
+        'minimum_start_gib': {'host': 45, 'source': 10, 'output': 45},
         'emergency_minimum_gib': {'host': 10, 'source': 2, 'output': 2},
     }
     current, _ = check_capacity(ready)

@@ -12,7 +12,11 @@ bash "$(dirname "$(realpath "$0")")/fixcheck11.sh" 2>&1 | grep -E "^(OK|FAIL)"
 
 echo "== wakeup-source labels"
 n=$(grep -c '^(genfscon sysfs .*sysfs_wakeup' $CIL); echo "     sysfs_wakeup genfscon: $n (evox11: 94)"
-ok "54 new sysfs_wakeup genfscon (94 -> 148)" "[ $n -eq 148 ]"
+# evox28 takes LineageOS sepolicy_vndr 59913a62 (186 sysfs_wakeup entries, was 92) and klimt drops the three it
+# now provides (53 left): 186 + 53 = 239. Every evox27 klimt wakeup path is still labelled (checked for evox28).
+want=148
+if [[ ${KLIMT_BUILD:-evox25} =~ ^evox([0-9]+)$ ]] && (( 10#${BASH_REMATCH[1]} >= 28 )); then want=239; fi
+ok "54 new sysfs_wakeup genfscon (94 -> 148)" "[ $n -eq $want ]"
 for p in /devices/platform/1c01a000.spmi/spmi-0/0-04/wakeup /devices/virtual/gpsmdl-agent/gpsmdl-agent/wakeup \
          /devices/platform/battery-manager/power_supply/battery/wakeup /devices/platform/soc/13ab0000.i2c/i2c-7/7-0033/wakeup \
          '/devices/platform/1c01a000.spmi/spmi-0/0-0e/1c01a000.spmi:mt6379@e:tcpc/tcpc/type_c_port0/wakeup'; do

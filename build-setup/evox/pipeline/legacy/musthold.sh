@@ -12,6 +12,18 @@ sec "M2. avbtool verify_image --follow_chain_partitions (Evo)"
 sec "M3. super_empty vs author / build9"
 cmp $A/img/super_empty.img $E/img/super_empty.img && echo "super_empty: IDENTICAL to author"
 cmp $B/img/super_empty.img $E/img/super_empty.img && echo "super_empty: IDENTICAL to build9"
+# Since evox27 Evolution X's build/make (90d0063) marks every logical partition readonly again, as AOSP does.
+# Accept that only: the lpdump layout must equal the reference once readonly reads as none, and every
+# partition must be readonly (report-gates.py takes this line from evox27 on).
+for ref in author:$A build9:$B; do
+  name=${ref%%:*}; dir=${ref#*:}
+  cmp -s $dir/img/super_empty.img $E/img/super_empty.img && continue
+  new=$($T/lpdump $E/img/super_empty.img 2>&1); old=$($T/lpdump $dir/img/super_empty.img 2>&1)
+  attrs=$(printf '%s\n' "$new" | grep -E '^ *Attributes:' | sort -u)
+  if [ "$attrs" = "  Attributes: readonly" ] && [ "$(printf '%s\n' "$new" | sed 's/Attributes: readonly/Attributes: none/')" = "$old" ]; then
+    echo "super_empty: SAME LAYOUT as $name, every partition readonly (build/make 90d0063)"
+  fi
+done
 $T/lpdump $E/img/super_empty.img 2>&1 | grep -iE "size|Name:|Group|slot" | head -30
 grep -h "BOARD_SUPER_PARTITION_SIZE\|BOARD_.*_PARTITION_LIST\|BOARD_.*GROUP.*SIZE" $W/device/xiaomi/klimt/BoardConfig.mk
 sec "M4. fastboot-info.txt / android-info.txt vs author and build9"

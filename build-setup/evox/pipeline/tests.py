@@ -146,6 +146,20 @@ class Gates(unittest.TestCase):
             f.write_text(f.read_text().replace('gf6a5b29f9fe5-ab26','gf6a5b29f9fe5-ab27'))
             self.assertEqual(gates.validate(p,'evox27')['musthold'],'pass')
             with self.assertRaises(ValueError):gates.validate(p,'evox26')
+    def test_super_empty_readonly_layout_only_from_evox27(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp);self.evox26_fixture(p);f=p/'raw-musthold.txt'
+            text=f.read_text().replace('gf6a5b29f9fe5-ab26','gf6a5b29f9fe5-ab27')
+            f.write_text(text)
+            self.assertEqual(gates.validate(p,'evox27')['musthold'],'pass')
+            for ref in ('author','build9'):
+                text=text.replace(f'super_empty: IDENTICAL to {ref}\n',f'super_empty: SAME LAYOUT as {ref}, every partition readonly (build/make 90d0063)\n')
+            f.write_text(text)
+            self.assertEqual(gates.validate(p,'evox27')['musthold'],'pass')
+            f.write_text(text.replace('gf6a5b29f9fe5-ab27','gf6a5b29f9fe5-ab26'))
+            with self.assertRaises(ValueError):gates.validate(p,'evox26')
+            f.write_text(text.replace('super_empty: SAME LAYOUT as build9','super_empty: OTHER LAYOUT as build9'))
+            with self.assertRaises(ValueError):gates.validate(p,'evox27')
     def test_kernel_profiles_do_not_accept_each_other(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);self.fixture(p)

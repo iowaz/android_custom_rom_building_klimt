@@ -11,11 +11,19 @@ def validate(report,build):
         raise ValueError('Extraction tool failure')
     for p in ['system','system_ext','product','vendor','odm','vendor_dlkm','system_dlkm','odm_dlkm']:
         if f'evox {p}:' not in extracted:raise ValueError('Missing filesystem: '+p)
-    required=['exit=0','super_empty: IDENTICAL to author','super_empty: IDENTICAL to build9',
+    required=['exit=0',
         'fastboot-info.txt == author','fastboot-info.txt == b9','android-info.txt == author','android-info.txt == b9',
         'vendor_boot dtb IDENTICAL to live slot b','modules 888;',
         'CRC MISMATCHES vs kernel 0; UNRESOLVED 1','  unresolved mtk_drm_gateic_set_backlight']
     number=int(build.removeprefix('evox'))
+    # super_empty: byte-identical to both references; from evox27 on, the same layout with every logical
+    # partition readonly (Evolution X build/make 90d0063) is accepted too (musthold.sh M3 checks both).
+    for ref in ('author','build9'):
+        accepted=[f'super_empty: IDENTICAL to {ref}']
+        if number >= 27:
+            accepted.append(f'super_empty: SAME LAYOUT as {ref}, every partition readonly (build/make 90d0063)')
+        if not any(line in text.splitlines() for line in accepted):
+            raise ValueError('Must-hold missing: super_empty vs '+ref)
     if number >= 26:
         # The kernel release ends in -ab<build number> (evox26: ab26, evox27: ab27).
         kernel=re.findall(r'^Linux version .*$',text,re.M)

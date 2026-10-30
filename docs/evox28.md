@@ -31,6 +31,34 @@ Not taken (unchanged from evox27): misakazip's newer device-tree commits. Five n
 components or new blobs; the sixth only adds a MIUI Camera APK patch applied at extraction time, which our
 pre-extracted vendor repository does not run.
 
+## Review
+
+`diagnostics\builds\evox28\reviews\06-evox28.md`: **PASS**.
+- **Method:** the reviewer rebuilt klimt's vendor_file_contexts with the build's own fc_sort (the old pin reproduces
+  evox27's output byte for byte) and compared 6,464 file labels and 1,475 property labels.
+- **TEE and keys:** no label change for klimt's TEE, KeyMint, StrongBox, Weaver, Gatekeeper, Identity or fingerprint.
+- **Firmware:** `/vendor/firmware` (318 files) moves to the new `vendor_fw_file` type, still readable by the kernel,
+  ueventd and vendor domains.
+- **Same-process HAL:** `libaal_sec` and `libapusys` become same-process HAL files.
+- **Property:** `ro.vendor.mtk_hdr_video_support` changes type but stays settable by vendor_init and readable.
+- **Overlap:** the wakeup list only grows; klimt and LineageOS now share no declarations or contexts.
+
 ## Status
 
-Review and build pending.
+- **attempt01** (02:23, 2026-10-30) compiled in 1h08m. The merged vendor policy passed the build's own checkpolicy,
+  neverallow and policy-test steps.
+- **First verification:** stopped on one historical check, the evox12 count of `sysfs_wakeup` genfscon entries
+  (exactly 148). The image has 239: 186 from the new MediaTek policy and 53 from klimt. All 56 wakeup paths klimt
+  labelled in evox27 are still labelled. The check now expects 239 from evox28 on (148 before); the name is
+  unchanged. A diagnostic dry run of the seven image checks on that extraction passed all seven.
+- **recheck01 passed:**
+  - all 194 historical checks;
+  - 112 metadata assertions (kernel `6.6.142-android15-8-gf6a5b29f9fe5-ab28`);
+  - all seven image checks;
+  - AVB/layout/DTB/DTBO;
+  - 888 modules, 0 CRC mismatches.
+
+Delivery: `output-zips\evox28`, 5,645,858,463-byte ZIP, SHA256
+`061321a36908dfa487a3c2c2028e05dec7e6e820f74de30bb6a7466b6cad1c1c`, slot-b no-wipe helpers (run the `.bat` by full
+path). **Not flashed, not boot-tested**; evox27 is on the phone. Post-flash checks:
+`diagnostics\builds\evox28\REVIEW_DISPOSITION.md`.

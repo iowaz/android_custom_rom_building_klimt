@@ -69,4 +69,22 @@ CHANGES REQUIRED (the TrickyStore boot key, fixed), follow-up on the fixes PASS.
 
 ## Status
 
-Built, verified and delivered: see below once the attempt finishes. Not flashed, not boot-tested.
+- **attempt01** (20:24, 2026-10-29) stopped after 1h26m in the vendor policy (the sepolicy_vndr duplicate type
+  above).
+- **attempt02** (21:56) compiled in 1h46m. Its verification and two rechecks stopped on verifier pins, not on the
+  image; each fix was checked against the image and the same ZIP was re-verified:
+  - the first verification: `super_empty.img` is no longer byte-identical to the references, because Evolution X's
+    build/make `90d0063` marks every logical partition readonly again (as AOSP does); layout, sizes and groups are
+    unchanged. The must-hold check now accepts that exact difference from evox27 on (reviewed, `05-verifier.md`).
+  - recheck01: the policy image check still pinned evox26's system/sepolicy commit; evox27's is Evolution X
+    `dd9d56ab`. Every other policy item passed.
+  - recheck02 did not start: two superseded staged ZIP copies left D: below the 38 GiB verifier reserve.
+  - **recheck03 passed**: all 194 historical checks, 112 metadata assertions (kernel
+    `6.6.142-android15-8-gf6a5b29f9fe5-ab27`), all seven image checks, AVB/layout/DTB/DTBO and 888 modules with 0 CRC
+    mismatches. libgui carries the GED KPI code; `ro.build.date.utc` is 1793321684 (evox26: 1792611037).
+
+The delivery is in `output-zips\evox27`: the 5,645,904,817-byte image ZIP, SHA256
+`12292263d626d8841baa115bac651c83182e41349e3f7f2a03a95dad5b0c2235`, and the slot-b, no-wipe, skip-reboot flash
+helpers. Not flashed, not boot-tested. The first boot after a dirty flash takes the full upgrade path (package cache
+reset, dexopt), so it is slower than usual. Post-flash checks are listed in
+`diagnostics\builds\evox27\REVIEW_DISPOSITION.md`.

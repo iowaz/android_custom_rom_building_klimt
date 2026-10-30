@@ -51,6 +51,13 @@ klimt's existing `fastbootd/bypass_lock_state` flag now also reaches upstream's 
 (fastbootd always reports unlocked; libfs_avb counts "green" as unlocked). Reviewed as acceptable on an unlocked
 bootloader.
 
+`device/mediatek/sepolicy_vndr` stays at the evox26 pin `117a8de2`. evox27-attempt01 took the LineageOS head
+`59913a62` and stopped after 1h26m in `vendor_sepolicy.unversioned.cil`: LineageOS now declares
+`vendor_mtk_debug_sf_kickidle_prop` (`6c07d1e4`), which klimt's `sepolicy/vendor/property.te` also declares. The 53
+newer commits (2026-09-30 to 10-28, 38 files) also regroup the MiTEE and KeyMint labels and add sysfs wakeup and GPU
+property labels that overlap klimt's policy, so they need a reviewed merge with `device/xiaomi/klimt/sepolicy`
+first. `hardware/xiaomi` moves to the LineageOS head (one translation commit).
+
 Not taken: six newer commits on misakazip's device tree `17.0` (MIUI Camera/Gallery integration, shared MediaTek and
 eSIM components); they need matching blob changes and are not Evolution X/LineageOS/AOSP.
 

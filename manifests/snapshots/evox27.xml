@@ -24,7 +24,7 @@
   <project name="LineageOS/android_device_google_car" path="device/google_car" revision="cb434f2e702d45c3942eabaa00b09eb9a9744db9" upstream="refs/heads/lineage-24.0" dest-branch="refs/heads/lineage-24.0" groups="device,pdk"/>
   <project name="LineageOS/android_device_lineage_atv" path="device/lineage/atv" revision="32c40894271f41483075e9e1215c2734c3dc9abe" upstream="refs/heads/lineage-24.0" dest-branch="refs/heads/lineage-24.0"/>
   <project name="LineageOS/android_device_lineage_car" path="device/lineage/car" revision="0f3b40241c5ceff1be0d19dd41bffca028e7c75c" upstream="refs/heads/lineage-24.0" dest-branch="refs/heads/lineage-24.0"/>
-  <project name="LineageOS/android_device_mediatek_sepolicy_vndr" path="device/mediatek/sepolicy_vndr" revision="59913a62b5c4122ac2a0a3967c15fe8b87774f2c" upstream="lineage-24.0" dest-branch="lineage-24.0"/>
+  <project name="LineageOS/android_device_mediatek_sepolicy_vndr" path="device/mediatek/sepolicy_vndr" revision="117a8de2115805251b51a00b513aecc45b3ce008" upstream="lineage-24.0"/>
   <project name="LineageOS/android_device_qcom_sepolicy" path="device/qcom/sepolicy" revision="98d96fe9b1f4ea0b35a8bb5ce0ac2ae3bf766647" upstream="refs/heads/lineage-24.0" dest-branch="refs/heads/lineage-24.0" groups="qcom,qssi"/>
   <project name="LineageOS/android_device_qcom_sepolicy" path="device/qcom/sepolicy-legacy-um" revision="3ba04b19a72afb83c5793c7c908670d559a1c5e6" upstream="lineage-24.0-legacy-um" dest-branch="lineage-24.0-legacy-um" groups="qcom,sdm660"/>
   <project name="LineageOS/android_device_qcom_sepolicy_vndr" path="device/qcom/sepolicy_vndr/legacy-um" revision="d8b5ffdf51074f0931096991d9e9a9294ad31c98" upstream="lineage-24.0-legacy-um" dest-branch="lineage-24.0-legacy-um" groups="lahaina,qcom"/>

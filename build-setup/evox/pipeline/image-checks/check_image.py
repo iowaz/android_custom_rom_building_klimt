@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 
 MODES={'policy','patch_packaging','private_compatibility','health_semantics','gms_themes_apps','doze_packaging','install_integrity'}
 KERNEL_MODULE_FILE=re.compile(r'(?:vendor|system|odm)_dlkm/lib/modules/(?:[^/]+\.ko|modules\.(?:alias|dep|load|softdep|blocklist|options|load\.recovery|load\.charger))')
-REF_SHA='cb444f1020791291bb72f3e80523c0c795653e25cd6014396528effffbb0376f'
+REF_SHA='8d6be1d10a7c600b62c965c70ec5f03de73dee38d102f36e5a03d91b339c7b88'
 S=Path('/mnt/wsl/evox/src');P=S/'out/target/product/klimt'
 class Defect(RuntimeError):pass
 class ToolFailure(RuntimeError):pass

@@ -652,7 +652,7 @@
  },
  "upstream_heads": {
   "libcore": "4ebfb391ee0109d16abe6e2bc965724b940928c5",
-  "system/sepolicy": "c3997bf608b40a7217d0eb2257af887afa78617b",
+  "system/sepolicy": "dd9d56abe0590484ae145337ae1e728db9b2d57a",
   "system/memory/libdmabufheap": "57925b760460430b1424bf0fa4cb0ffe001b9cfd"
  },
  "allowed_duplicate_packages": {

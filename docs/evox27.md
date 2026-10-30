@@ -85,6 +85,12 @@ CHANGES REQUIRED (the TrickyStore boot key, fixed), follow-up on the fixes PASS.
 
 The delivery is in `output-zips\evox27`: the 5,645,904,817-byte image ZIP, SHA256
 `12292263d626d8841baa115bac651c83182e41349e3f7f2a03a95dad5b0c2235`, and the slot-b, no-wipe, skip-reboot flash
-helpers. Not flashed, not boot-tested. The first boot after a dirty flash takes the full upgrade path (package cache
-reset, dexopt), so it is slower than usual. Post-flash checks are listed in
-`diagnostics\builds\evox27\REVIEW_DISPOSITION.md`.
+helpers. The first boot after a dirty flash takes the full upgrade path (package cache reset, dexopt), so it is
+slower than usual.
+
+**Flashed (dirty) to slot b on 2026-10-30 and boots**, after the owner had all root removed (KernelSU, ReSuSFS,
+AlwaysStrong, Zygisk Next, HMA-OSS and their data, with a private backup). 111 OKAY / 0 FAILED, no wipe. First boot:
+kernel `-ab27`, SELinux enforcing, no su, no crashes; PackageManager logged "Upgrading from ..." with the unchanged
+Xiaomi incremental, so the build-time digest works; libgui opens `/proc/ged`. Record:
+`diagnostics\builds\evox27\RUNTIME.md`. The owner's app checks (Duck Detector, Play Integrity, banking, eSIM) are
+open.

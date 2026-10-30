@@ -1,7 +1,7 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current review candidate: **evox27**, compiled and image-checked (attempt02, recheck03) on 2026-10-30; not flashed or
-boot-tested. See [evox27](docs/evox27.md): Evolution X cnb of 2026-10-29, MediaTek GED KPI, owner forks on branch
+Current build: **evox27**, compiled and image-checked (attempt02, recheck03) on 2026-10-30, flashed (dirty) the same
+night and boots; the owner's app checks are open. See [evox27](docs/evox27.md): Evolution X cnb of 2026-10-29, MediaTek GED KPI, owner forks on branch
 `evox27`. evox26 is the preceding build; see [history](docs/history.md).
 
 This repository is the recipe for my Evolution X builds for the Xiaomi 15T Pro: which repositories are involved,

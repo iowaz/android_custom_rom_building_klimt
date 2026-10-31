@@ -1,9 +1,9 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current build: **evox27**, compiled and image-checked (attempt02, recheck03) on 2026-10-30, flashed (dirty) the same
-night and boots; the owner's app checks are open. Next candidate: **[evox28](docs/evox28.md)** (LineageOS MediaTek
-vendor policy, quieter GED probe), image-checked, not flashed. See [evox27](docs/evox27.md): Evolution X cnb of 2026-10-29, MediaTek GED KPI, owner forks on branch
-`evox27`. evox26 is the preceding build; see [history](docs/history.md).
+Current phone build: **evox27**, flashed (dirty) on 2026-10-30 and boots; the owner's app checks are open.
+Next build: **[evox30](docs/evox30.md)**, current upstreams after an independent RisingOS klimt assessment,
+with the separate evox29 Wallet experiment excluded. Evox28 remains image-checked, not flashed.
+See [history](docs/history.md) for source and build results.
 
 This repository is the recipe for my Evolution X builds for the Xiaomi 15T Pro: which repositories are involved,
 how the build machine is set up, the scripts that drive the build, and how a build is checked and flashed.

@@ -17,6 +17,8 @@ Checks before launch: clean full graph, exact frozen/live manifest agreement, un
 
 ## Status
 
-Prepared for attempt01; build startup and eventual result are recorded in `diagnostics/builds/evox30`. Not flashed or boot-tested. The requested 20-minute monitor may diagnose/fix build failures and launch a fresh attempt, and promotes delivery only after the full verifier passes. It must stop when complete or when user action is required.
+Attempt01 started at 23:10 BRT on 2026-10-30. All nine readiness gates passed, with 79.2 GiB free on D: and 100.1 GiB on the build disk. The detached controller startup was confirmed and its status entered `building`. Build startup and eventual result are recorded in `diagnostics/builds/evox30`. Not yet image-checked, flashed or boot-tested.
+
+The requested 20-minute monitor is active in this chat (`monitor-evox30-build-every-20-minutes`). It may diagnose/fix build failures and launch a fresh attempt, and promotes delivery only after the full verifier passes. It must stop when complete or when user action is required. Current logs: `/mnt/wsl/evox/logs/evox30/evox30-attempt01`.
 
 Runtime checks after a separately authorized flash: SystemUI/quick-settings glass rendering and screenshots/external displays; IMS failed-call retry/cleanup and normal calling; eSIM/mobile data; camera; Bluetooth; MTP; unchanged charging and GED behavior. These are source-reviewed changes, not on-phone validation.

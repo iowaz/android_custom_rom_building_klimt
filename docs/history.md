@@ -7,7 +7,7 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 
 | Build | Date | Result | What changed |
 |---|---|---|---|
-| evox30 | 2026-10-30 | prepared for attempt01; not flashed or boot-tested | RisingOS assessed by two agents; no compatible novel cherry-picks. Current manifest branch heads synced (five upstream projects changed), all 19 local patches preserved across 12 forks, same Android 17 tag/1,263-project graph; independent review passes for compilation. Kernel label `-ab30`. Separate evox29 Wallet experiment excluded and preserved. [Details](evox30.md). |
+| evox30 | 2026-10-30 | attempt01 started 23:10 BRT; building; not flashed or boot-tested | RisingOS assessed by two agents; no compatible novel cherry-picks. Current manifest branch heads synced (five upstream projects changed), all 19 local patches preserved across 12 forks, same Android 17 tag/1,263-project graph; independent review passes for compilation. Kernel label `-ab30`. Separate evox29 Wallet experiment excluded and preserved. Nine readiness gates passed; 20-minute monitor active. [Details](evox30.md). |
 | evox1 | 2026-10-05 | failed in analysis | Evolution X re-adds the HIDL `light@2.0`, which clashes with the stock vendor blob. Fixed in `hardware_interfaces` by dropping the interface. |
 | evox2 | 2026-10-05 | failed in analysis | An absolute `OUT_DIR` outside the tree breaks soong's test packaging. `out` became a symlink instead. |
 | evox3 | 2026-10-05 | failed at 76% | Evolution X's `blank_screen` uses the HIDL light as a fallback. Restored the AOSP version (AIDL only). |

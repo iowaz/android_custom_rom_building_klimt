@@ -27,7 +27,7 @@ Attempt01 started at 09:57 BRT on 2026-11-04, checked every 20 minutes. Updatepa
 - All seven supplemental image checks passed.
 - 888 modules checked, zero CRC mismatches (one unresolved symbol, `mtk_drm_gateic_set_backlight`, as in evox30).
 
-Delivery: `output-zips/evox31`, 5,651,478,922-byte ZIP, SHA256 `e5ba69089357c5cbdd6d0d76a72d959ab700379e86c3050ac398e1ce77b9fb70`, with slot-b no-wipe flash helpers. **Image-checked; not flashed or boot-tested.** Evox27 remains the phone build.
+Delivery: `output-zips/evox31`, 5,651,478,922-byte ZIP, SHA256 `e5ba69089357c5cbdd6d0d76a72d959ab700379e86c3050ac398e1ce77b9fb70`, with slot-b no-wipe flash helpers. On 2026-11-04, at the owner's request after the review push, it was **flashed (dirty) to slot b over evox28 and boots**: 111 OKAY / 0 FAILED, no wipe; `uname -r` reports `-ab31`, SELinux enforcing, no crashes in the first minutes, SIM 2 in service. Record: `diagnostics/builds/evox31/RUNTIME.md`. The owner's app checks are open.
 
 Records: `diagnostics/builds/evox31/PROMOTED.json`, full verification under `reports/evox31-attempt01`, logs `/mnt/wsl/evox/logs/evox31/evox31-attempt01`.
 

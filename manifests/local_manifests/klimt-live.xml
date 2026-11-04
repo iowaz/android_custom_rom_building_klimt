@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Evolution X cnb: klimt sources. Device tree is then switched to the build9 state
-     (branch verify-all-prs from the witaqua tree); vendor/xiaomi/klimt is copied from the witaqua tree
-     (regenerated from the OS3.0.335 OTA), not synced from the stale GitLab repo. -->
+<!-- Written by build-setup/evox/pipeline/prepare.py upstream: Evolution X cnb plus the klimt projects.
+     No ROM-source forks; the klimt patches are in device/xiaomi/klimt/patches (apply.py). -->
 <manifest>
+  <include name="default.xml" />
+  <remote name="iowaz" fetch="https://github.com/iowaz" />
   <remote name="misakazip" fetch="https://github.com/misakazip-dev" />
-
-  <project path="device/xiaomi/klimt" name="android_device_xiaomi_klimt" remote="misakazip" revision="17.0" />
-  <project path="kernel/xiaomi/klimt" name="android_kernel_xiaomi_klimt" remote="misakazip" revision="17.0" clone-depth="1" />
-  <project path="kernel/xiaomi/klimt-prebuilt" name="android_kernel_xiaomi_klimt-prebuilt" remote="misakazip" revision="17.0" clone-depth="1" />
-
-  <!-- device lineage.dependencies (Evo roomservice reads evolution.dependencies, so list them here) -->
+  <project name="android_device_xiaomi_klimt" path="device/xiaomi/klimt" remote="iowaz" revision="cnb" />
+  <project name="android_kernel_xiaomi_klimt" path="kernel/xiaomi/klimt" remote="iowaz" revision="evox31" upstream="evox31" clone-depth="1" dest-branch="evox31" />
+  <project name="android_kernel_xiaomi_klimt-prebuilt" path="kernel/xiaomi/klimt-prebuilt" remote="misakazip" revision="a2d1dae44726c14b1295f4042cddd9fedacd39e0" upstream="17.0" clone-depth="1" />
+  <project name="proprietary_vendor_xiaomi_klimt" path="vendor/xiaomi/klimt" remote="iowaz" revision="evox31" upstream="evox31" dest-branch="evox31" />
   <project path="hardware/xiaomi" name="LineageOS/android_hardware_xiaomi" remote="github" revision="lineage-24.0" />
   <project path="device/mediatek/sepolicy_vndr" name="LineageOS/android_device_mediatek_sepolicy_vndr" remote="github" revision="lineage-24.0" />
 </manifest>

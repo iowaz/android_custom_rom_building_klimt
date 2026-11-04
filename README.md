@@ -29,33 +29,42 @@ signed with my own private keys, with Google apps included (`WITH_GMS=true`).
 
 | Path in the source tree | Repository | Branch | Visibility | What it is |
 |---|---|---|---|---|
-| everything else | [Evolution-X/manifest](https://github.com/Evolution-X/manifest) | `cnb` | public | Evolution X (AOSP + LineageOS + Evolution X projects) |
-| `device/xiaomi/klimt` | [iowaz/android_device_xiaomi_klimt](https://github.com/iowaz/android_device_xiaomi_klimt) | `evox` | public | Device tree, fork of [misakazip-dev](https://github.com/misakazip-dev/android_device_xiaomi_klimt). Also holds `patches/tree/` (see below) |
-| `kernel/xiaomi/klimt` | [iowaz/android_kernel_xiaomi_klimt](https://github.com/iowaz/android_kernel_xiaomi_klimt) | `17.0` | public | Kernel source, fork of misakazip-dev (unchanged) |
-| `kernel/xiaomi/klimt-prebuilt` | [misakazip-dev/android_kernel_xiaomi_klimt-prebuilt](https://github.com/misakazip-dev/android_kernel_xiaomi_klimt-prebuilt) | `17.0` | public | Builds the kernel from source |
-| `vendor/xiaomi/klimt` | iowaz/proprietary_vendor_xiaomi_klimt | `evox` | **private** | Proprietary blobs extracted from HyperOS OS3.0.335 plus MIUI Camera. Uses Git LFS |
-| `hardware/interfaces` | [iowaz/hardware_interfaces](https://github.com/iowaz/hardware_interfaces) | `cnb-klimt` | public | Drops the HIDL `light@2.0` interface so the stock vendor blob is used |
-| `build/soong` | [iowaz/build_soong](https://github.com/iowaz/build_soong) | `evox16` | public | Allows the `miui` boot jar packages (`cnb-klimt` is the 12.2 history) |
-| `frameworks/native` | [iowaz/frameworks_native](https://github.com/iowaz/frameworks_native) | `evox16` | public | libui stops asking the MediaTek mapper for SMPTE 2094-50 metadata it doesn't list |
+| everything else | [Evolution-X/manifest](https://github.com/Evolution-X/manifest) | `cnb` | public | Evolution X (AOSP + LineageOS + Evolution X projects), unchanged |
+| `device/xiaomi/klimt` | [iowaz/android_device_xiaomi_klimt](https://github.com/iowaz/android_device_xiaomi_klimt) | `cnb` | public | Device tree, fork of [misakazip-dev](https://github.com/misakazip-dev/android_device_xiaomi_klimt). Also holds the patches to ROM sources, under `patches/` (see below) |
+| `kernel/xiaomi/klimt` | [iowaz/android_kernel_xiaomi_klimt](https://github.com/iowaz/android_kernel_xiaomi_klimt) | `17.0`; the live manifest keeps its `evox31` head | public | Kernel source, fork of misakazip-dev's `17.0` |
+| `kernel/xiaomi/klimt-prebuilt` | [misakazip-dev/android_kernel_xiaomi_klimt-prebuilt](https://github.com/misakazip-dev/android_kernel_xiaomi_klimt-prebuilt) | `17.0` (pinned) | public | Builds the kernel from source |
+| `vendor/xiaomi/klimt` | iowaz/proprietary_vendor_xiaomi_klimt | `evox`; the live manifest keeps its `evox31` head | **private** | Proprietary blobs extracted from HyperOS OS3.0.335 plus MIUI Camera. Uses Git LFS |
 | `hardware/xiaomi` | [LineageOS/android_hardware_xiaomi](https://github.com/LineageOS/android_hardware_xiaomi) | `lineage-24.0` | public | Xiaomi HALs (fingerprint, sensors) |
 | `device/mediatek/sepolicy_vndr` | [LineageOS/android_device_mediatek_sepolicy_vndr](https://github.com/LineageOS/android_device_mediatek_sepolicy_vndr) | `lineage-24.0` | public | MediaTek vendor SELinux policy |
 | `vendor/evolution-priv/keys` | not in git | | **offline only** | Signing keys, generated once (see [Keys](#keys)) |
 
-`vendor/lineage` is plain Evolution-X/vendor_evolution again since evox16: both of our old `cnb-klimt` commits
-(the security patch level and the fingerprint override) are upstream in 12.3.
+There are no ROM-source forks since 2026-11-04. The owner's rules:
 
-**Only changes that klimt needs get a fork, and everything else stays upstream.** The upstream maintainers test
-on real devices; our changes are untested until a build boots on the phone. As of evox17 the local changes are
-the device tree, the kernel and vendor repositories, and the three small forks above (build/soong,
-frameworks/native, hardware/interfaces), all of which were already in evox15. evox16 had added generic fixes to
-twelve more projects; the [evox16 review](docs/evox16-review.md) reverted them. The build/soong and
-frameworks/native patches are also exported in the device tree under
-[`patches/tree/`](https://github.com/iowaz/android_device_xiaomi_klimt/tree/evox/patches/tree), each with its exact
-base commit, patch hash and the expected final tree, for a checkout without the forks. Apply them with
-`patches/tree/apply.sh <tree root>`. It refuses a dirty project or a different base, and skips a project whose
-tree is already final, so with the forks it does nothing. The evox15 patch set is kept in `patches/tree-evox15/`;
-all of it is in 12.3. The iowaz `packages_apps_Settings`, `android_hardware_xiaomi` and
-`android_system_memory_libdmabufheap` forks are only used by the evox16 snapshot.
+- **Patch only what klimt needs, and only when the owner asks.** Everything else stays as Evolution X, LineageOS
+  and AOSP ship it. The upstream maintainers test on real devices; our changes are untested until a build boots
+  on the phone. evox16 added generic fixes to twelve projects; the [evox16 review](docs/evox16-review.md)
+  reverted them.
+- **The owner's personal identity layer** (the Xiaomi build identity in the vendor props, no `ro.lineage.*` /
+  `ro.evolution.*` props, and the readers that take build constants instead) is kept as device patches, at his
+  explicit request, marked `personal`.
+- **No ROM-source forks.** Patches to ROM sources live in the device tree, in
+  `device/xiaomi/klimt/patches/<project path>/NNNN-*.patch`, listed in `patches/PATCHES.json` with their class
+  (`klimt` or `personal`), purpose, upstream base, patch hashes and the expected final tree and head. After a
+  sync, `python3 device/xiaomi/klimt/patches/apply.py <tree>` applies them with `git am` onto a local branch
+  `klimt` in each project, with deterministic commit SHAs; `--check` only reports. A patch that no longer applies
+  stops the build before it starts and is ported by hand.
+- **No per-build branches.** Every repository has one default branch. A build is marked by a tag,
+  `docs/<build>.md` and `manifests/snapshots/<build>.xml`.
+- **Builds are named by date from 2026-11-05**: `20261105`, and `20261105.2` for a second build the same day.
+  evox1 to evox31 keep their names.
+
+The device patches are 13 patches in 10 projects. klimt needs four: the HIDL `light@2.0` drop and AIDL-only
+`blank_screen` (hardware/interfaces; the build fails without them), the SMPTE 2094-50 guard (frameworks/native;
+the A15 MediaTek mapper doesn't list it) and the MIUI boot jar packages (build/soong). The rest is the personal
+layer, in build/make, build/soong, vendor/lineage, lineage-sdk, packages/apps/Settings, packages/apps/Updater,
+bootable/recovery and frameworks/base (the upgrade digest includes `ro.build.date.utc`, because klimt reports a
+fixed fingerprint). The adb root policy patch (device/lineage/sepolicy) and the two init marker commits
+(system/core) were dropped with the forks. The old iowaz forks only serve the snapshots up to evox31.
 
 ### Without access to the private repositories
 
@@ -70,21 +79,25 @@ An Android tree is about 1,260 git repositories managed by [`repo`](https://gerr
 Submodules would duplicate that for a handful of projects. They would also break `git clone --recursive` for
 anyone without access to the private vendor repository. So this repository ships manifests instead:
 
-- [`manifests/local_manifests/klimt.xml`](manifests/local_manifests/klimt.xml) adds the klimt repositories and
-  swaps in the forks on top of the latest Evolution X `cnb`. This is what you want for a new build.
+- [`manifests/local_manifests/klimt.xml`](manifests/local_manifests/klimt.xml) adds the klimt repositories on top
+  of the latest Evolution X `cnb`, with no forks. This is what you want for a new build; apply the device patches
+  after the sync.
 - [`manifests/snapshots/`](manifests/snapshots) pins every project at the commit used for each build (historical boot-tested baseline:
   [`evox17.xml`](manifests/snapshots/evox17.xml), which boots on the phone; [`evox16.xml`](manifests/snapshots/evox16.xml)
-  **boot-loops**, see the [evox16 review](docs/evox16-review.md)), as generated by
-  [`snapshot-manifest.py`](build-setup/evox/snapshot-manifest.py) from `repo manifest -r`.
+  **boot-loops**, see the [evox16 review](docs/evox16-review.md)). From 2026-11-05 the pipeline's
+  [`prepare.py freeze`](build-setup/evox/pipeline/prepare.py) writes it from `repo manifest -r`, with every
+  patched project pinned at its upstream base (so it syncs from public repositories; run `patches/apply.py`
+  after the sync). Up to evox31 the snapshots pin the iowaz fork commits instead.
   - Evolution X force-pushes `cnb` often. Of the 312 GitHub projects in the evox10 snapshot, 23 were rebased upstream
     within days. Their old commits can still be fetched by SHA for now, but that is not guaranteed.
   - Three are already gone: frameworks/base's base commit, `system_memory_libdmabufheap` (repository deleted)
     and one ThemeIcons commit.
   - So the snapshot is a record of the build, not a guaranteed way to rebuild it bit for bit. A full copy of
     the source tree (`/mnt/wsl/evox`) is the only way to do that.
-- [`manifests/local_manifests/klimt-live.xml`](manifests/local_manifests/klimt-live.xml) is the local manifest
-  actually installed on the build PC. The klimt projects there were switched to their iowaz branches by hand
-  after the first sync.
+- [`manifests/local_manifests/klimt-live.xml`](manifests/local_manifests/klimt-live.xml) is the live manifest
+  `prepare.py upstream` installs on the build PC (`.repo/manifests/klimt-live.xml`, on the local manifests branch
+  `klimt`): Evolution X's `default.xml` plus the klimt projects, with the kernel and vendor entries of the
+  previous live manifest (today their `evox31` branches).
 
 ## The build machine
 
@@ -149,12 +162,14 @@ repo init -u https://github.com/Evolution-X/manifest -b cnb --git-lfs --depth=1 
 mkdir -p .repo/local_manifests
 cp <this repo>/manifests/local_manifests/klimt.xml .repo/local_manifests/
 repo sync -c --no-tags --no-clone-bundle -j8      # build-setup/evox/sync.sh; about an hour, ~140 GB
-bash device/xiaomi/klimt/patches/tree/apply.sh .  # reports "already final" with the forks
+python3 device/xiaomi/klimt/patches/apply.py .    # the klimt patches, onto local branches `klimt`
 ```
 
-For a release, the tree is synced to a frozen manifest instead (every project at an exact commit):
-[`make-frozen.py`](build-setup/evox/pipeline/make-frozen.py) derives it from the previous one, and the frozen
-manifests are kept in the private `iowaz/evox16_manifest` repository (one branch per build).
+On the build PC, [`prepare.py`](build-setup/evox/pipeline/prepare.py) does this for each build, step by step
+(upstream, move-renamed, sync, patch, label, freeze; see the [pipeline README](build-setup/evox/pipeline)), and
+freezes the result: every project at an exact commit, recorded in `manifests/snapshots/<build>.xml`. Up to
+evox31 the frozen manifests were also kept in the private `iowaz/evox16_manifest` repository, one branch per
+build.
 
 ### 3. Keys
 
@@ -188,15 +203,21 @@ build name comes from the attempt ID, and every path from [`paths.py`](build-set
 
 ```bash
 P=/mnt/d/android_rom_building/repositories/android_custom_rom_building_klimt/build-setup/evox/pipeline
-export KLIMT_BUILD=evox18
-python3 -B $P/ready.py <frozen manifest>                 # gates -> diagnostics\builds\evox18\BUILD_READY.json
-bash $P/start.sh evox18-attempt01 /mnt/d/android_rom_building/diagnostics/builds/evox18/BUILD_READY.json
-python3 -B $P/controller.py status evox18-attempt01
-python3 -B $P/promote.py evox18-attempt01                # -> D:\android_rom_building\output-zips\evox18
+export KLIMT_BUILD=20261105
+for step in upstream move-renamed sync patch label freeze; do python3 -B $P/prepare.py $step 20261105 || break; done
+python3 -B $P/ready.py /mnt/d/android_rom_building/diagnostics/builds/20261105/20261105-frozen.xml
+bash $P/start.sh 20261105-attempt01 /mnt/d/android_rom_building/diagnostics/builds/20261105/BUILD_READY.json
+python3 -B $P/controller.py status 20261105-attempt01
+python3 -B $P/promote.py 20261105-attempt01              # -> D:\android_rom_building\output-zips\20261105
 ```
 
-- The readiness JSON pins the whole frozen manifest (every project HEAD, checked clean before and after), the
-  five public signing certificates, the disk budget and the checks that must pass first.
+The sync step takes about an hour, so run the prepare steps from a background shell (or one at a time). After
+`freeze`, push the device commit the frozen manifest pins to iowaz `cnb`; the scripts push nothing.
+
+- The readiness JSON pins the whole frozen manifest (every project HEAD, checked clean before and after; a
+  patched project must be at its `PATCHES.json` final head over the frozen base), the five public signing
+  certificates, the disk budget and the checks that must pass first. It also records the security patch level
+  of the source and the LineageOS review state of the month's security bulletin, as information.
 - One detached controller runs `m -j12 installclean`, `m -j12 updatepackage`, then the verifier. Each attempt
   gets its own ID and folders, and nothing from an earlier attempt is overwritten.
 - The controller and its watchdog identify the build by PID, `/proc` start time, boot ID and session. They stop
@@ -222,7 +243,8 @@ produced by that attempt (hash, size and mtime from the build's own exit record)
 - the must-hold checks ([`legacy/musthold.sh`](build-setup/evox/pipeline/legacy/musthold.sh)): the AVB chain;
   `super_empty`, `fastboot-info.txt` and `android-info.txt` unchanged; the device tree blob and DTBO identical
   to the phone's own; all 888 kernel modules matching the kernel's symbol CRCs;
-- all 165 historical fix checks (`legacy/fixcheck*.sh`), matched by name;
+- all 191 historical fix checks (`legacy/fixcheck*.sh`), matched by name (194 up to evox31; the three for the
+  dropped adb root and init marker patches were retired);
 - seven image checks in [`image-checks/check_image.py`](build-setup/evox/pipeline/image-checks/check_image.py):
   - policy: recompiled policy, the exact permissive domains (`su`, as upstream), device labels, upstream sepolicy;
   - patch packaging: MIUI jars, libui/Gralloc, lights, upstream libcore;
@@ -234,7 +256,7 @@ produced by that attempt (hash, size and mtime from the build's own exit record)
     the Telecom app (bound to its producer, binder contract read from its DEX) matches the framework's loader.
 
 Only then does it stage the delivery, which [`promote.py`](build-setup/evox/pipeline/promote.py) moves to
-`D:\android_rom_building\output-zips\<build>\`: `lineage_klimt-<build>-img.zip`, its `-flash.bat`/`-flash.sh`
+`D:\android_rom_building\output-zips\<build>\` (for example `output-zips\20261105\lineage_klimt-20261105-img.zip`): `lineage_klimt-<build>-img.zip`, its `-flash.bat`/`-flash.sh`
 helpers, `SHA256SUMS`, `RESULTS.json`, `COMPARISON.md`, `README.md` and `VERIFIED.txt`. **`VERIFIED.txt` is not
 a phone test**: it says "NOT boot-tested".
 
@@ -269,7 +291,7 @@ relies on an A/B OTA, because the OTA writes to the other slot.
 - **Keep `.repo/manifests` on the commit the tree was synced from.** The build runs `repo manifest -r`, and an
   aborted sync once left a newer manifest there that broke a build an hour in.
 - **Upstream moves fast.** Evolution X rebases `cnb`, so compare commits by subject, not SHA. Keep every local
-  change in a fork or in `patches/tree`, never only in the tree.
+  change in the device tree's `patches/`, never only in the tree.
 - **The vendor is A15, the system is A17.** The stock camera blobs expect Android 15's `libui` (`GraphicBuffer`
   is 256 bytes there, 3,376 in Android 17). The device tree ships the stock `libui` as `libui_vendor.so` and
   relinks those blobs to it, as HyperOS itself does.
@@ -323,7 +345,7 @@ hours. A CI setup needs a self-hosted runner, or a cloud VM with:
 The job is then steps 2 to 5 above:
 
 1. `repo init` and `repo sync` with the local manifest.
-2. `apply.sh`.
+2. `python3 device/xiaomi/klimt/patches/apply.py .`
 3. Unpack the keys.
 4. `lunch` and `m updatepackage`.
 5. Run the checks.

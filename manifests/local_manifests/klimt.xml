@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Xiaomi 15T Pro (klimt) on Evolution X 12.3 cnb (Android 17), as of evox17.
+<!-- Xiaomi 15T Pro (klimt) on Evolution X cnb (Android 17), from 2026-11-05.
      Copy to .repo/local_manifests/klimt.xml after the repo init of Evolution-X/manifest, branch cnb,
-     with Git LFS enabled (see the README). The forks below already carry patches/tree, so apply.sh
-     only reports "Equivalent full final tree" for them.
-     vendor/xiaomi/klimt is a PRIVATE repository: you need read access to it, or replace it (see the README).
-     Only projects with a klimt-specific change have an iowaz fork; everything else is upstream. -->
+     with Git LFS enabled (see the README), sync, then apply the klimt patches:
+       python3 device/xiaomi/klimt/patches/apply.py .
+     There are no ROM-source forks: the few patches klimt needs, and the owner's personal identity layer, are in
+     the device tree (patches/PATCHES.json). Everything else is upstream.
+     vendor/xiaomi/klimt is a PRIVATE repository: you need read access to it, or replace it (see the README). -->
 <manifest>
   <remote name="iowaz" fetch="https://github.com/iowaz" />
   <remote name="misakazip" fetch="https://github.com/misakazip-dev" />
 
   <!-- Device, kernel and proprietary blobs -->
-  <project path="device/xiaomi/klimt" name="android_device_xiaomi_klimt" remote="iowaz" revision="evox" />
+  <project path="device/xiaomi/klimt" name="android_device_xiaomi_klimt" remote="iowaz" revision="cnb" />
   <project path="kernel/xiaomi/klimt" name="android_kernel_xiaomi_klimt" remote="iowaz" revision="17.0" clone-depth="1" />
   <project path="kernel/xiaomi/klimt-prebuilt" name="android_kernel_xiaomi_klimt-prebuilt" remote="misakazip" revision="17.0" clone-depth="1" />
   <project path="vendor/xiaomi/klimt" name="proprietary_vendor_xiaomi_klimt" remote="iowaz" revision="evox" />
@@ -18,9 +19,4 @@
   <!-- Device dependencies (lineage.dependencies; Evolution X's roomservice only reads evolution.dependencies) -->
   <project path="hardware/xiaomi" name="LineageOS/android_hardware_xiaomi" remote="github" revision="lineage-24.0" />
   <project path="device/mediatek/sepolicy_vndr" name="LineageOS/android_device_mediatek_sepolicy_vndr" remote="github" revision="lineage-24.0" />
-
-  <!-- Evolution X projects replaced by the klimt forks (same repository names under iowaz) -->
-  <extend-project name="build_soong" remote="iowaz" revision="evox16" />            <!-- MIUI boot jar packages -->
-  <extend-project name="hardware_interfaces" remote="iowaz" revision="cnb-klimt" /> <!-- stock AIDL lights -->
-  <extend-project name="frameworks_native" remote="iowaz" revision="evox16" />      <!-- MediaTek mapper SMPTE 2094-50 guard -->
 </manifest>

@@ -2,6 +2,7 @@
 """Fail evox26 delivery on incomplete Xiaomi metadata migration. Static image checks only."""
 import json, os, re, sys
 from pathlib import Path
+import paths
 FP='Xiaomi/klimt_global/klimt:17/OS3.3.260806.171839609/OS3.0.335.0.XOSMIXM:user/release-keys'
 BID='OS3.3.260806.171839609'; INC='OS3.0.335.0.XOSMIXM'
 HOST='pangu-build-component-system-247-r6kfm'
@@ -34,8 +35,8 @@ def validate(fs,kernel,build='evox26'):
         if part=='vendor':require(p,'ro.vendor.build.security_patch','2026-10-05')
         for key,val in p.items():
             if re.fullmatch(r'ro\.(?:[a-z_]+\.)?build\.(?:fingerprint|id|flavor|description|host|user|version\.incremental|version\.known_codenames)',key) and any(x in val for x in ['bluejay','ZP11.260918.007','16484274','CANARY','r-06b84ad74750c689-xc7u']):raise ValueError('legacy metadata '+key)
-    # The kernel release ends in -ab<build number> (evox26: ab26, evox27: ab27).
-    label='ab'+str(int(re.fullmatch(r'evox([0-9]+)',build).group(1)))
+    # The kernel release ends in -ab<build> (evox26: ab26, evox27: ab27, 20261105: ab20261105, 20261105.2: ab20261105.2).
+    label=paths.kernel_label(build)
     if not kernel.startswith('Linux version 6.6.142-android15-8-gf6a5b29f9fe5-'+label+' (builder@'+HOST+') '):raise ValueError('kernel release/builder mismatch')
     if not kernel.rstrip().endswith('#1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'):raise ValueError('kernel timestamp mismatch')
     return count+2

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """TOOL_REVIEW.json for a verifier-only recheck (see README: 'Verifier fixes without a rebuild').
 
-usage: KLIMT_BUILD=evox18 python3 -B tool_review.py <attempt> <recheckNN> <evidence.txt>
+usage: KLIMT_BUILD=20261105 python3 -B tool_review.py <attempt> <recheckNN> <evidence.txt>
 The reviewed checker must already be installed and registered in image-checks/IMAGE_CHECKS.json.
 """
 import json, sys

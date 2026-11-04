@@ -2,7 +2,8 @@
 : "${EVOX_EXTRACT:?attempt extraction path required}"
 : "${EVOX_TMP:?attempt temporary path required}"
 # evox21 checks: evox20 coverage plus the scan-driven follow-up (evolution_x_klimt_build_tasks_20261020.md):
-# bionic at Evolution X f8b37b8 and the adb root policy kept out of user builds (device/lineage/sepolicy).
+# bionic at Evolution X f8b37b8 and the adb root policy kept out of user builds (device/lineage/sepolicy; that
+# patch and its two policy checks were dropped on 2026-11-04 with the forks, see below).
 F=${EVOX_EXTRACT}/fs; W=/mnt/wsl/evox/src; I=$W/out/soong/.intermediates
 OD=$W/prebuilts/clang/host/linux-x86/clang-r596125/bin/llvm-objdump
 ok(){ if eval "$2" >/dev/null 2>&1; then echo "OK   $1"; else echo "FAIL $1"; fi; }
@@ -22,14 +23,12 @@ no_tmp_inode(){ local t; t=$($OD -d --no-show-raw-insn --disassemble-symbols=cus
 ok "libc filters the five */overlay dirs" "overlay_dirs"
 ok "libc no longer fakes the /data/local/tmp inode" "no_tmp_inode"
 
-echo '== evox21 adb root policy only in debuggable builds (device/lineage/sepolicy)'
-SE=$F/system_ext/etc/selinux/system_ext_sepolicy.cil
-CILS="$SE $F/product/etc/selinux/product_sepolicy.cil $F/vendor/etc/selinux/vendor_sepolicy.cil $F/vendor/etc/selinux/plat_pub_versioned.cil $F/odm/etc/selinux/odm_sepolicy.cil"
-# Rules with an adbroot type as source or target, adbd -> adbroot binder call among them.
-no_adbroot_rules(){ local f; for f in $CILS; do [ -f "$f" ] || return 1; done
-  ! grep -qE '^\((allow|auditallow|dontaudit|allowx|typetransition) ([^ ]+ )?adbroot' $CILS; }
-ok "no packaged policy rule names an adbroot type" "no_adbroot_rules"
-ok "adbroot types stay declared for the contexts" "grep -qx '(type adbroot)' $SE && grep -qx '(type adbroot_service)' $SE"
+echo '== evox21 no adb root in user builds'
+# Retired 2026-11-04: "no packaged policy rule names an adbroot type" and "adbroot types stay declared for the
+# contexts" tested the device/lineage/sepolicy patch "sepolicy: Keep the adb root policy to debuggable builds".
+# It was dropped with the forks, by the owner's decision (generic hardening, not a klimt need), so a user build
+# carries upstream's adbroot rules again. The binary check stays: vendor/lineage installs adb_root only with
+# WITH_SU, which a user build does not set.
 ok "no adb_root binary or init service" "[ ! -e $F/system_ext/bin/adb_root ] && [ ! -e $F/system/system/bin/adb_root ] && [ -d $F/system_ext/etc/init ] && ! grep -rqs adb_root $F/system/system/etc/init $F/system_ext/etc/init"
 
 echo '== evox21 USB configuration left to the runtime'

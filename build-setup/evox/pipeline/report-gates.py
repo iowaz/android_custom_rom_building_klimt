@@ -2,9 +2,11 @@
 """Strict historical comparison identities; no count threshold or FAIL waiver."""
 import json,re
 from pathlib import Path
+import paths
 B=Path(__file__).resolve().parent
 def validate(report,build):
-    if not re.fullmatch(r'evox[0-9]+',build):raise ValueError('Invalid build profile')
+    # evoxNN up to evox31, YYYYMMDD[.N] from 2026-11-05 (every date build takes the newest profile).
+    if not paths.is_build(build):raise ValueError('Invalid build profile')
     text=(report/'raw-musthold.txt').read_text()
     extracted=(report/'raw-extract.txt').read_text()
     if any(x in extracted for x in ['extract failed','Traceback','Unsupported filesystem']):
@@ -15,19 +17,18 @@ def validate(report,build):
         'fastboot-info.txt == author','fastboot-info.txt == b9','android-info.txt == author','android-info.txt == b9',
         'vendor_boot dtb IDENTICAL to live slot b','modules 888;',
         'CRC MISMATCHES vs kernel 0; UNRESOLVED 1','  unresolved mtk_drm_gateic_set_backlight']
-    number=int(build.removeprefix('evox'))
     # super_empty: byte-identical to both references; from evox27 on, the same layout with every logical
     # partition readonly (Evolution X build/make 90d0063) is accepted too (musthold.sh M3 checks both).
     for ref in ('author','build9'):
         accepted=[f'super_empty: IDENTICAL to {ref}']
-        if number >= 27:
+        if paths.at_least(build,27):
             accepted.append(f'super_empty: SAME LAYOUT as {ref}, every partition readonly (build/make 90d0063)')
         if not any(line in text.splitlines() for line in accepted):
             raise ValueError('Must-hold missing: super_empty vs '+ref)
-    if number >= 26:
-        # The kernel release ends in -ab<build number> (evox26: ab26, evox27: ab27).
+    if paths.at_least(build,26):
+        # The kernel release ends in -ab<build> (evox26: ab26, evox27: ab27, 20261105: ab20261105).
         kernel=re.findall(r'^Linux version .*$',text,re.M)
-        if len(kernel)!=1 or not kernel[0].startswith(f'Linux version 6.6.142-android15-8-gf6a5b29f9fe5-ab{number} (builder@pangu-build-component-system-247-r6kfm) ') or not kernel[0].endswith('#1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'):
+        if len(kernel)!=1 or not kernel[0].startswith(f'Linux version 6.6.142-android15-8-gf6a5b29f9fe5-{paths.kernel_label(build)} (builder@pangu-build-component-system-247-r6kfm) ') or not kernel[0].endswith('#1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'):
             raise ValueError('Kernel identity differs from the selected build reference')
     else:
         required.append('Linux version 6.6.142-android15-8 (android-build@')
@@ -53,5 +54,4 @@ def validate(report,build):
             'historical_module_count':888,'unresolved_symbol':'mtk_drm_gateic_set_backlight'}
 if __name__=='__main__':
     import sys
-    import paths
     print(json.dumps(validate(Path(sys.argv[1]),paths.current_build()),indent=2))

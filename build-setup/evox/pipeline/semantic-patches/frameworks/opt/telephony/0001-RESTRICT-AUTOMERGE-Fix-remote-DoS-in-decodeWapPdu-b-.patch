@@ -1,0 +1,267 @@
+From 348d03889fce84762752d814a7238f2718748eed Mon Sep 17 00:00:00 2001
+From: Thomas Nguyen <tnd@google.com>
+Date: Mon, 15 Jun 2026 20:25:38 -0700
+Subject: [PATCH] RESTRICT AUTOMERGE: Fix remote DoS in decodeWapPdu
+ (b/517376969)
+
+Catch RuntimeException during WAP push PDU decoding and SMS broadcast
+to prevent persistent crash loops. If decoding fails, log a warning and
+delete the poison tracker from the raw database.
+Also add warning logs if inboundSmsTracker is null during broadcast.
+Added corresponding unit tests in WapPushOverSmsTest and GsmInboundSmsHandlerTest.
+
+Bug: 517376969
+Test: atest FrameworksTelephonyTests:WapPushOverSmsTest FrameworksTelephonyTests:GsmInboundSmsHandlerTest
+Flag: EXEMPT CVE_FIX
+(cherry picked from commit 618039539b4bd57c6761def72a567def95e3dfad)
+
+TAG=agy
+CONV=8fe11f43-e513-4809-88d1-d5c5be2a579b
+Cherrypick-From: https://googleplex-android-review.googlesource.com/q/commit:48a7692ee59ba04e0bfb008218945b563a02ff99
+Merged-In: Ie16c6efa9ae1852a8811a1ea621d6da2390171b7
+Change-Id: Ie16c6efa9ae1852a8811a1ea621d6da2390171b7
+
+evox9: picked from Evolution-X/frameworks_opt_telephony@71d68ae390
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../internal/telephony/InboundSmsHandler.java | 14 +++-
+ .../internal/telephony/WapPushOverSms.java    |  4 +-
+ .../telephony/WapPushOverSmsTest.java         | 70 ++++++++++++++++
+ .../gsm/GsmInboundSmsHandlerTest.java         | 79 +++++++++++++++++++
+ 4 files changed, 164 insertions(+), 3 deletions(-)
+
+diff --git a/src/java/com/android/internal/telephony/InboundSmsHandler.java b/src/java/com/android/internal/telephony/InboundSmsHandler.java
+index 1bd4737..9ddee30 100644
+--- a/src/java/com/android/internal/telephony/InboundSmsHandler.java
++++ b/src/java/com/android/internal/telephony/InboundSmsHandler.java
+@@ -624,7 +624,19 @@ public abstract class InboundSmsHandler extends StateMachine {
+                 case EVENT_BROADCAST_SMS:
+                     // if any broadcasts were sent, transition to waiting state
+                     InboundSmsTracker inboundSmsTracker = (InboundSmsTracker) msg.obj;
+-                    if (processMessagePart(inboundSmsTracker)) {
++                    boolean success = false;
++                    if (inboundSmsTracker != null) {
++                        try {
++                            success = processMessagePart(inboundSmsTracker);
++                        } catch (RuntimeException e) {
++                            loge("Exception delivering message part", e);
++                            deleteFromRawTable(inboundSmsTracker.getDeleteWhere(),
++                                    inboundSmsTracker.getDeleteWhereArgs(), MARK_DELETED);
++                        }
++                    } else {
++                        loge("EVENT_BROADCAST_SMS with null inboundSmsTracker");
++                    }
++                    if (success) {
+                         sendMessage(obtainMessage(EVENT_UPDATE_TRACKER, msg.obj));
+                         transitionTo(mWaitingState);
+                     } else {
+diff --git a/src/java/com/android/internal/telephony/WapPushOverSms.java b/src/java/com/android/internal/telephony/WapPushOverSms.java
+index e03960a..ef692a9 100644
+--- a/src/java/com/android/internal/telephony/WapPushOverSms.java
++++ b/src/java/com/android/internal/telephony/WapPushOverSms.java
+@@ -314,10 +314,10 @@ public class WapPushOverSms implements ServiceConnection {
+             result.intentData = intentData;
+             result.contentTypeParameters = pduDecoder.getContentParameters();
+             result.statusCode = Activity.RESULT_OK;
+-        } catch (ArrayIndexOutOfBoundsException aie) {
++        } catch (RuntimeException e) {
+             // 0-byte WAP PDU or other unexpected WAP PDU contents can easily throw this;
+             // log exception string without stack trace and return false.
+-            Rlog.e(TAG, "ignoring dispatchWapPdu() array index exception: " + aie);
++            Rlog.e(TAG, "ignoring decodeWapPdu() runtime exception: " + e);
+             result.statusCode = Intents.RESULT_SMS_GENERIC_ERROR;
+         }
+         return result;
+diff --git a/tests/telephonytests/src/com/android/internal/telephony/WapPushOverSmsTest.java b/tests/telephonytests/src/com/android/internal/telephony/WapPushOverSmsTest.java
+index 4a59f68..23b1126 100644
+--- a/tests/telephonytests/src/com/android/internal/telephony/WapPushOverSmsTest.java
++++ b/tests/telephonytests/src/com/android/internal/telephony/WapPushOverSmsTest.java
+@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.nullable;
+ import static org.mockito.Mockito.any;
+ import static org.mockito.Mockito.anyInt;
+ import static org.mockito.Mockito.doReturn;
++import static org.mockito.Mockito.doThrow;
+ import static org.mockito.Mockito.eq;
+ import static org.mockito.Mockito.isNull;
+ import static org.mockito.Mockito.mock;
+@@ -190,4 +191,73 @@ public class WapPushOverSmsTest extends TelephonyTest {
+         mWapPushOverSmsUT.dispatchWapPdu(pdu, null, mInboundSmsHandler, null, 0, 0L);
+         assertEquals(2, WapPushCache.size());
+     }
++
++    @Test @SmallTest
++    public void testDispatchWapPdu_malformedHeaderLength_failsGracefully() {
++        doReturn(true).when(mWspTypeDecoder).decodeUintvarInteger(anyInt());
++        doReturn(4294967295L).when(mWspTypeDecoder).getValue32();
++        doReturn(2).when(mWspTypeDecoder).getDecodedDataLength();
++
++        byte[] pdu = {
++                (byte) 0xFF,
++                (byte) 0x06,
++                (byte) 0x8F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x7F
++        };
++
++        assertEquals(Telephony.Sms.Intents.RESULT_SMS_GENERIC_ERROR,
++                mWapPushOverSmsUT.dispatchWapPdu(pdu, null, mInboundSmsHandler, null, 0, 0L));
++    }
++
++    @Test @SmallTest
++    public void testDispatchWapPdu_headerLengthExceedsPdu_failsGracefully() {
++        doReturn(true).when(mWspTypeDecoder).decodeUintvarInteger(anyInt());
++        doReturn(200L).when(mWspTypeDecoder).getValue32();
++        doReturn(2).when(mWspTypeDecoder).getDecodedDataLength();
++
++        byte[] pdu = {
++                (byte) 0xFF,
++                (byte) 0x06,
++                (byte) 0xC8, (byte) 0x00
++        };
++
++        assertEquals(Telephony.Sms.Intents.RESULT_SMS_GENERIC_ERROR,
++                mWapPushOverSmsUT.dispatchWapPdu(pdu, null, mInboundSmsHandler, null, 0, 0L));
++    }
++
++    @Test @SmallTest
++    public void testIsWapPushForMms_malformedHeaderLength_returnsFalse() {
++        doReturn(true).when(mWspTypeDecoder).decodeUintvarInteger(anyInt());
++        doReturn(4294967295L).when(mWspTypeDecoder).getValue32();
++        doReturn(2).when(mWspTypeDecoder).getDecodedDataLength();
++
++        byte[] pdu = {
++                (byte) 0xFF,
++                (byte) 0x06,
++                (byte) 0x8F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0x7F
++        };
++
++        org.junit.Assert.assertFalse(mWapPushOverSmsUT.isWapPushForMms(pdu, mInboundSmsHandler));
++    }
++
++    @Test @SmallTest
++    public void testDispatchWapPdu_RuntimeExceptionInDecoder_failsGracefully() {
++        doReturn(true).when(mWspTypeDecoder).decodeUintvarInteger(anyInt());
++        doThrow(new RuntimeException("Test exception"))
++                .when(mWspTypeDecoder).decodeContentType(anyInt());
++        doReturn((long) 2).when(mWspTypeDecoder).getValue32();
++        doReturn(2).when(mWspTypeDecoder).getDecodedDataLength();
++
++        byte[] pdu = {
++                (byte) 0xFF,
++                (byte) 0x06,
++                (byte) 0xFF,
++                (byte) 0xFF,
++                (byte) 0xFF,
++                (byte) 0xFF,
++                (byte) 0xFF
++        };
++
++        assertEquals(Telephony.Sms.Intents.RESULT_SMS_GENERIC_ERROR,
++                mWapPushOverSmsUT.dispatchWapPdu(pdu, null, mInboundSmsHandler, null, 0, 0L));
++    }
+ }
+diff --git a/tests/telephonytests/src/com/android/internal/telephony/gsm/GsmInboundSmsHandlerTest.java b/tests/telephonytests/src/com/android/internal/telephony/gsm/GsmInboundSmsHandlerTest.java
+index 400c0cd..77121d9 100644
+--- a/tests/telephonytests/src/com/android/internal/telephony/gsm/GsmInboundSmsHandlerTest.java
++++ b/tests/telephonytests/src/com/android/internal/telephony/gsm/GsmInboundSmsHandlerTest.java
+@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.eq;
+ import static org.mockito.ArgumentMatchers.nullable;
+ import static org.mockito.Mockito.atLeastOnce;
+ import static org.mockito.Mockito.doReturn;
++import static org.mockito.Mockito.doThrow;
+ import static org.mockito.Mockito.never;
+ import static org.mockito.Mockito.spy;
+ import static org.mockito.Mockito.times;
+@@ -71,6 +72,7 @@ import com.android.ims.ImsManager;
+ import com.android.internal.telephony.FakeSmsContentProvider;
+ import com.android.internal.telephony.InboundSmsHandler;
+ import com.android.internal.telephony.InboundSmsTracker;
++import com.android.internal.telephony.WapPushOverSms;
+ import com.android.internal.telephony.PhoneConstants;
+ import com.android.internal.telephony.SmsBroadcastUndelivered;
+ import com.android.internal.telephony.SmsHeader;
+@@ -1379,5 +1381,82 @@ public class GsmInboundSmsHandlerTest extends TelephonyTest {
+                 .build().getLinks()))
+             .containsExactly("sms_retriever_package", "web_otp_package");
+     }
++
++    @Test
++    @MediumTest
++    public void testBroadcastSms_nullTracker_failsGracefully() {
++        transitionFromStartupToIdle();
++
++        mGsmInboundSmsHandler.sendMessage(InboundSmsHandler.EVENT_BROADCAST_SMS, null);
++        processAllMessages();
++
++        // Should return to IdleState
++        assertEquals("IdleState", getCurrentState().getName());
++    }
++
++    @Test
++    @MediumTest
++    public void testBroadcastSms_RuntimeExceptionInDecoder_deletesTracker() throws Exception {
++        transitionFromStartupToIdle();
++
++        // Mock WapPushOverSms to throw RuntimeException
++        WapPushOverSms mockWapPush = Mockito.mock(WapPushOverSms.class);
++        doThrow(new RuntimeException("Test Exception"))
++                .when(mockWapPush)
++                .dispatchWapPdu(any(), any(), any(), any(), anyInt(), anyLong());
++
++        java.lang.reflect.Field field = InboundSmsHandler.class.getDeclaredField("mWapPush");
++        field.setAccessible(true);
++        field.set(mGsmInboundSmsHandler, mockWapPush);
++
++        // Create WAP tracker
++        InboundSmsTracker wapTracker = new InboundSmsTracker(
++                mContext,
++                mSmsPdu, /* pdu */
++                System.currentTimeMillis(), /* timestamp */
++                SmsHeader.PORT_WAP_PUSH, /* destPort */
++                true, /* is3gpp2 */
++                false, /* is3gpp2WapPdu */
++                "1234567890", /* address */
++                "1234567890", /* displayAddress */
++                mMessageBody, /* messageBody */
++                false, /* isClass0 */
++                mSubId0,
++                InboundSmsHandler.SOURCE_NOT_INJECTED);
++
++        // Insert tracker to database so it exists when we try to delete it
++        ContentValues values = wapTracker.getContentValues();
++        values.put("pdu", com.android.internal.util.HexDump.toHexString(mSmsPdu));
++        Uri newUri = mContentResolver.insert(sRawUri, values);
++        long rowId = android.content.ContentUris.parseId(newUri);
++        wapTracker.setDeleteWhere(
++                InboundSmsHandler.SELECT_BY_ID, new String[]{Long.toString(rowId)});
++
++        // Mock the makeInboundSmsTracker to return our wapTracker
++        doReturn(wapTracker).when(mTelephonyComponentFactory)
++                .makeInboundSmsTracker(any(Context.class), nullable(byte[].class), anyLong(),
++                        anyInt(), anyBoolean(),
++                        anyBoolean(), nullable(String.class), nullable(String.class),
++                        nullable(String.class), anyBoolean(), anyInt(), anyInt());
++
++        // Assert tracker is in database before
++        try (Cursor cursorBefore = mContentProvider.query(
++                sRawUri, null, "deleted=0", null, null)) {
++            assertEquals(1, cursorBefore.getCount());
++        }
++
++        // Send EVENT_BROADCAST_SMS
++        mGsmInboundSmsHandler.sendMessage(InboundSmsHandler.EVENT_BROADCAST_SMS, wapTracker);
++        processAllMessages();
++
++        // Assert tracker is deleted from database
++        try (Cursor cursorAfter = mContentProvider.query(
++                sRawUri, null, "deleted=0", null, null)) {
++            assertEquals(0, cursorAfter.getCount());
++        }
++
++        // Should return to IdleState
++        assertEquals("IdleState", getCurrentState().getName());
++    }
+ }
+ 
+-- 
+2.43.0
+

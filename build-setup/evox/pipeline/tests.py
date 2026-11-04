@@ -120,11 +120,12 @@ class Gates(unittest.TestCase):
         f=p/'raw-musthold.txt'
         banner='Linux version 6.6.142-android15-8-gf6a5b29f9fe5-ab26 (builder@pangu-build-component-system-247-r6kfm) (test compiler) #1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'
         f.write_text(re.sub(r'^Linux version .*$',lambda m:banner,f.read_text(),flags=re.M))
-    def test_evox26_accepts_exact_kernel_and_all_194_checks(self):
+    def test_evox26_accepts_exact_kernel_and_all_191_checks(self):
+        # 194 until 2026-11-04; three checks of the dropped device/lineage/sepolicy and system/core patches retired.
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);self.evox26_fixture(p)
             result=gates.validate(p,'evox26')
-            self.assertEqual(len(result['checks']),194)
+            self.assertEqual(len(result['checks']),191)
             self.assertEqual(result['musthold'],'pass')
             self.assertEqual(gates.validate(p,'evox026')['musthold'],'pass')
     def test_evox26_rejects_wrong_kernel_identity_and_duplicate_banner(self):
@@ -146,6 +147,17 @@ class Gates(unittest.TestCase):
             f.write_text(f.read_text().replace('gf6a5b29f9fe5-ab26','gf6a5b29f9fe5-ab27'))
             self.assertEqual(gates.validate(p,'evox27')['musthold'],'pass')
             with self.assertRaises(ValueError):gates.validate(p,'evox26')
+    def test_date_build_kernel_label_and_profile(self):
+        # Builds after evox31 are named by date; the kernel ends in -ab<date>[.N] and every evox26+ rule applies.
+        with tempfile.TemporaryDirectory() as tmp:
+            p=Path(tmp);self.evox26_fixture(p);f=p/'raw-musthold.txt'
+            for build in ('20261105','20261105.2'):
+                f.write_text(re.sub(r'gf6a5b29f9fe5-ab[0-9.]+ ',f'gf6a5b29f9fe5-ab{build} ',f.read_text()))
+                self.assertEqual(gates.validate(p,build)['musthold'],'pass')
+                for other in ('evox26','evox31','20261106','20261105.3'):
+                    with self.assertRaises(ValueError):gates.validate(p,other)
+            for invalid in ('20261104','20261105.1','20261131','2026110','evox'):
+                with self.assertRaises(ValueError):gates.validate(p,invalid)
     def test_super_empty_readonly_layout_only_from_evox27(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);self.evox26_fixture(p);f=p/'raw-musthold.txt'
@@ -185,12 +197,12 @@ class Gates(unittest.TestCase):
             'evox26':('Xiaomi/klimt_global/klimt:17/OS3.3.260806.171839609/OS3.0.335.0.XOSMIXM:user/release-keys','2026-10-05')}
         with tempfile.TemporaryDirectory() as tmp:
             fixture=Path(tmp)/'build.prop'
-            for profile in ('evox25','evox26','evox026'):
+            for profile in ('evox25','evox26','evox026','20261105','20261105.2'):
                 for supplied,(fp,spl) in values.items():
                     fixture.write_text(f'ro.build.fingerprint={fp}\nro.vendor.build.security_patch={spl}\n')
                     for check in ('reference_fingerprint','reference_vendor_spl'):
                         result=subprocess.run(['bash','-c','source "$1" || exit; "$2" "$3"','check',str(helper),check,str(fixture)],env=dict(os.environ,KLIMT_BUILD=profile))
-                        self.assertEqual(result.returncode,0 if supplied==('evox26' if profile=='evox026' else profile) else 1)
+                        self.assertEqual(result.returncode,0 if supplied==('evox25' if profile=='evox25' else 'evox26') else 1)
             result=subprocess.run(['bash','-c','source "$1"','check',str(helper)],env=dict(os.environ,KLIMT_BUILD='invalid'),capture_output=True)
             self.assertEqual(result.returncode,2)
     def test_review_hashes_cover_every_changed_verifier_producer(self):
@@ -201,7 +213,7 @@ class Gates(unittest.TestCase):
     def test_real_legacy_ok_and_source_lines_select_the_metadata_profile(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);scripts=root/'legacy';scripts.mkdir()
-            (scripts/'metadata-reference.sh').write_bytes((B/'legacy/metadata-reference.sh').read_bytes())
+            for helper in ('metadata-reference.sh','build-profile.sh'):(scripts/helper).write_bytes((B/'legacy'/helper).read_bytes())
             system=root/'fs/system/system';vendor=root/'fs/vendor'
             system.mkdir(parents=True);vendor.mkdir(parents=True)
             cases=[('fixcheck7.sh','ro.build.fingerprint matches the selected build reference','ro.build.fingerprint',system/'build.prop',
@@ -215,7 +227,7 @@ class Gates(unittest.TestCase):
                        next(l for l in original if l.startswith('ok "'+label+'"'))]
                 script=scripts/name
                 script.write_text('#!/bin/bash\nF="$EVOX_EXTRACT/fs"\n'+'\n'.join(lines)+'\n')
-                for profile,want,wrong in [('evox25',old,new),('evox26',new,old)]:
+                for profile,want,wrong in [('evox25',old,new),('evox26',new,old),('20261105',new,old)]:
                     for value,passed in [(want,True),(wrong,False),(want+'extra',False)]:
                         prop.write_text(key+'='+value+'\n')
                         result=subprocess.run(['bash',str(script)],env=dict(os.environ,KLIMT_BUILD=profile,EVOX_EXTRACT=str(root)),capture_output=True,text=True)
@@ -258,9 +270,12 @@ class Gates(unittest.TestCase):
             result=subprocess.run(['/mnt/c/Windows/System32/cmd.exe','/d','/c','cd /d '+win+' && '+win+chr(92)+batch.name],cwd=fixture,capture_output=True,text=True)
             self.assertEqual(result.returncode,expected,result.stdout+result.stderr)
     def test_flash_helper_uses_slot_b_and_rejects_wrong_product_or_archive(self):
+        for build in ('evox26','20261105.2'):
+            with self.subTest(build=build):self.flash_helper_case(build)
+    def flash_helper_case(self,build):
         from verify import future_flash_scripts
         with tempfile.TemporaryDirectory() as tmp:
-            p=Path(tmp);archive=p/'lineage_klimt-evox26-img.zip';archive.write_bytes(b'fixture archive')
+            p=Path(tmp);archive=p/f'lineage_klimt-{build}-img.zip';archive.write_bytes(b'fixture archive')
             marker=p/'VERIFIED.txt';marker.write_text('fixture only')
             script,bat=future_flash_scripts(p,archive,hashlib.sha256(archive.read_bytes()).hexdigest())
             self.assertIn('"%FASTBOOT%" --slot=b update --skip-reboot "'+archive.name+'"',bat.read_text())
@@ -288,5 +303,258 @@ class Gates(unittest.TestCase):
         review_binding(review,'evox17-attempt01','a'*64)
         for changed in [dict(review,approved=False),dict(review,attempt='evox17-attempt02'),dict(review,source_snapshot_sha256='b'*64),dict(review,tooling_sha256={}),dict(review,evidence='')]:
             with self.assertRaises(RuntimeError):review_binding(changed,'evox17-attempt01','a'*64)
+
+class EffectiveHeads(unittest.TestCase):
+    """Patched projects (device/xiaomi/klimt/patches/PATCHES.json) are pinned at their base and live at final_head."""
+    A,F,X,O='a'*40,'f'*40,'1'*40,'0'*40
+    def bundle(self,**extra):
+        record=dict(project='frameworks/native',**{'class':'klimt'},purpose='SMPTE guard',base=self.A,base_tree='b'*40,
+                    final_tree='c'*40,final_head=self.F,patches=[{'file':'frameworks/native/0001-x.patch','sha256':'d'*64}])
+        record.update(extra)
+        return [record]
+    def frozen(self,native=None):
+        return {'device/xiaomi/klimt':self.X,'frameworks/native':native or self.A,'frameworks/base':self.O}
+    def test_final_head_accepted_over_its_base(self):
+        from controller import parse_patch_bundle,effective_heads
+        heads=effective_heads(self.frozen(),parse_patch_bundle(json.dumps(self.bundle())))
+        self.assertEqual(heads,{'device/xiaomi/klimt':self.X,'frameworks/native':self.F,'frameworks/base':self.O})
+        # `repo manifest -r` reports the live HEAD (final_head), which is what the controller compares with.
+        live=manifest_heads(('<manifest>'+''.join(f'<project path="{p}" name="{p}" revision="{h}"/>' for p,h in heads.items())+'</manifest>').encode())
+        self.assertEqual(live,heads)
+        self.assertNotEqual(live,self.frozen())
+    def test_wrong_final_head_base_head_or_unlisted_drift_rejected(self):
+        from controller import parse_patch_bundle,effective_heads
+        heads=effective_heads(self.frozen(),parse_patch_bundle(json.dumps(self.bundle())))
+        for project,live in [('frameworks/native','9'*40),('frameworks/native',self.A),('frameworks/base',self.F)]:
+            with self.subTest(project=project,live=live):self.assertNotEqual(dict(heads,**{project:live}),heads)
+    def test_base_mismatch_rejected(self):
+        from controller import parse_patch_bundle,effective_heads
+        bundle=parse_patch_bundle(json.dumps(self.bundle()))
+        for pin in (self.F,'9'*40):
+            with self.assertRaises(RuntimeError):effective_heads(self.frozen(native=pin),bundle)
+    def test_patched_project_missing_from_manifest_rejected(self):
+        from controller import parse_patch_bundle,effective_heads
+        with self.assertRaises(RuntimeError):effective_heads(self.frozen(),parse_patch_bundle(json.dumps(self.bundle(project='system/core'))))
+    def test_without_bundle_frozen_pins_are_the_heads(self):
+        from controller import effective_heads
+        self.assertEqual(effective_heads(self.frozen(),{}),self.frozen())
+    def test_bundle_format_is_strict(self):
+        from controller import parse_patch_bundle
+        good=self.bundle()[0]
+        for bad in [[good,good],[dict(good,**{'class':'other'})],[dict(good,base='cnb')],[dict(good,final_head=self.A)],
+                    [dict(good,project='device/xiaomi/klimt')],[dict(good,patches=[])],{'frameworks/native':good},[dict(good,project='')]]:
+            with self.subTest(bad=str(bad)[:60]),self.assertRaises(RuntimeError):parse_patch_bundle(json.dumps(bad))
+        self.assertEqual(set(parse_patch_bundle(json.dumps([good,dict(good,project='build/make',**{'class':'personal'})]))),{'frameworks/native','build/make'})
+    def git_tree(self,root):
+        device=root/'device/xiaomi/klimt';(device/'patches').mkdir(parents=True)
+        run=lambda *a:subprocess.run(['git','-C',str(device),*a],check=True,capture_output=True,text=True).stdout.strip()
+        run('init','-q');run('config','user.email','t@example.invalid');run('config','user.name','t')
+        (device/'README').write_text('x\n');run('add','-A');run('commit','-q','-m','no bundle')
+        old=run('rev-parse','HEAD')
+        (device/'patches/PATCHES.json').write_text(json.dumps(self.bundle()));run('add','-A');run('commit','-q','-m','bundle')
+        first=run('rev-parse','HEAD')
+        (device/'patches/PATCHES.json').write_text(json.dumps(self.bundle(final_head='e'*40)));run('add','-A');run('commit','-q','-m','re-export')
+        return device,old,first,run('rev-parse','HEAD')
+    def test_bundle_is_read_at_the_frozen_device_pin(self):
+        from controller import patch_bundle,expected_heads,ready_heads
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp);device,old,first,second=self.git_tree(root)
+            (device/'patches/PATCHES.json').write_text('worktree edits are ignored')
+            self.assertEqual(patch_bundle(dict(self.frozen(),**{'device/xiaomi/klimt':first}),root)['frameworks/native']['final_head'],self.F)
+            self.assertEqual(expected_heads(dict(self.frozen(),**{'device/xiaomi/klimt':second}),root)['frameworks/native'],'e'*40)
+            self.assertEqual(patch_bundle(dict(self.frozen(),**{'device/xiaomi/klimt':old}),root),{})  # evox31 and older
+            with self.assertRaises(RuntimeError):patch_bundle(dict(self.frozen(),**{'device/xiaomi/klimt':'9'*40}),root)
+            with self.assertRaises(RuntimeError):patch_bundle({'frameworks/native':self.A},root)
+            frozen=dict(self.frozen(),**{'device/xiaomi/klimt':first})
+            effective=dict(frozen,**{'frameworks/native':self.F})
+            self.assertEqual(ready_heads({'reviewed_project_heads':frozen,'effective_project_heads':effective},root),effective)
+            for recorded in ({'reviewed_project_heads':frozen},{'reviewed_project_heads':frozen,'effective_project_heads':dict(effective,**{'frameworks/native':'e'*40})}):
+                with self.assertRaises(RuntimeError):ready_heads(recorded,root)
+            legacy=dict(frozen,**{'device/xiaomi/klimt':old})
+            self.assertEqual(ready_heads({'reviewed_project_heads':legacy},root),legacy)
+
+class Readiness(unittest.TestCase):
+    def test_apply_check_requires_final_for_exactly_the_bundle(self):
+        from ready import bundle_final
+        bundle={'frameworks/native':{},'build/soong':{}}
+        self.assertTrue(bundle_final(0,'FINAL frameworks/native\nFINAL build/soong\n',bundle))
+        self.assertTrue(bundle_final(0,'FINAL: frameworks/native (head f)\n\nFINAL build/soong\n',bundle))
+        for rc,out in [(1,'FINAL frameworks/native\nFINAL build/soong\n'),(0,'FINAL frameworks/native\n'),
+                       (0,'FINAL frameworks/native\nAPPLIED build/soong\n'),(0,'FINAL frameworks/native\nMISMATCH build/soong\n'),
+                       (0,'FINAL frameworks/native\nDIRTY build/soong\n'),(0,'FINAL frameworks/native\nHASH build/soong\n'),
+                       (0,'FINAL frameworks/native\nFINAL build/soong\nFINAL system/core\n'),(0,''),
+                       (0,'FINAL frameworks/native\nFINAL build/soong\nFINAL build/soong\n'),(0,'FINAL frameworks/native\nFINAL build/soong\nsomething else\n')]:
+            with self.subTest(rc=rc,out=out):self.assertFalse(bundle_final(rc,out,bundle))
+    def test_every_semantic_purpose_has_a_pipeline_reference_patch(self):
+        from ready import PURPOSES,SEMANTIC_PATCHES,reference_patches
+        for project,purpose in PURPOSES:
+            with self.subTest(purpose=purpose):self.assertTrue(reference_patches(project,purpose,[SEMANTIC_PATCHES]))
+        sources=(SEMANTIC_PATCHES/'SOURCES.txt').read_text().splitlines()
+        listed={l.split()[1]:l.split()[0] for l in sources if l and not l.startswith('#')}
+        self.assertEqual(listed,{str(p.relative_to(SEMANTIC_PATCHES)):hashlib.sha256(p.read_bytes()).hexdigest() for p in SEMANTIC_PATCHES.rglob('*.patch')})
+    def test_bulletin_state_counts_pages_and_never_raises(self):
+        from ready import bulletin_state
+        def fake(url):
+            if 'status:open' in url:return ")]}'\n[]\n"
+            start=int(url.rsplit('&S=',1)[1])
+            if start==0:return ")]}'\n"+json.dumps([{'branch':'lineage-24.0'}]*499+[{'branch':'lineage-23.2','_more_changes':True}])
+            return ")]}'\n"+json.dumps([{'branch':'lineage-24.0'}]*3)
+        state=bulletin_state('2026-11',fake)
+        self.assertEqual((state['topic'],state['open'],state['merged'],state['state']),('C_asb_2026-11',0,503,'merged'))
+        self.assertEqual(state['merged_by_branch'],{'lineage-24.0':502,'lineage-23.2':1})
+        def down(url):raise OSError('network unreachable')
+        self.assertEqual(bulletin_state('2026-11',down)['state'],'unavailable')
+        self.assertEqual(bulletin_state('2026-11',lambda url:'[]')['state'],'unavailable')
+        self.assertEqual(bulletin_state('2026-12',lambda url:")]}'\n[]")['state'],'not started')
+        self.assertEqual(bulletin_state('2026-12',lambda url:")]}'\n[{}]" if 'open' in url else ")]}'\n[]")['state'],'in review')
+    def test_security_patch_textproto(self):
+        from ready import textproto_value
+        self.assertEqual(textproto_value('name: "RELEASE_PLATFORM_SECURITY_PATCH"\nvalue {\n  string_value: "2026-10-01"\n}\n'),'2026-10-01')
+        self.assertIsNone(textproto_value('name: "X"\n'))
+
+class DateBuilds(unittest.TestCase):
+    def test_build_names(self):
+        import paths
+        for name in ('evox1','evox31','evox026','20261105','20261105.2','20261105.10','20270101'):
+            self.assertTrue(paths.is_build(name),name)
+        for name in ('20261104','20261105.1','20261105.02','20261105.','20261131','20261305','2026110','202611050',
+                     'evox','evox31-attempt01','20261105-attempt01','klimt',''):
+            self.assertFalse(paths.is_build(name),name)
+        self.assertEqual([paths.build_of(a) for a in ('evox31-attempt01','20261105-attempt01','20261105.2-attempt12')],['evox31','20261105','20261105.2'])
+        for bad in ('20261105.1-attempt01','20261104-attempt01','20261105-attempt1','20261105attempt01'):
+            with self.assertRaises(ValueError):paths.build_of(bad)
+        self.assertEqual([paths.kernel_label(b) for b in ('evox31','evox026','20261105','20261105.2')],['ab31','ab26','ab20261105','ab20261105.2'])
+        self.assertEqual([paths.at_least(b,28) for b in ('evox27','evox28','20261105')],[False,True,True])
+        self.assertTrue(paths.is_date_build('20261105') and not paths.is_date_build('evox31'))
+    def test_current_build_from_environment(self):
+        for value,ok in [('20261105',True),('evox31',True),('20261105.2',True),('20261104',False),('evox',False)]:
+            code='import paths;print(paths.current_build())'
+            r=subprocess.run([sys.executable,'-B','-c',code],cwd=B,env=dict(os.environ,KLIMT_BUILD=value),capture_output=True,text=True)
+            self.assertEqual(r.returncode==0,ok,(value,r.stderr))
+    def test_shell_build_profile(self):
+        helper=B/'legacy/build-profile.sh'
+        for build,label,at26,at28 in [('evox25','ab25',1,1),('evox26','ab26',0,1),('evox28','ab28',0,0),('20261105','ab20261105',0,0),
+                                     ('20261105.2','ab20261105.2',0,0),('20261105.1','',1,1),('bogus','',1,1)]:
+            r=subprocess.run(['bash','-c','source "$1"; echo "$KERNEL_LABEL"; build_at_least 26; echo $?; build_at_least 28; echo $?','x',str(helper)],
+                             env=dict(os.environ,KLIMT_BUILD=build),capture_output=True,text=True)
+            self.assertEqual(r.stdout.split('\n')[:3],[label,str(at26),str(at28)],build)
+    def test_start_sh_derives_the_build(self):
+        text=(B/'start.sh').read_text()
+        self.assertIn('${1%%-attempt*}',text)
+
+class Prepare(unittest.TestCase):
+    LIVE31='''<?xml version='1.0' encoding='UTF-8'?>
+<manifest>
+  <include name="default.xml" />
+  <remote name="iowaz" fetch="https://github.com/iowaz" />
+  <remote name="misakazip" fetch="https://github.com/misakazip-dev" />
+  <project name="android_device_xiaomi_klimt" path="device/xiaomi/klimt" remote="iowaz" revision="evox31" upstream="evox31" dest-branch="evox31" />
+  <project name="android_kernel_xiaomi_klimt" path="kernel/xiaomi/klimt" remote="iowaz" revision="evox31" upstream="evox31" clone-depth="1" dest-branch="evox31" />
+  <project name="android_kernel_xiaomi_klimt-prebuilt" path="kernel/xiaomi/klimt-prebuilt" remote="misakazip" revision="a2d1dae44726c14b1295f4042cddd9fedacd39e0" upstream="17.0" clone-depth="1" />
+  <project name="proprietary_vendor_xiaomi_klimt" path="vendor/xiaomi/klimt" remote="iowaz" revision="evox31" upstream="evox31" dest-branch="evox31" />
+  <project path="hardware/xiaomi" name="LineageOS/android_hardware_xiaomi" remote="github" revision="lineage-24.0" />
+  <project path="device/mediatek/sepolicy_vndr" name="LineageOS/android_device_mediatek_sepolicy_vndr" remote="github" revision="lineage-24.0" />
+  <extend-project name="frameworks_native" path="frameworks/native" remote="iowaz" revision="evox31" />
+  <extend-project name="system_core" path="system/core" remote="iowaz" revision="evox31" />
+</manifest>'''
+    METADATA='''# evox31: actual unchanged kernel source f6a5b29f9fe59e4849680d50232f8b5758aa8c11.
+# ab31 is this personal ROM build number, not an official Xiaomi CI number.
+CONFIG_LOCALVERSION="-android15-8-gf6a5b29f9fe5-ab31"
+# CONFIG_LOCALVERSION_AUTO is not set
+'''
+    def test_previous_build_ordering(self):
+        import prepare
+        names=['evox9','evox10','evox31','evox26-published','evox15-attempt1','20261105','20261105.2','20261106']
+        self.assertEqual(prepare.previous_build('20261105',names),'evox31')
+        self.assertEqual(prepare.previous_build('20261105.2',names),'20261105')
+        self.assertEqual(prepare.previous_build('20261106',names),'20261105.2')
+        self.assertEqual(prepare.previous_build('20261110',names),'20261106')
+        self.assertEqual(prepare.previous_build('evox11',names),'evox10')
+        with self.assertRaises(ValueError):prepare.previous_build('evox9',names)
+        with self.assertRaises(ValueError):prepare.previous_build('20261104',names)
+    def test_live_manifest_has_klimt_projects_only(self):
+        import prepare
+        text=prepare.live_manifest(self.LIVE31)
+        root=ET_parse(text)
+        self.assertEqual(root.findall('extend-project'),[])
+        projects={p.get('path'):p.attrib for p in root.findall('project')}
+        self.assertEqual(set(projects),set(prepare.KLIMT))
+        self.assertEqual(projects['device/xiaomi/klimt'],{'name':'android_device_xiaomi_klimt','path':'device/xiaomi/klimt','remote':'iowaz','revision':'cnb'})
+        old={p.get('path'):p.attrib for p in ET_parse(self.LIVE31).findall('project')}
+        for p in ('kernel/xiaomi/klimt','kernel/xiaomi/klimt-prebuilt','vendor/xiaomi/klimt'):self.assertEqual(projects[p],old[p])
+        for p in ('hardware/xiaomi','device/mediatek/sepolicy_vndr'):
+            self.assertEqual((projects[p]['remote'],projects[p]['revision'],projects[p]['name']),('github','lineage-24.0',old[p]['name']))
+        self.assertEqual([i.get('name') for i in root.findall('include')],['default.xml'])
+        with self.assertRaises(ValueError):prepare.live_manifest(self.LIVE31.replace('path="vendor/xiaomi/klimt"','path="vendor/other"'))
+        with self.assertRaises(ValueError):prepare.live_manifest(self.LIVE31.replace('remote="misakazip" revision','remote="github" revision'))
+    def test_github_fetch_fix(self):
+        import prepare
+        broken='<remote  name="github"\n           fetch=".."\n           review="review.lineageos.org" />\n<remote name="evo" fetch=".." />'
+        fixed,changed=prepare.fix_github_fetch(broken)
+        self.assertTrue(changed);self.assertIn('fetch="https://github.com"',fixed);self.assertIn('<remote name="evo" fetch=".." />',fixed)
+        self.assertEqual(prepare.fix_github_fetch(fixed),(fixed,False))
+    def test_relabel(self):
+        import prepare
+        new=prepare.relabel(self.METADATA,'evox31','20261105')
+        self.assertEqual(new,self.METADATA.replace('evox31','20261105').replace('ab31','ab20261105'))
+        second=prepare.relabel(new,'20261105','20261105.2')
+        self.assertIn('CONFIG_LOCALVERSION="-android15-8-gf6a5b29f9fe5-ab20261105.2"',second)
+        self.assertIn('# 20261105.2: actual',second)
+        self.assertEqual(prepare.relabel(second,'20261105.2','20261106').count('ab20261106'),2)
+        for text,prev in [(self.METADATA,'evox30'),(self.METADATA.replace('# ab31','# label'),'evox31'),
+                          (self.METADATA+'# evox31 again\n','evox31'),(new,'20261105.2'),(second,'20261105'),
+                          (self.METADATA.replace('-ab31"','-ab31-x"'),'evox31')]:
+            with self.subTest(prev=prev,text=text[:40]),self.assertRaises(ValueError):prepare.relabel(text,prev,'20261107')
+    RESOLVED='''<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="evo" fetch="https://github.com/Evolution-X" revision="refs/heads/cnb"/>
+  <project name="android_device_xiaomi_klimt" path="device/xiaomi/klimt" remote="iowaz" revision="DEV" upstream="cnb" dest-branch="cnb"/>
+  <project name="frameworks_native" path="frameworks/native" remote="evo" revision="FINAL" upstream="refs/heads/cnb" dest-branch="refs/heads/cnb" groups="pdk">
+    <linkfile src="a" dest="b"/>
+  </project>
+  <project name="frameworks_av" path="frameworks/av" remote="evo" revision="AV" upstream="refs/heads/cnb" dest-branch="refs/heads/cnb"/>
+</manifest>
+'''
+    def resolved(self,**kw):
+        values=dict(DEV='d'*40,FINAL='f'*40,AV='e'*40);values.update(kw)
+        text=self.RESOLVED
+        for k,v in values.items():text=text.replace('"'+k+'"','"'+v+'"')
+        return text
+    def test_freeze_pins_patched_projects_at_their_base(self):
+        import prepare
+        from controller import manifest_heads,effective_heads
+        bundle={'frameworks/native':{'base':'a'*40,'final_head':'f'*40}}
+        text=prepare.freeze_manifest(self.resolved(),bundle,'20261105')
+        heads=manifest_heads(text.encode())
+        self.assertEqual(heads,{'device/xiaomi/klimt':'d'*40,'frameworks/native':'a'*40,'frameworks/av':'e'*40})
+        self.assertEqual(effective_heads(heads,bundle),manifest_heads(self.resolved().encode()))
+        self.assertIn('upstream="refs/heads/cnb" dest-branch="refs/heads/cnb" groups="pdk">',text)
+        self.assertEqual(text.count('\n'),self.resolved().count('\n')+2)  # one two-line comment, nothing else changed
+        for resolved,b in [(self.resolved(FINAL='9'*40),bundle),(self.resolved(),{'system/core':{'base':'a'*40,'final_head':'f'*40}}),
+                           (self.resolved().replace('name="frameworks_av" path="frameworks/av" remote="evo"','name="frameworks_av" path="frameworks/av" remote="iowaz"'),bundle),
+                           (self.resolved().replace(' upstream="refs/heads/cnb" dest-branch="refs/heads/cnb" groups','  groups'),bundle)]:
+            with self.subTest(b=list(b)),self.assertRaises(ValueError):prepare.freeze_manifest(resolved,b,'20261105')
+    def test_renamed_projects_and_comparison_base(self):
+        import prepare
+        old={'a':{'name':'x'},'b':{'name':'y'},'c':{'name':'z'}}
+        new={'a':{'name':'x'},'b':{'name':'y2'},'d':{'name':'w'}}
+        self.assertEqual(prepare.renamed_projects(old,new),(['b'],['d'],['c']))
+        self.assertEqual(prepare.comparison_base('frameworks/base',{'remote':'iowaz','revision':'r'}),('r','fork'))
+        self.assertEqual(prepare.comparison_base('device/xiaomi/klimt',{'remote':'iowaz','revision':'r'}),('r','pin'))
+        self.assertEqual(prepare.comparison_base('frameworks/av',{'remote':'evo','revision':'r'}),('r','pin'))
+        self.assertEqual(prepare.comparison_base('new/project',None),(None,'added'))
+    def test_klimt_manifests_carry_no_forks(self):
+        root=B.parents[2]/'manifests/local_manifests'
+        for name in ('klimt.xml','klimt-live.xml'):
+            with self.subTest(name=name):
+                tree=ET_parse((root/name).read_text())
+                self.assertEqual(tree.findall('extend-project'),[])
+                projects={p.get('path'):p for p in tree.findall('project')}
+                self.assertEqual(projects['device/xiaomi/klimt'].get('revision'),'cnb')
+                self.assertEqual({p for p,e in projects.items() if e.get('remote')=='iowaz'},{'device/xiaomi/klimt','kernel/xiaomi/klimt','vendor/xiaomi/klimt'})
+
+def ET_parse(text):
+    import xml.etree.ElementTree as ET
+    return ET.fromstring(text.encode() if isinstance(text,str) else text)
 
 if __name__=='__main__':unittest.main(verbosity=2)

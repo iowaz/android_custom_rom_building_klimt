@@ -1,0 +1,197 @@
+From 5a04aa937db8d30a45abb2873026193b5f537fa4 Mon Sep 17 00:00:00 2001
+From: Brian Delwiche <delwiche@google.com>
+Date: Wed, 15 Jul 2026 17:40:31 -0700
+Subject: [PATCH] Remove unused ext_attrs from playerapplicationsetting_cb
+
+On main, playerapplicationsetting_cb is called with the
+p_app_settings->num_ext_attrs and p_app_settings->ext_attrs parameters.
+Because the callback executes asynchronously on the JNI thread, and the
+calling thread immediately frees memory within the ext_attrs structure
+(via cleanup_app_attr_val_txt_response), this pattern creates a Use-After-Free
+vulnerability.
+
+However, the JNI callback implementation in
+com_android_bluetooth_avrcp_controller.cpp does not use the ext_attrs
+parameter at all (it is commented out and marked with a TODO).
+
+This CL resolves the UAF vulnerability by removing the unused ext_attrs
+parameters from the playerapplicationsetting_cb interface entirely.
+
+Test: atest net_test_btif_rc --host
+Bug: 522373105
+Test: atest net_test_btif_rc
+Flag: EXEMPT BUGFIX
+Change-Id: Ib2f73a3bed18eeb835404073d3fc2ae1ef746aa1
+(cherry picked from commit 3e7ec1e85fec621d002be68a6156bc338a9177c2)
+
+evox9: picked from Evolution-X/packages_modules_Bluetooth@71940ed630
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ ...com_android_bluetooth_avrcp_controller.cpp |  4 +--
+ system/btif/src/btif_rc.cc                    | 11 +++----
+ system/btif/test/btif_rc_test.cc              | 33 ++++++++++++-------
+ system/include/hardware/bt_rc.h               |  4 +--
+ 4 files changed, 28 insertions(+), 24 deletions(-)
+
+diff --git a/android/app/jni/com_android_bluetooth_avrcp_controller.cpp b/android/app/jni/com_android_bluetooth_avrcp_controller.cpp
+index a19f5c3..22a236d 100644
+--- a/android/app/jni/com_android_bluetooth_avrcp_controller.cpp
++++ b/android/app/jni/com_android_bluetooth_avrcp_controller.cpp
+@@ -115,9 +115,7 @@ static void btavrcp_setplayerapplicationsetting_rsp_callback(const RawAddress& /
+ }
+ 
+ static void btavrcp_playerapplicationsetting_callback(const RawAddress& bd_addr, uint8_t num_attr,
+-                                                      btrc_player_app_attr_t* app_attrs,
+-                                                      uint8_t /* num_ext_attr */,
+-                                                      btrc_player_app_ext_attr_t* /* ext_attrs */) {
++                                                      btrc_player_app_attr_t* app_attrs) {
+   log::info("");
+   std::shared_lock<std::shared_timed_mutex> lock(sCallbacks_mutex);
+   CallbackEnv sCallbackEnv(__func__);
+diff --git a/system/btif/src/btif_rc.cc b/system/btif/src/btif_rc.cc
+index ac6deea..c9ef573 100644
+--- a/system/btif/src/btif_rc.cc
++++ b/system/btif/src/btif_rc.cc
+@@ -1432,7 +1432,7 @@ static void handle_app_val_response(tBTA_AV_META_MSG* pmeta_msg, tAVRC_LIST_APP_
+       }
+       get_player_app_setting_cmd(p_app_settings->num_attrs, attrs, p_dev);
+       CTRL_HAL_CBACK(bt_rc_ctrl_callbacks->playerapplicationsetting_cb, p_dev->rc_addr,
+-                     p_app_settings->num_attrs, p_app_settings->attrs, 0, nullptr);
++                     p_app_settings->num_attrs, p_app_settings->attrs);
+     }
+   } else if (p_app_settings->ext_attr_index < p_app_settings->num_ext_attrs) {
+     attr_index = p_app_settings->ext_attr_index;
+@@ -1549,7 +1549,7 @@ static void handle_app_attr_txt_response(tBTA_AV_META_MSG* pmeta_msg,
+     }
+ 
+     CTRL_HAL_CBACK(bt_rc_ctrl_callbacks->playerapplicationsetting_cb, p_dev->rc_addr,
+-                   p_app_settings->num_attrs, p_app_settings->attrs, 0, nullptr);
++                   p_app_settings->num_attrs, p_app_settings->attrs);
+     get_player_app_setting_cmd(xx, attrs, p_dev);
+ 
+     return;
+@@ -1625,7 +1625,7 @@ static void handle_app_attr_val_txt_response(tBTA_AV_META_MSG* pmeta_msg,
+       attrs[xx] = p_app_settings->attrs[xx].attr_id;
+     }
+     CTRL_HAL_CBACK(bt_rc_ctrl_callbacks->playerapplicationsetting_cb, p_dev->rc_addr,
+-                   p_app_settings->num_attrs, p_app_settings->attrs, 0, nullptr);
++                   p_app_settings->num_attrs, p_app_settings->attrs);
+ 
+     get_player_app_setting_cmd(xx, attrs, p_dev);
+     return;
+@@ -1667,14 +1667,13 @@ static void handle_app_attr_val_txt_response(tBTA_AV_META_MSG* pmeta_msg,
+       attrs[xx + x] = p_app_settings->ext_attrs[x].attr_id;
+     }
+     CTRL_HAL_CBACK(bt_rc_ctrl_callbacks->playerapplicationsetting_cb, p_dev->rc_addr,
+-                   p_app_settings->num_attrs, p_app_settings->attrs, p_app_settings->num_ext_attrs,
+-                   p_app_settings->ext_attrs);
++                   p_app_settings->num_attrs, p_app_settings->attrs);
+     get_player_app_setting_cmd(xx + x, attrs, p_dev);
+ 
+     /* Free the application settings information after sending to
+      * application.
+      */
+-    do_in_jni_thread(base::BindOnce(cleanup_app_attr_val_txt_response, p_app_settings));
++    cleanup_app_attr_val_txt_response(p_app_settings);
+     p_app_settings->num_attrs = 0;
+   }
+ }
+diff --git a/system/btif/test/btif_rc_test.cc b/system/btif/test/btif_rc_test.cc
+index 22b3ea1..2fb6b81 100644
+--- a/system/btif/test/btif_rc_test.cc
++++ b/system/btif/test/btif_rc_test.cc
+@@ -89,9 +89,23 @@ bool btif_av_is_sink_enabled(void) { return true; }
+ RawAddress btif_av_sink_active_peer(void) { return RawAddress(); }
+ RawAddress btif_av_source_active_peer(void) { return RawAddress(); }
+ bool btif_av_stream_started_ready(const A2dpType /*local_a2dp_type*/) { return false; }
+-BtStatus btif_transfer_context(tBTIF_CBACK* /*p_cback*/, uint16_t /*event*/, char* /*p_params*/,
+-                               int /*param_len*/, tBTIF_COPY_CBACK* /*p_copy_cback*/) {
++BtStatus btif_transfer_context(tBTIF_CBACK* p_cback, uint16_t event, char* p_params,
++                               int param_len, tBTIF_COPY_CBACK* p_copy_cback) {
+   inc_func_call_count("btif_transfer_context");
++  if (p_cback) {
++    if (param_len > 0 && p_params != nullptr) {
++      if (p_copy_cback) {
++        std::vector<char> buf(param_len);
++        p_copy_cback(event, buf.data(), p_params);
++        p_cback(event, buf.data());
++      } else {
++        std::vector<char> buf(p_params, p_params + param_len);
++        p_cback(event, buf.data());
++      }
++    } else {
++      p_cback(event, nullptr);
++    }
++  }
+   return BtifStatus();
+ }
+ static bool btif_av_src_sink_coexist_enabled_value = true;
+@@ -192,9 +206,7 @@ static btrc_ctrl_callbacks_t default_btrc_ctrl_callbacks = {
+         .setplayerappsetting_rsp_cb = [](const RawAddress& /* bd_addr */,
+                                          uint8_t /* accepted */) { FAIL(); },
+         .playerapplicationsetting_cb = [](const RawAddress& /* bd_addr */, uint8_t /* num_attr */,
+-                                          btrc_player_app_attr_t* /* app_attrs */,
+-                                          uint8_t /* num_ext_attr */,
+-                                          btrc_player_app_ext_attr_t* /* ext_attrs */) { FAIL(); },
++                                          btrc_player_app_attr_t* /* app_attrs */) { FAIL(); },
+         .playerapplicationsetting_changed_cb =
+                 [](const RawAddress& /* bd_addr */, const btrc_player_settings_t& /* vals */) {
+                   FAIL();
+@@ -751,8 +763,7 @@ TEST_F(BtifRcWithCallbacksTest, handle_notifications_rsp_changed_default) {
+ 
+ TEST_F(BtifRcWithCallbacksTest, handle_app_val_response) {
+   btrc_ctrl_callbacks.playerapplicationsetting_cb = [](const RawAddress&, uint8_t,
+-                                                       btrc_player_app_attr_t*, uint8_t,
+-                                                       btrc_player_app_ext_attr_t*) {};
++                                                       btrc_player_app_attr_t*) {};
+ 
+   btif_rc_device_cb_t* p_dev =
+           bluetooth::testing::avrc::btif_rc_ctrl_get_interface()->get_device_cb(0);
+@@ -1992,8 +2003,7 @@ TEST_F(BtifRcHandlerTest, handle_app_attr_txt_response_success) {
+ 
+ TEST_F(BtifRcHandlerTest, handle_app_attr_txt_response_error_status) {
+   btrc_ctrl_callbacks.playerapplicationsetting_cb = [](const RawAddress&, uint8_t,
+-                                                       btrc_player_app_attr_t*, uint8_t,
+-                                                       btrc_player_app_ext_attr_t*) {};
++                                                       btrc_player_app_attr_t*) {};
+   btif_rc_device_cb_t* p_dev =
+           bluetooth::testing::avrc::btif_rc_ctrl_get_interface()->get_device_cb(0);
+   tBTA_AV_META_MSG meta_msg = {.rc_handle = kRcHandle};
+@@ -2128,8 +2138,7 @@ TEST_F(BtifRcHandlerTest, handle_set_browsed_player_error) {
+ 
+ TEST_F(BtifRcHandlerTest, handle_app_attr_value_rsp) {
+   btrc_ctrl_callbacks.playerapplicationsetting_cb = [](const RawAddress&, uint8_t,
+-                                                       btrc_player_app_attr_t*, uint8_t,
+-                                                       btrc_player_app_ext_attr_t*) {};
++                                                       btrc_player_app_attr_t*) {};
+ 
+   btif_rc_device_cb_t* p_dev =
+           bluetooth::testing::avrc::btif_rc_ctrl_get_interface()->get_device_cb(0);
+@@ -2246,7 +2255,7 @@ TEST_F(BtifRcHandlerTest, btif_rc_transaction_timer_timeout_passthru) {
+           &context);
+ 
+   // Verify transaction is released.
+-  ASSERT_TRUE(p_dev->transaction_set.transaction[1].in_use);
++  ASSERT_FALSE(p_dev->transaction_set.transaction[1].in_use);
+ }
+ 
+ TEST_F(BtifRcWithCallbacksTest, send_passthrough_cmd_test) {
+diff --git a/system/include/hardware/bt_rc.h b/system/include/hardware/bt_rc.h
+index a1ff63a..dee592a 100644
+--- a/system/include/hardware/bt_rc.h
++++ b/system/include/hardware/bt_rc.h
+@@ -268,9 +268,7 @@ typedef void (*btrc_ctrl_setplayerapplicationsetting_rsp_callback)(const RawAddr
+ 
+ typedef void (*btrc_ctrl_playerapplicationsetting_callback)(const RawAddress& bd_addr,
+                                                             uint8_t num_attr,
+-                                                            btrc_player_app_attr_t* app_attrs,
+-                                                            uint8_t num_ext_attr,
+-                                                            btrc_player_app_ext_attr_t* ext_attrs);
++                                                            btrc_player_app_attr_t* app_attrs);
+ 
+ typedef void (*btrc_ctrl_playerapplicationsetting_changed_callback)(
+         const RawAddress& bd_addr, const btrc_player_settings_t& vals);
+-- 
+2.43.0
+

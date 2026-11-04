@@ -1,0 +1,53 @@
+From ea47ef1f57f6c3d5cbba990f57c497581daca6ad Mon Sep 17 00:00:00 2001
+From: Diogo Casteluber Laass <4793368+iowaz@users.noreply.github.com>
+Date: Wed, 14 Oct 2026 15:37:30 -0300
+Subject: [PATCH] libui: Preserve the supported SMPTE2094_50 metadata guard
+
+---
+ libs/ui/Gralloc5.cpp | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/libs/ui/Gralloc5.cpp b/libs/ui/Gralloc5.cpp
+index d4ec87d..91ec9da 100644
+--- a/libs/ui/Gralloc5.cpp
++++ b/libs/ui/Gralloc5.cpp
+@@ -330,6 +330,22 @@ static bool isStandardMetadata(AIMapper_MetadataType metadataType) {
+     return strcmp(kStandardMetadataName, metadataType.name) == 0;
+ }
+ 
++static bool isStandardMetadataGettable(AIMapper* mapper, StandardMetadataType type) {
++    const AIMapper_MetadataTypeDescription* descriptions = nullptr;
++    size_t count = 0;
++    if (mapper->v5.listSupportedMetadataTypes(&descriptions, &count) != AIMAPPER_ERROR_NONE) {
++        // Can't tell, so keep asking.
++        return true;
++    }
++    for (size_t i = 0; i < count; i++) {
++        if (isStandardMetadata(descriptions[i].metadataType) &&
++            descriptions[i].metadataType.value == static_cast<int64_t>(type)) {
++            return descriptions[i].isGettable;
++        }
++    }
++    return false;
++}
++
+ struct DumpBufferResult {
+     uint64_t bufferId;
+     std::string name;
+@@ -1046,6 +1062,13 @@ status_t Gralloc5Mapper::getStride(buffer_handle_t bufferHandle, uint32_t *outSt
+ 
+ status_t Gralloc5Mapper::getSmpte2094_50(
+         buffer_handle_t bufferHandle, std::optional<std::vector<uint8_t>>* outSmpte2094_50) const {
++    // RenderEngine asks for this on every buffer it draws. Mappers older than the type don't
++    // list it and answer UNSUPPORTED, and some (MediaTek's) log an error each time.
++    static const bool kGettable =
++            isStandardMetadataGettable(mMapper, StandardMetadataType::SMPTE2094_50);
++    if (!kGettable) {
++        return UNKNOWN_TRANSACTION;
++    }
+     auto value = getStandardMetadata<StandardMetadataType::SMPTE2094_50>(mMapper, bufferHandle);
+     if (value.has_value()) {
+         *outSmpte2094_50 = std::move(*value);
+-- 
+2.43.0
+

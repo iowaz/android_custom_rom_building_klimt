@@ -7,6 +7,7 @@ current pipeline ([`../evox/pipeline`](../evox/pipeline)).
 |---|---|
 | [`evox17-tooling`](evox17-tooling) | evox17's copy of the controller, verifier and image checks, with `evox17` baked into its paths (`/mnt/c/XiaomiBuilds/...`, `D:\WitAquaBuild\out-evox`). The pipeline is this, made generic. `ready/` has the readiness, recheck and promotion scripts and records of evox17. |
 | [`evox16-tooling`](evox16-tooling) | evox16's copy, including the focused precheck whose `m <module>` installs caused the evox16 boot loop. |
+| [`fork-era`](fork-era) | `make-frozen.py` (evox17: frozen manifest from the previous one, with the iowaz fork pins) and `snapshot-manifest.py` (public snapshot with the `patches/tree` bases). Retired on 2026-11-04 with the forks; `prepare.py freeze` replaces both. |
 | [`pre-evox16`](pre-evox16) | The evox1-15 flow: `build.sh`/`start-build.sh`/`progress.sh`/`dwatch.sh`, the per-build `build-evoxNN.sh` and `verify-evoxNN.sh`, the comparison scripts in `cmp/` (the originals of the pipeline's `legacy/` checks), `fix14/`, `fix15/` and the old flash helpers. |
 
 Their absolute paths are the build PC's layout before the 2026-10-15 reorganization (`C:\XiaomiBuilds`,

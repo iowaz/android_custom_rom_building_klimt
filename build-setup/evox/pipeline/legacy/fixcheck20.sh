@@ -15,13 +15,14 @@ BID=ZP11.260918.007; INC=16484274; FLAVOR=bluejay_beta-user
 DISPLAY_ID='ZP11.260918.007 release-keys'
 KERNEL_RELEASE='6.6.142-android15-8'; BUILDER=android-build
 IDCHECKBP="$IDBP"
-if [[ ${KLIMT_BUILD:-evox25} =~ ^evox([0-9]+)$ ]] && (( 10#${BASH_REMATCH[1]} >= 26 )); then
+source "$(dirname "$(realpath "$0")")/build-profile.sh"
+if build_at_least 26; then
   CANARY='Xiaomi/klimt_global/klimt:17/OS3.3.260806.171839609/OS3.0.335.0.XOSMIXM:user/release-keys'
   BID=OS3.3.260806.171839609; INC=OS3.0.335.0.XOSMIXM; FLAVOR=klimt_global-user
   DISPLAY_ID=$BID
   DESC="klimt_global-user 17 $BID $INC release-keys"
-  # The kernel release ends in -ab<build number> (evox26: ab26, evox27: ab27).
-  KERNEL_RELEASE="6.6.142-android15-8-gf6a5b29f9fe5-ab$((10#${BASH_REMATCH[1]}))"; BUILDER=builder
+  # The kernel release ends in -ab<build> (evox26: ab26, evox27: ab27, 20261105: ab20261105).
+  KERNEL_RELEASE="6.6.142-android15-8-gf6a5b29f9fe5-$KERNEL_LABEL"; BUILDER=builder
   IDCHECKBP="$ALLBP"
 fi
 ok(){ if eval "$2" >/dev/null 2>&1; then echo "OK   $1"; else echo "FAIL $1"; fi; }
@@ -61,7 +62,10 @@ echo '== evox20 no project-diagnostic properties'
 ok "no ro.evolution* in any build.prop" "absent '^ro\.evolution' $ALLBP"
 ok "no ro.lineage* in any build.prop" "absent '^ro\.lineage' $ALLBP"
 ok "no persist.sys.evox* in any build.prop" "absent '^persist\.sys\.evox' $ALLBP"
-ok "no init rc gives persist.sys.evox props a value" "no_rc_match 'setprop +persist\.sys\.evox[^ ]* +([^\" ]|\"[^\"])'"
+# Retired 2026-11-04: "no init rc gives persist.sys.evox props a value" tested the two system/core marker commits
+# (init: Drop the spoof migration marker; init: Only drop the retired evox persist marker). They were dropped with
+# the forks, by the owner's decision: upstream init.rc sets persist.sys.evox.spoof.migrated to 0 and then 1 again,
+# around its one-time /data/adb cleanup. The ro.evolution*/ro.lineage* checks above stay: those patches are kept.
 
 echo '== evox20 kernel identity'
 T=/mnt/wsl/build/compare/tools; export LD_LIBRARY_PATH=$T/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}

@@ -1,0 +1,82 @@
+From cd8bc7c6c7c2baed7df1e37effc9d088c3c4978a Mon Sep 17 00:00:00 2001
+From: Aishwarya Mallampati <amallampati@google.com>
+Date: Wed, 17 Jun 2026 11:32:13 -0700
+Subject: [PATCH 2/4] Fix security vulnerabilities in PduParser.java
+
+- Fix ArrayIndexOutOfBoundsException in parseContentType by adding bounds check for PduContentTypes.contentTypes index.
+- Fix NullPointerExceptions in parseContentTypeParams by adding null checks for map and charsetStr.
+
+Bug: 513582756
+Test: TelephonyCommonTests (PduParserTest)
+Flag: EXEMPT BUGFIX
+Change-Id: I4fab1579d22c4a1dcf2d75d4f4aab0a352df1bd9
+(cherry picked from commit cbb0d81bf0866a8249eca7c7ec53f7c179f8b171)
+
+evox9: picked from LineageOS/android_frameworks_base@47a31e21f0 (--exclude=tests/*)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../com/google/android/mms/pdu/PduParser.java | 33 ++++++++++++-------
+ 1 file changed, 22 insertions(+), 11 deletions(-)
+
+diff --git a/telephony/common/com/google/android/mms/pdu/PduParser.java b/telephony/common/com/google/android/mms/pdu/PduParser.java
+index e80508930..d2f23026e 100644
+--- a/telephony/common/com/google/android/mms/pdu/PduParser.java
++++ b/telephony/common/com/google/android/mms/pdu/PduParser.java
+@@ -1431,7 +1431,9 @@ public class PduParser {
+ 
+                         if (index < PduContentTypes.contentTypes.length) {
+                             byte[] type = (PduContentTypes.contentTypes[index]).getBytes();
+-                            map.put(PduPart.P_TYPE, type);
++                            if (map != null) {
++                                map.put(PduPart.P_TYPE, type);
++                            }
+                         } else {
+                             //not support this type, ignore it.
+                         }
+@@ -1494,14 +1496,16 @@ public class PduParser {
+                             (END_STRING_FLAG == firstValue)) {
+                         //Text-String (extension-charset)
+                         byte[] charsetStr = parseWapString(pduDataStream, TYPE_TEXT_STRING);
+-                        try {
+-                            int charsetInt = CharacterSets.getMibEnumValue(
+-                                    new String(charsetStr));
+-                            map.put(PduPart.P_CHARSET, charsetInt);
+-                        } catch (UnsupportedEncodingException e) {
+-                            // Not a well-known charset, use "*".
+-                            Log.e(LOG_TAG, Arrays.toString(charsetStr), e);
+-                            map.put(PduPart.P_CHARSET, CharacterSets.ANY_CHARSET);
++                        if (charsetStr != null && map != null) {
++                            try {
++                                int charsetInt = CharacterSets.getMibEnumValue(
++                                        new String(charsetStr));
++                                map.put(PduPart.P_CHARSET, charsetInt);
++                            } catch (UnsupportedEncodingException e) {
++                                // Not a well-known charset, use "*".
++                                Log.e(LOG_TAG, Arrays.toString(charsetStr), e);
++                                map.put(PduPart.P_CHARSET, CharacterSets.ANY_CHARSET);
++                            }
+                         }
+                     } else {
+                         //Well-known-charset
+@@ -1620,8 +1624,15 @@ public class PduParser {
+         } else if (cur <= TEXT_MAX) {
+             contentType = parseWapString(pduDataStream, TYPE_TEXT_STRING);
+         } else {
+-            contentType =
+-                (PduContentTypes.contentTypes[parseShortInteger(pduDataStream)]).getBytes();
++            // Parse the content type index from the stream (returns a value 0-127).
++            int index = parseShortInteger(pduDataStream);
++            // Ensure the index is within the bounds of the well-known content types table (0-82).
++            if (index < PduContentTypes.contentTypes.length) {
++                contentType = (PduContentTypes.contentTypes[index]).getBytes();
++            } else {
++                // Fallback to default "*/*" if the index is out of bounds to prevent AIOOBE crash.
++                contentType = (PduContentTypes.contentTypes[0]).getBytes();
++            }
+         }
+ 
+         return contentType;
+-- 
+2.43.0
+

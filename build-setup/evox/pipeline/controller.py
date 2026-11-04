@@ -148,8 +148,76 @@ def manifest_heads(data):
     return result
 
 def capture_manifest(dest):
+    """`repo manifest -r` of the live tree. It reports each project's HEAD, so a patched project shows its
+    final_head, not the frozen base: compare the result with expected_heads(), not with the frozen pins."""
     subprocess.run(['repo','manifest','-r','-o',str(dest)], cwd=S, check=True)
     return manifest_heads(dest.read_bytes())
+
+# Since 2026-11-04 the klimt patches to ROM sources live in the device tree (patches/PATCHES.json), not in forks.
+# The frozen manifest pins each patched project at its upstream base; the live tree has it at final_head
+# (patches/apply.py, local branch `klimt`). The bundle is read at the device tree's frozen pin, so the device
+# commit pins the patches.
+DEVICE = 'device/xiaomi/klimt'
+PATCHES_JSON = 'patches/PATCHES.json'
+SHA1 = re.compile(r'[0-9a-f]{40}')
+
+def parse_patch_bundle(text):
+    """PATCHES.json -> {project: record}. Strict: every record names a project once, with 40-hex base and final_head."""
+    records = json.loads(text)
+    if not isinstance(records, list):
+        raise RuntimeError('PATCHES.json must be a list of project records')
+    bundle = {}
+    for r in records:
+        project = r.get('project') if isinstance(r, dict) else None
+        if not isinstance(project, str) or not project or project in bundle or project == DEVICE:
+            raise RuntimeError('PATCHES.json: missing, duplicate or invalid project: '+repr(project))
+        if r.get('class') not in ('klimt','personal'):
+            raise RuntimeError('PATCHES.json: class must be klimt or personal: '+project)
+        if not all(isinstance(r.get(k), str) and SHA1.fullmatch(r[k]) for k in ('base','final_head')):
+            raise RuntimeError('PATCHES.json: base and final_head must be commit SHAs: '+project)
+        if r['base'] == r['final_head'] or not r.get('patches'):
+            raise RuntimeError('PATCHES.json: a listed project must carry patches: '+project)
+        bundle[project] = r
+    return bundle
+
+def patch_bundle(frozen, src=None):
+    """The device tree's PATCHES.json at its frozen pin; {} for a device commit without one (builds up to evox31)."""
+    root = Path(src) if src else S
+    if DEVICE not in frozen:
+        raise RuntimeError('Frozen manifest has no '+DEVICE)
+    repo = str(root/DEVICE)
+    if subprocess.run(['git','-C',repo,'cat-file','-e',frozen[DEVICE]+'^{commit}'],capture_output=True).returncode:
+        raise RuntimeError('Device tree commit missing: '+frozen[DEVICE])
+    show = subprocess.run(['git','-C',repo,'show',frozen[DEVICE]+':'+PATCHES_JSON],capture_output=True,text=True)
+    if show.returncode:
+        if subprocess.run(['git','-C',repo,'cat-file','-e',frozen[DEVICE]+':'+PATCHES_JSON],capture_output=True).returncode:
+            return {}
+        raise RuntimeError('Cannot read '+PATCHES_JSON+' at '+frozen[DEVICE]+': '+show.stderr.strip())
+    return parse_patch_bundle(show.stdout)
+
+def effective_heads(frozen, bundle):
+    """The HEAD each project must have in the live tree: the frozen pin, or final_head for a patched project whose
+    frozen pin is exactly its PATCHES.json base. Any other combination is an error."""
+    result = dict(frozen)
+    for project, r in bundle.items():
+        if project not in frozen:
+            raise RuntimeError('Patched project not in the frozen manifest: '+project)
+        if frozen[project] != r['base']:
+            raise RuntimeError('Frozen pin is not the PATCHES.json base: '+project+' '+frozen[project]+' != '+r['base'])
+        result[project] = r['final_head']
+    return result
+
+def expected_heads(frozen, src=None):
+    return effective_heads(frozen, patch_bundle(frozen, src))
+
+def ready_heads(ready, src=None):
+    """Effective heads for a BUILD_READY.json: recomputed from its frozen pins and the device tree, and bound to
+    the effective heads ready.py recorded (a readiness file from before 2026-11-04 has none and no bundle)."""
+    frozen = ready['reviewed_project_heads']
+    heads = expected_heads(frozen, src)
+    if ready.get('effective_project_heads', frozen) != heads:
+        raise RuntimeError('effective_project_heads do not match the frozen pins and the device PATCHES.json')
+    return heads
 
 def live_heads(expected):
     for path, head in expected.items():
@@ -196,6 +264,7 @@ def readiness(path):
     required = {'kernel/xiaomi/klimt','kernel/xiaomi/klimt-prebuilt','vendor/xiaomi/klimt','hardware/xiaomi','device/mediatek/sepolicy_vndr'}
     if not required <= set(excluded) or any(heads.get(p) != v for p,v in excluded.items()):
         raise RuntimeError('Excluded HEAD protection missing/mismatched')
+    heads = ready_heads(ready)  # from here on: the live HEADs (patched projects at final_head)
     live_heads(heads)
     if not (S/'out').is_symlink() or (S/'out').resolve() != O:
         raise RuntimeError('Expected shared incremental out symlink absent')
@@ -223,7 +292,7 @@ def foreign_processes():
             name = (path/'comm').read_text().strip()
             cmd = (path/'cmdline').read_bytes().replace(b'\0',b' ').decode(errors='replace')
             # Names only reject competing jobs; they never select processes to kill.
-            if name in {'soong_ui','soong_build','ninja','ckati','kati'} or re.search(r'(verify-evox\d+\.sh|cmp-extract-evox\.sh|build\.sh evox\d+)',cmd):
+            if name in {'soong_ui','soong_build','ninja','ckati','kati'} or re.search(r'(verify-evox\d+\.sh|cmp-extract-evox\.sh|build\.sh (evox\d+|\d{8}))',cmd):
                 found.append({'pid':int(path.name),'name':name})
         except (FileNotFoundError,PermissionError):
             pass
@@ -367,7 +436,7 @@ def resume(attempt):
     else:raise RuntimeError('Source lock is owned; cannot start extraction')
     ready=json.loads((attempt/'BUILD_READY.json').read_text())
     require_tooling_frozen(attempt)
-    heads=ready['reviewed_project_heads']
+    heads=ready_heads(ready)
     live_heads(heads)
     if not (attempt/'postbuild.xml').exists():
         if capture_manifest(attempt/'postbuild.xml')!=heads:raise RuntimeError('Postbuild manifest drift')

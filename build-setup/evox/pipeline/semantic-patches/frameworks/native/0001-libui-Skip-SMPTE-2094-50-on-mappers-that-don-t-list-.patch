@@ -1,0 +1,64 @@
+From 53a665bf2fd4272220b9163b8fd5d1be755787f3 Mon Sep 17 00:00:00 2001
+From: Diogo Casteluber Laass <4793368+iowaz@users.noreply.github.com>
+Date: Sun, 11 Oct 2026 10:38:40 -0300
+Subject: [PATCH] libui: Skip SMPTE 2094-50 on mappers that don't list it
+
+RenderEngine asks for SMPTE 2094-50 on every buffer it draws, including
+the region sampling passes. Mappers built before the type existed don't
+list it in listSupportedMetadataTypes() and answer UNSUPPORTED; MediaTek's
+mapper.mediatek.so also logs "Failed to get metadata. Mapper error: 7"
+each time, about 750 lines a minute on klimt.
+
+Ask the mapper once whether the type is a gettable standard type, and
+return UNKNOWN_TRANSACTION without calling it if not, which is what the
+caller got before.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ libs/ui/Gralloc5.cpp | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/libs/ui/Gralloc5.cpp b/libs/ui/Gralloc5.cpp
+index d4ec87d..91ec9da 100644
+--- a/libs/ui/Gralloc5.cpp
++++ b/libs/ui/Gralloc5.cpp
+@@ -330,6 +330,22 @@ static bool isStandardMetadata(AIMapper_MetadataType metadataType) {
+     return strcmp(kStandardMetadataName, metadataType.name) == 0;
+ }
+ 
++static bool isStandardMetadataGettable(AIMapper* mapper, StandardMetadataType type) {
++    const AIMapper_MetadataTypeDescription* descriptions = nullptr;
++    size_t count = 0;
++    if (mapper->v5.listSupportedMetadataTypes(&descriptions, &count) != AIMAPPER_ERROR_NONE) {
++        // Can't tell, so keep asking.
++        return true;
++    }
++    for (size_t i = 0; i < count; i++) {
++        if (isStandardMetadata(descriptions[i].metadataType) &&
++            descriptions[i].metadataType.value == static_cast<int64_t>(type)) {
++            return descriptions[i].isGettable;
++        }
++    }
++    return false;
++}
++
+ struct DumpBufferResult {
+     uint64_t bufferId;
+     std::string name;
+@@ -1046,6 +1062,13 @@ status_t Gralloc5Mapper::getStride(buffer_handle_t bufferHandle, uint32_t *outSt
+ 
+ status_t Gralloc5Mapper::getSmpte2094_50(
+         buffer_handle_t bufferHandle, std::optional<std::vector<uint8_t>>* outSmpte2094_50) const {
++    // RenderEngine asks for this on every buffer it draws. Mappers older than the type don't
++    // list it and answer UNSUPPORTED, and some (MediaTek's) log an error each time.
++    static const bool kGettable =
++            isStandardMetadataGettable(mMapper, StandardMetadataType::SMPTE2094_50);
++    if (!kGettable) {
++        return UNKNOWN_TRANSACTION;
++    }
+     auto value = getStandardMetadata<StandardMetadataType::SMPTE2094_50>(mMapper, bufferHandle);
+     if (value.has_value()) {
+         *outSmpte2094_50 = std::move(*value);
+-- 
+2.43.0
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Move one verified delivery of a build to output-zips/<build> (the folder you flash from).
 
-usage: KLIMT_BUILD=evox18 python3 -B promote.py <attempt> [<recheckNN>]
+usage: KLIMT_BUILD=20261105 python3 -B promote.py <attempt> [<recheckNN>]
 
 The delivery staged by verify.py (diagnostics/builds/<build>/delivery/<attempt>[/rechecks/<recheck>]) is
 checked against its SHA256SUMS and RESULTS.json, then moved (a rename on the same disk, no copy) to

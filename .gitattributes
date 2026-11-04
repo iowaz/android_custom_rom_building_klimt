@@ -2,3 +2,4 @@
 *.ps1 text eol=crlf
 build-setup/create-vhdx.txt text eol=crlf
 build-setup/evox/create-evox-vhdx.txt text eol=crlf
+build-setup/evox/pipeline/semantic-patches/**/*.patch -text

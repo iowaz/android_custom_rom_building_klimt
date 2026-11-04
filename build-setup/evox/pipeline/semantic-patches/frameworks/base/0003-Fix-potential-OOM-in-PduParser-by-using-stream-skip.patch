@@ -1,0 +1,109 @@
+From eecdf43da55b611cf70c5181f434c24c33461fd0 Mon Sep 17 00:00:00 2001
+From: Pranit Rane <pranitrane@google.com>
+Date: Tue, 16 Jun 2026 23:29:26 -0700
+Subject: [PATCH 3/4] Fix potential OOM in PduParser by using stream skip
+
+Avoid allocating a large byte array when skipping values in PduParser.java. Instead of creating a byte array of the given length and reading into it, use InputStream.skip() which is safe and does not allocate memory. This prevents OutOfMemoryErrors when parsing malformed MMS PDUs with huge value lengths.
+
+Additionally, refactored repeated bounds check logic into a helper method `isInvalidLength`.
+
+Added PduParserTest to verify parsing bounds check with huge header lengths.
+
+Bug: 517377150
+Flag: EXEMPT BUGFIX
+Test: atest MmsTest PduParserTest WapPushOverSmsTest
+
+CONV=9f66c987-4e37-4f71-bbaf-df4cf7f39fd8
+TAG=agy
+
+Change-Id: I46f37df0bd5aa6d75d5043d34b5e831b64b53f57
+
+evox9: picked from LineageOS/android_frameworks_base@f4ed08a03b (--exclude=tests/*)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../com/google/android/mms/pdu/PduParser.java | 44 ++++++++++++++++---
+ 1 file changed, 39 insertions(+), 5 deletions(-)
+
+diff --git a/telephony/common/com/google/android/mms/pdu/PduParser.java b/telephony/common/com/google/android/mms/pdu/PduParser.java
+index d2f23026e..3ad9cb93f 100644
+--- a/telephony/common/com/google/android/mms/pdu/PduParser.java
++++ b/telephony/common/com/google/android/mms/pdu/PduParser.java
+@@ -863,7 +863,17 @@ public class PduParser {
+ 
+         for (int i = 0 ; i < count ; i++) {
+             int headerLength = parseUnsignedInt(pduDataStream);
++            if (isInvalidLength(headerLength, pduDataStream)) {
++                Log.e(LOG_TAG, "parseParts: Invalid header length: " + headerLength
++                        + " (available: " + pduDataStream.available() + ")");
++                return null;
++            }
+             int dataLength = parseUnsignedInt(pduDataStream);
++            if (isInvalidLength(dataLength, pduDataStream)) {
++                Log.e(LOG_TAG, "parseParts: Invalid data length: " + dataLength
++                        + " (available: " + pduDataStream.available() + ")");
++                return null;
++            }
+             PduPart part = new PduPart();
+             int startPos = pduDataStream.available();
+             if (startPos <= 0) {
+@@ -986,6 +996,19 @@ public class PduParser {
+         }
+     }
+ 
++    /**
++     * Checks if the given length is invalid for the current input stream.
++     * A length is considered invalid if it is negative or if it exceeds the number of
++     * bytes available in the stream.
++     *
++     * @param length the length to validate
++     * @param pduDataStream the input stream to check availability against
++     * @return {@code true} if the length is invalid, {@code false} otherwise
++     */
++    private static boolean isInvalidLength(int length, ByteArrayInputStream pduDataStream) {
++        return length < 0 || length > pduDataStream.available();
++    }
++
+     /**
+      * Parse unsigned integer.
+      *
+@@ -1358,13 +1381,16 @@ public class PduParser {
+      */
+     protected static int skipWapValue(ByteArrayInputStream pduDataStream, int length) {
+         assert(null != pduDataStream);
+-        byte[] area = new byte[length];
+-        int readLen = pduDataStream.read(area, 0, length);
+-        if (readLen < length) { //The actually read length is lower than the length
++        if (isInvalidLength(length, pduDataStream)) {
++            Log.e(LOG_TAG, "skipWapValue: Invalid length: " + length
++                    + " (available: " + pduDataStream.available() + ")");
+             return -1;
+-        } else {
+-            return readLen;
+         }
++        // Hardening: Use skip() instead of allocating a byte array to avoid unnecessary
++        // memory allocation, preventing potential OutOfMemoryErrors (OOME).
++        // ByteArrayInputStream.skip() is safe and does not allocate.
++        long skipped = pduDataStream.skip(length);
++        return (skipped < length) ? -1 : (int) skipped;
+     }
+ 
+     /**
+@@ -1760,6 +1786,14 @@ public class PduParser {
+                                 thisEndPos = pduDataStream.available();
+                                 if (thisStartPos - thisEndPos < len) {
+                                     int last = len - (thisStartPos - thisEndPos);
++                                    if (isInvalidLength(last, pduDataStream)) {
++                                        Log.e(LOG_TAG, "parsePartHeaders: Invalid temp length: "
++                                                + last
++                                                + " (available: "
++                                                + pduDataStream.available()
++                                                + ")");
++                                        return false;
++                                    }
+                                     byte[] temp = new byte[last];
+                                     pduDataStream.read(temp, 0, last);
+                                 }
+-- 
+2.43.0
+

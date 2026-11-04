@@ -14,7 +14,7 @@ import sys
 import time
 import zipfile
 import paths
-from controller import B,S,L,C,D,O,X,ZIP,BUILD,sha,write_json,lock,live_heads,capture_manifest,space,require_tooling_frozen,tooling_hashes,wsl_path,foreign_processes
+from controller import B,S,L,C,D,O,X,ZIP,BUILD,sha,write_json,lock,live_heads,ready_heads,capture_manifest,space,require_tooling_frozen,tooling_hashes,wsl_path,foreign_processes
 
 ENTRIES={'android-info.txt','fastboot-info.txt','boot.img','dtbo.img','init_boot.img','odm.img','odm_dlkm.img',
     'product.img','super_empty.img','system.img','system_dlkm.img','system_ext.img','unsparse_super_empty.img',
@@ -126,7 +126,7 @@ def main(attempt,recheck=None,tool_review=None):
     ready=json.loads((attempt/'BUILD_READY.json').read_text())
     if review and 'image_checks' in review:
         ready['image_checks']=review['image_checks']
-    heads=ready['reviewed_project_heads']
+    heads=ready_heads(ready)  # frozen pins, patched projects at their PATCHES.json final_head
     if foreign_processes():raise RuntimeError('Competing historical build/extraction exists')
     if ZIP.stat().st_mtime_ns < identity['started_ns']:
         raise RuntimeError('Stale input archive')
@@ -177,7 +177,7 @@ def main(attempt,recheck=None,tool_review=None):
     spec=importlib.util.spec_from_file_location('report_gates',B/'report-gates.py')
     gates=importlib.util.module_from_spec(spec);spec.loader.exec_module(gates)
     historical=gates.validate(report,BUILD)
-    if int(BUILD.removeprefix('evox')) >= 26:
+    if paths.at_least(BUILD,26):
         subprocess.run(['python3','-B',str(B/'check-metadata26.py')],cwd=S,env=env,check=True)
     supplemental=image_checks(ready,env,report)
     write_json(report/'filesystem-files.json',inventory(extract/'fs'),True)

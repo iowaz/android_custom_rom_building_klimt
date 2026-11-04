@@ -22,14 +22,14 @@ need the owner's OK.
   upstream ships it. Change it only for a failure seen on klimt or something klimt cannot work without, and only
   after the owner asks for it. See [docs/evox16-review.md](docs/evox16-review.md) for what happens otherwise.
 - **The owner's personal identity layer** is kept as device patches (class `personal` in
-  `device/xiaomi/klimt/patches/PATCHES.json`) because he asked for it explicitly. Do not extend it without
+  `device/xiaomi/klimt/patches/PATCHES.json`) because the owner asked for it explicitly. Do not extend it without
   that request.
 - **No ROM-source forks.** Patches to ROM sources live in `device/xiaomi/klimt/patches/<project path>/` and are
   applied with `patches/apply.py`; the frozen manifest pins those projects at their upstream base. The only
   iowaz repositories in a build are the device tree, the kernel and the private vendor blobs.
 - **No per-build branches.** Default branches only (device tree `cnb`). A build is marked by a tag,
   `docs/<build>.md` and `manifests/snapshots/<build>.xml`.
-- **Builds are named by date from 2026-11-05**: `YYYYMMDD`, or `YYYYMMDD.N` (N from 2) for another build the
+- **Builds are named by date from 2026-11-04**: `YYYYMMDD`, or `YYYYMMDD.N` (N from 2) for another build the
   same day; attempts `20261105-attempt01`; kernel label `-ab20261105`. evox1 to evox31 keep their names.
 - **Never run `m <module>` in the tree that gets packaged.** It installs into the staging directories the images
   are packed from. The pipeline runs `m installclean` before every build.

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Xiaomi 15T Pro (klimt) on Evolution X cnb (Android 17), from 2026-11-05.
+<!-- Xiaomi 15T Pro (klimt) on Evolution X cnb (Android 17), from 2026-11-04.
      Copy to .repo/local_manifests/klimt.xml after the repo init of Evolution-X/manifest, branch cnb,
      with Git LFS enabled (see the README), sync, then apply the klimt patches:
        python3 device/xiaomi/klimt/patches/apply.py .

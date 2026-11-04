@@ -156,7 +156,7 @@ class Gates(unittest.TestCase):
                 self.assertEqual(gates.validate(p,build)['musthold'],'pass')
                 for other in ('evox26','evox31','20261106','20261105.3'):
                     with self.assertRaises(ValueError):gates.validate(p,other)
-            for invalid in ('20261104','20261105.1','20261131','2026110','evox'):
+            for invalid in ('20261103','20261105.1','20261131','2026110','evox'):
                 with self.assertRaises(ValueError):gates.validate(p,invalid)
     def test_super_empty_readonly_layout_only_from_evox27(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -417,17 +417,17 @@ class DateBuilds(unittest.TestCase):
         import paths
         for name in ('evox1','evox31','evox026','20261105','20261105.2','20261105.10','20270101'):
             self.assertTrue(paths.is_build(name),name)
-        for name in ('20261104','20261105.1','20261105.02','20261105.','20261131','20261305','2026110','202611050',
+        for name in ('20261103','20261105.1','20261105.02','20261105.','20261131','20261305','2026110','202611050',
                      'evox','evox31-attempt01','20261105-attempt01','klimt',''):
             self.assertFalse(paths.is_build(name),name)
         self.assertEqual([paths.build_of(a) for a in ('evox31-attempt01','20261105-attempt01','20261105.2-attempt12')],['evox31','20261105','20261105.2'])
-        for bad in ('20261105.1-attempt01','20261104-attempt01','20261105-attempt1','20261105attempt01'):
+        for bad in ('20261105.1-attempt01','20261103-attempt01','20261105-attempt1','20261105attempt01'):
             with self.assertRaises(ValueError):paths.build_of(bad)
         self.assertEqual([paths.kernel_label(b) for b in ('evox31','evox026','20261105','20261105.2')],['ab31','ab26','ab20261105','ab20261105.2'])
         self.assertEqual([paths.at_least(b,28) for b in ('evox27','evox28','20261105')],[False,True,True])
         self.assertTrue(paths.is_date_build('20261105') and not paths.is_date_build('evox31'))
     def test_current_build_from_environment(self):
-        for value,ok in [('20261105',True),('evox31',True),('20261105.2',True),('20261104',False),('evox',False)]:
+        for value,ok in [('20261105',True),('evox31',True),('20261105.2',True),('20261103',False),('evox',False)]:
             code='import paths;print(paths.current_build())'
             r=subprocess.run([sys.executable,'-B','-c',code],cwd=B,env=dict(os.environ,KLIMT_BUILD=value),capture_output=True,text=True)
             self.assertEqual(r.returncode==0,ok,(value,r.stderr))
@@ -471,7 +471,7 @@ CONFIG_LOCALVERSION="-android15-8-gf6a5b29f9fe5-ab31"
         self.assertEqual(prepare.previous_build('20261110',names),'20261106')
         self.assertEqual(prepare.previous_build('evox11',names),'evox10')
         with self.assertRaises(ValueError):prepare.previous_build('evox9',names)
-        with self.assertRaises(ValueError):prepare.previous_build('20261104',names)
+        with self.assertRaises(ValueError):prepare.previous_build('20261103',names)
     def test_live_manifest_has_klimt_projects_only(self):
         import prepare
         text=prepare.live_manifest(self.LIVE31)

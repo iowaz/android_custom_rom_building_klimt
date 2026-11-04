@@ -19,7 +19,7 @@ writes its record to diagnostics/builds/<build>/preparation/):
                 the previous build's label is replaced, evox31 -> 20261105 and ab31 -> ab20261105.
   freeze        diagnostics/builds/<build>/<build>-frozen.xml = `repo manifest -r` with every patched project
                 pinned at its upstream base, copied to manifests/snapshots/<build>.xml and .repo/manifests.
-Then: ready.py <frozen> -> start.sh -> promote.py. The owner pushes the device commit (iowaz cnb) himself.
+Then: ready.py <frozen> -> start.sh -> promote.py. The device commit (iowaz cnb) is pushed only with the owner's OK.
 """
 import argparse, hashlib, json, os, re, shutil, subprocess as sp, sys, time
 import xml.etree.ElementTree as ET
@@ -445,7 +445,7 @@ def main():
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args()
     if not paths.is_build(args.build) or (args.previous and not paths.is_build(args.previous)):
-        ap.error('builds are YYYYMMDD or YYYYMMDD.N from 2026-11-05 (evoxNN only for history)')
+        ap.error('builds are YYYYMMDD or YYYYMMDD.N from 2026-11-04 (evoxNN only for history)')
     if os.environ.setdefault('KLIMT_BUILD', args.build) != args.build:
         ap.error('KLIMT_BUILD is ' + os.environ['KLIMT_BUILD'])
     prep = Prep(args.build, args.previous, args.dry_run)

@@ -1,6 +1,6 @@
 # Build pipeline
 
-One set of scripts for every build. Builds are named by date from 2026-11-05: `20261105`, and `20261105.2` for a
+One set of scripts for every build. Builds are named by date from 2026-11-04: `20261105`, and `20261105.2` for a
 second build the same day (evox1 to evox31 keep their names). The build name comes from the attempt ID
 (`20261105-attempt01`); every location comes from [`paths.py`](paths.py). It replaced the per-build copies
 `evox16/` and `evox17/` (kept in [`../../archive`](../../archive)).

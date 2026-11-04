@@ -1,7 +1,7 @@
 """Every path the build pipeline uses. Change locations here only.
 
 The build name comes from the attempt ID (`20261105-attempt01`) or from KLIMT_BUILD. Builds up to evox31 are
-named evoxNN; builds from 2026-11-05 on are named by date, YYYYMMDD, and YYYYMMDD.N (N >= 2) for a second
+named evoxNN; builds from 2026-11-04 on are named by date, YYYYMMDD, and YYYYMMDD.N (N >= 2) for a second
 build on the same day.
 Windows paths: D:\\android_rom_building is /mnt/d/android_rom_building inside WSL.
 """
@@ -33,12 +33,12 @@ PLATFORM_TOOLS = ROOT / 'tools' / 'platform-tools'
 
 HISTORY_BUILD = re.compile(r'evox(\d+)')                      # evox1 ... evox31
 DATE_BUILD = re.compile(r'(\d{8})(?:\.([2-9]|[1-9]\d+))?')    # 20261105, 20261105.2
-FIRST_DATE_BUILD = '20261105'
+FIRST_DATE_BUILD = '20261104'
 ATTEMPT = re.compile(r'(evox\d+|\d{8}(?:\.(?:[2-9]|[1-9]\d+))?)-attempt\d{2,}')
 
 
 def is_build(name):
-    """evoxNN, or YYYYMMDD[.N] for a real date from 2026-11-05 on."""
+    """evoxNN, or YYYYMMDD[.N] for a real date from 2026-11-04 on."""
     if HISTORY_BUILD.fullmatch(name):
         return True
     m = DATE_BUILD.fullmatch(name)

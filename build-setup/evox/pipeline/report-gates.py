@@ -5,7 +5,7 @@ from pathlib import Path
 import paths
 B=Path(__file__).resolve().parent
 def validate(report,build):
-    # evoxNN up to evox31, YYYYMMDD[.N] from 2026-11-05 (every date build takes the newest profile).
+    # evoxNN up to evox31, YYYYMMDD[.N] from 2026-11-04 (every date build takes the newest profile).
     if not paths.is_build(build):raise ValueError('Invalid build profile')
     text=(report/'raw-musthold.txt').read_text()
     extracted=(report/'raw-extract.txt').read_text()

@@ -45,7 +45,7 @@ There are no ROM-source forks since 2026-11-04. The owner's rules:
   on the phone. evox16 added generic fixes to twelve projects; the [evox16 review](docs/evox16-review.md)
   reverted them.
 - **The owner's personal identity layer** (the Xiaomi build identity in the vendor props, no `ro.lineage.*` /
-  `ro.evolution.*` props, and the readers that take build constants instead) is kept as device patches, at his
+  `ro.evolution.*` props, and the readers that take build constants instead) is kept as device patches, at the owner's
   explicit request, marked `personal`.
 - **No ROM-source forks.** Patches to ROM sources live in the device tree, in
   `device/xiaomi/klimt/patches/<project path>/NNNN-*.patch`, listed in `patches/PATCHES.json` with their class
@@ -55,7 +55,7 @@ There are no ROM-source forks since 2026-11-04. The owner's rules:
   stops the build before it starts and is ported by hand.
 - **No per-build branches.** Every repository has one default branch. A build is marked by a tag,
   `docs/<build>.md` and `manifests/snapshots/<build>.xml`.
-- **Builds are named by date from 2026-11-05**: `20261105`, and `20261105.2` for a second build the same day.
+- **Builds are named by date from 2026-11-04**: `20261105`, and `20261105.2` for a second build the same day.
   evox1 to evox31 keep their names.
 
 The device patches are 13 patches in 10 projects. klimt needs four: the HIDL `light@2.0` drop and AIDL-only
@@ -84,7 +84,7 @@ anyone without access to the private vendor repository. So this repository ships
   after the sync.
 - [`manifests/snapshots/`](manifests/snapshots) pins every project at the commit used for each build (historical boot-tested baseline:
   [`evox17.xml`](manifests/snapshots/evox17.xml), which boots on the phone; [`evox16.xml`](manifests/snapshots/evox16.xml)
-  **boot-loops**, see the [evox16 review](docs/evox16-review.md)). From 2026-11-05 the pipeline's
+  **boot-loops**, see the [evox16 review](docs/evox16-review.md)). From 2026-11-04 the pipeline's
   [`prepare.py freeze`](build-setup/evox/pipeline/prepare.py) writes it from `repo manifest -r`, with every
   patched project pinned at its upstream base (so it syncs from public repositories; run `patches/apply.py`
   after the sync). Up to evox31 the snapshots pin the iowaz fork commits instead.

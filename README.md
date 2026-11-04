@@ -1,8 +1,8 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
 Current phone build: **evox27**, flashed (dirty) on 2026-10-30 and boots; the owner's app checks are open.
-Latest delivery: **[evox30](docs/evox30.md)**, built and image-checked on 2026-10-31, not flashed or boot-tested.
-It updates current upstreams after an independent RisingOS klimt assessment and excludes the separate evox29 Wallet experiment.
+Latest delivery: **[evox31](docs/evox31.md)**, built and image-checked on 2026-11-04, not flashed or boot-tested.
+It takes the current Evolution X / LineageOS heads of 2026-11-04 (without the 2026-11 security bulletin, not merged upstream yet) and drops three local patches upstream now ships.
 See [history](docs/history.md) for source and build results.
 
 This repository is the recipe for my Evolution X builds for the Xiaomi 15T Pro: which repositories are involved,

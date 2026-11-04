@@ -20,6 +20,15 @@ Readiness: all eight gates passed (frozen graph and live heads, patch bundle fin
 
 ## Status
 
-Attempt01 started at 09:57 BRT on 2026-11-04. The owner asked for a check every 20 minutes, and a fix and restart on failure.
+Attempt01 started at 09:57 BRT on 2026-11-04, checked every 20 minutes. Updatepackage completed successfully in 1h58m23s. Full verification passed at 12:29 BRT, without a source fix, verifier correction or recheck:
+
+- All 194 historical checks and the must-hold AVB/layout/DTB/DTBO checks passed.
+- All 112 metadata assertions passed; kernel `6.6.142-android15-8-gf6a5b29f9fe5-ab31`.
+- All seven supplemental image checks passed.
+- 888 modules checked, zero CRC mismatches (one unresolved symbol, `mtk_drm_gateic_set_backlight`, as in evox30).
+
+Delivery: `output-zips/evox31`, 5,651,478,922-byte ZIP, SHA256 `e5ba69089357c5cbdd6d0d76a72d959ab700379e86c3050ac398e1ce77b9fb70`, with slot-b no-wipe flash helpers. **Image-checked; not flashed or boot-tested.** Evox27 remains the phone build.
+
+Records: `diagnostics/builds/evox31/PROMOTED.json`, full verification under `reports/evox31-attempt01`, logs `/mnt/wsl/evox/logs/evox31/evox31-attempt01`.
 
 Runtime checks after a separately authorized flash: kernel `-ab31`; Play Integrity, Wallet and Duck Detector (new TrickyStore and bionic hiding code, upstream's boot key handling instead of ours); GED KPI and GPU frequency; blur and quick settings rendering; calls, IMS, eSIM and mobile data; camera; Bluetooth; MTP. Static image checks are not a boot test.

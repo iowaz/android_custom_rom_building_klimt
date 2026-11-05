@@ -34,3 +34,20 @@ ok "no adb_root binary or init service" "[ ! -e $F/system_ext/bin/adb_root ] && 
 echo '== evox21 USB configuration left to the runtime'
 props(){ find $F -maxdepth 4 -name '*.prop' -type f; }
 ok "no prop file sets persist.sys.usb.config" "[ -f $F/system/system/build.prop ] && ! grep -qE '^persist\.sys\.usb\.config=' \$(props)"
+
+echo '== 20261105 log review (2026-11-04 runtime logs)'
+CIL=$F/vendor/etc/selinux/vendor_sepolicy.cil; SUI=$W/frameworks/base/packages/SystemUI/src/com/android/systemui/charging
+# Stock does not let hypsys_vendor read vendor_mtkcam_prop either: denied, not logged, and not allowed.
+ok "hypsys_vendor camera property reads dontaudited, not allowed" "grep -qE '^\(dontaudit xiaomi_misys_common vendor_mtkcam_prop(_[0-9]+)? \(file \([^)]*read' $CIL && { grep -qE '^\(allow xiaomi_misys_common vendor_mtkcam_prop' $CIL; [ \$? -eq 1 ]; }"
+ok "mpbe f2fs gc_urgent writes dontaudited" "grep -qE '^\(dontaudit mpbe sysfs_fs_f2fs(_[0-9]+)? \(file \(write\)\)\)' $CIL"
+ok "vendor ambient-light debug log tags quieted" "grep -qxF 'log.tag.libsensor-displayalgo=W' $F/system/system/build.prop && grep -qxF 'log.tag.libsensor-parseRGB=W' $F/system/system/build.prop && grep -qxF 'log.tag.libcomposer_ext=I' $F/system/system/build.prop"
+# Source-level coverage (the frozen frameworks/base HEAD the controller and verifier already pin): hidden while
+# dozing; the doze change, which ScrimUtils sends from a background executor, handled on the main thread; the
+# initial doze state read; the view's dozing setter stops the running animators and startAnimations() refuses.
+charging_off_aod(){ local c v; c=$(tr -d '\r' < $SUI/ChargingAnimationViewController.kt) && v=$(tr -d '\r' < $SUI/ChargingAnimationView.kt) || return 1
+  grep -qxF '            isDozing -> false' <<<"$c" && ! grep -qF 'isDozing -> currentSettings.showOnAod' <<<"$c" || return 1
+  grep -A2 -F 'override fun onDozingChanged(dozing: Boolean) {' <<<"$c" | grep -qF 'mainHandler.post {' || return 1
+  grep -qF 'isDozing = it.isDozing()' <<<"$c" && grep -qF 'chargingView.dozing = isDozing' <<<"$c" || return 1
+  grep -A6 -F 'var dozing: Boolean = false' <<<"$v" | grep -qF 'stopAllAnimations()' || return 1
+  grep -qF 'if (!visible || dozing) return' <<<"$v"; }
+ok "charging animation kept off the always-on display (source)" "charging_off_aod"

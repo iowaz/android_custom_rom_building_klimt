@@ -7,6 +7,7 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
 
 | Build | Date | Result | What changed |
 |---|---|---|---|
+| 20261105 | 2026-11-05 | prepared; independent review (Codex) done; build in progress | Upstream refresh: Evolution X's forks took the 2026-11 security bulletin (frameworks/base, native, Bluetooth, Wifi, hardware/interfaces; platform SPL 2026-11-01, reported 2026-10-05 by the identity layer); four device patches rebased automatically. Fixes from the 20261104 log review: the charging animation is kept off the always-on display (SystemUI drew at 120 Hz while dozing on the charger), Mobile FeliCa removed at the owner's request, vendor ambient-light debug traces quieted, hypsys and mpbe denials dontaudited. 195 historical checks. Kernel `-ab20261105`. [Details](20261105.md). |
 | 20261104 | 2026-11-04 | attempt01 built in 1h20m; image-checked 22:22 BRT; **flashed (dirty) to slot b over evox31 and boots** (111 OKAY / 0 FAILED, `-ab20261104`) | First build without ROM-source forks and the first named by date. 13 patches in 10 projects now live in the device tree (`patches/`, classes klimt and personal) and give the same trees as evox31; the adb root sepolicy gate and the system/core marker commits are dropped (191 historical checks). LineageOS's 2026-11 security fixes are in the 19 projects that come straight from LineageOS; Evolution X's own forks have not taken them yet (SPL 2026-10-01). Kernel `-ab20261104`. 191 historical checks, 112 metadata assertions, seven image checks; 888 modules with zero CRC mismatches. [Details](20261104.md). |
 | evox31 | 2026-11-04 | attempt01 built in 1h58m; image-checked 12:29 BRT; **flashed (dirty) to slot b over evox28 and boots** (111 OKAY / 0 FAILED, `-ab31`) | Upstream refresh: Evolution X manifest `c6ea714` (12 projects moved to LineageOS forks for the 2026-11 security bulletin, still identical to AOSP), 35 projects with new code (TrickyStore, bionic ROM hiding, GED KPI rewrite, Dynamic Island, quick settings). The 2026-11 security bulletin is not merged upstream yet and is not included. 16 of 19 local patches replayed with identical patch IDs; 3 dropped as superseded by upstream. Kernel `-ab31`. Eight readiness gates passed. All 194 historical checks, 112 metadata assertions, seven image checks; 888 modules with zero CRC mismatches. No source/verifier repair or recheck needed. [Details](evox31.md). |
 | evox30 | 2026-10-30/31 | attempt01 built in 2h05m; image-checked 2026-10-31 01:52 BRT; not flashed or boot-tested | RisingOS assessed by two agents; no compatible novel cherry-picks. Current upstreams synced (five projects changed), all 19 local patches preserved across 12 forks, same Android 17 tag/1,263-project graph. Independent review and nine readiness gates passed. Kernel `-ab30`; separate evox29 experiment excluded and preserved. All 194 historical checks, 112 metadata assertions, seven image checks; 888 modules with zero CRC mismatches. No source/verifier repair or recheck needed. [Details](evox30.md). |
@@ -57,9 +58,9 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
   logged transition was video 0x8004 to photo 0x9002. The blocked thread waited in
   MiaOfflineSession::parallelInitAllNodes on a HIS session-lifetime gate held by the old session.
   Its adaptor flush had 24 outstanding requests. The evox15 bounded initialization candidate
-  has not demonstrated old-flush recovery or correct image output on the phone. New property-read denials
-  affect MiSys and the camera app
-  on `vendor_mtkcam_prop`; investigate stock reader permissions before adding access.
+  has not demonstrated old-flush recovery or correct image output on the phone. Property-read denials on
+  `vendor_mtkcam_prop` affect MiSys and the camera app. Stock lets only mtk_hal_camera read it, so from 20261105
+  MiSys's reads are dontaudited, not allowed.
 - Camera search of category-labelled system data remains denied by MLS; stock does not justify an exception.
 - Frequent libc warnings for non-vendor camera property names remain. A platform policy integration was
   deferred from evox14; vendor dontaudit does not silence libc.
@@ -73,13 +74,11 @@ branches (for example `deps-lineage-24` and `fstab-drop-mi-ext`) are pull reques
   charge/discharge test.
 - evox16 boot-loops (a stray legacy Telecom APK, see the [evox16 review](evox16-review.md)). The phone runs evox17
   (Evolution X 12.3) since 2026-10-15; its hands-on checks are pending (see [evox17](evox17.md#before-calling-it-ready)).
-- Evolution X's charging animation keeps running on AOD at the panel's 120 Hz: on evox17, with
-  `charging_show_on_aod` on, SystemUI drew 121 frames a second and the phone used about two CPU cores (26% of eight
-  vs 4% with it off), plus GPU and composer work. Upstream code (`SystemUI/.../charging/ChargingAnimationView.kt`,
-  endless `ValueAnimator` plus `invalidate()`, no doze handling). For now, turn off "Show animation in ambient
-  display mode"; a SystemUI change would stop or throttle the animators while dozing.
+- Evolution X's charging animation kept running on AOD at the panel's 120 Hz (seen on evox17 and again on 20261104).
+  From 20261105 a device patch keeps it off the always-on display; to be confirmed on the phone.
+- Screen-off fingerprint: `sensors.xiaomi` cannot write `fod_longpress_gesture_enabled` (not a klimt node). Whether
+  screen-off unlock on AOD still works is unverified (20261105 review).
 - AOD starts at doze brightness 0.0157 (`config_screenBrightnessDoze` = 5), which looks black on this panel, until a
   notification pulse raises it.
-- The FeliCa apps stay enabled on phones that were set up before evox13; the script only acts before setup.
 - Video calling over LTE/Wi-Fi is turned off (evox12). Turning it back on would need the stock `vtservice` and
   its libraries.

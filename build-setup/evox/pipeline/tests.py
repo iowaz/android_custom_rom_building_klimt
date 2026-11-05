@@ -84,6 +84,8 @@ class Gates(unittest.TestCase):
         f=f.replace('vendor SPL unchanged 2026-02-01','vendor SPL matches the selected build reference')
         f=f.replace('OK   system SPL 2026-10-01\n','OK   system SPL 2026-10-05\n')  # evox20 moved the system SPL
         if not f.endswith('\n'):f+='\n'
+        retired={'klimt_felica may call system_server'}  # 2026-11-05: Mobile FeliCa removed
+        f=''.join(l+'\n' for l in f.splitlines() if l[5:].strip() not in retired)
         have={re.sub(r'\([0-9a-f]{16}\)','(certificate)',l[5:].strip()) for l in f.splitlines() if l.startswith('OK   ')}
         f+=''.join('OK   '+n+'\n' for n in json.loads((B/'expected-legacy-checks.json').read_text()) if n not in have)  # checks added since evox15
         (p/'raw-fixcheck.txt').write_text(f)
@@ -120,12 +122,13 @@ class Gates(unittest.TestCase):
         f=p/'raw-musthold.txt'
         banner='Linux version 6.6.142-android15-8-gf6a5b29f9fe5-ab26 (builder@pangu-build-component-system-247-r6kfm) (test compiler) #1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'
         f.write_text(re.sub(r'^Linux version .*$',lambda m:banner,f.read_text(),flags=re.M))
-    def test_evox26_accepts_exact_kernel_and_all_191_checks(self):
+    def test_evox26_accepts_exact_kernel_and_all_195_checks(self):
         # 194 until 2026-11-04; three checks of the dropped device/lineage/sepolicy and system/core patches retired.
+        # 2026-11-05: the FeliCa policy check replaced by a removal check, plus four for the log-review fixes.
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp);self.evox26_fixture(p)
             result=gates.validate(p,'evox26')
-            self.assertEqual(len(result['checks']),191)
+            self.assertEqual(len(result['checks']),195)
             self.assertEqual(result['musthold'],'pass')
             self.assertEqual(gates.validate(p,'evox026')['musthold'],'pass')
     def test_evox26_rejects_wrong_kernel_identity_and_duplicate_banner(self):

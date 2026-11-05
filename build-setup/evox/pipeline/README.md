@@ -95,12 +95,16 @@ record), extracts it, and requires:
 
 - the must-hold checks ([`legacy/musthold.sh`](legacy/musthold.sh)): AVB, `super_empty`, `fastboot-info.txt`,
   `android-info.txt`, DTBO and `vendor_boot` DTB against the phone's slot b, 888 modules with 0 CRC mismatches;
-- all 191 fix checks: the 165 historical ones, 22 for the evox20 device-metadata pass and 4 for evox21
+- all 195 fix checks: the 165 historical ones, 22 for the evox20 device-metadata pass, 4 for evox21
   (bionic's overlay filter and `/data/local/tmp`, no `adb_root` in a user build, no `persist.sys.usb.config`)
+  and 4 for the 20261105 log-review fixes (hypsys camera properties, mpbe f2fs dontaudit, quieted ambient-light
+  debug tags, charging animation kept off the always-on display)
   ([`legacy/fixcheck21.sh`](legacy/fixcheck21.sh) and the files it chains to,
   matched by name against [`expected-legacy-checks.json`](expected-legacy-checks.json)). Three checks were
   retired on 2026-11-04 with the patches they tested, which were dropped with the forks: the two adbroot policy
-  checks (device/lineage/sepolicy) and "no init rc gives persist.sys.evox props a value" (system/core). The
+  checks (device/lineage/sepolicy) and "no init rc gives persist.sys.evox props a value" (system/core). On
+  2026-11-05 "klimt_felica may call system_server" became "Mobile FeliCa removed": the owner had FeliCa taken
+  out. The
   checks that depend on the build read its name through [`legacy/build-profile.sh`](legacy/build-profile.sh): a
   date-named build gets every rule from evox26 on and the kernel label `ab<build>`;
 - seven image checks ([`image-checks/check_image.py`](image-checks/check_image.py), registered with their hash in

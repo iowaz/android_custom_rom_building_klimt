@@ -390,7 +390,8 @@ class Prep:
             for p, head in heads.items():
                 files = [str(S / DEVICE / 'patches' / f['file']) for f in bundle[p]['patches']]
                 git(S / p, 'checkout', '-q', '-B', REBASE_BRANCH, head)
-                am = sp.run(['git', '-C', str(S / p), 'am', '-3', '--committer-date-is-author-date', *files],
+                # --keep-cr as apply.py (am.keepcr=true): some patched files are CRLF (SystemUI's charging files).
+                am = sp.run(['git', '-C', str(S / p), 'am', '-3', '--keep-cr', '--committer-date-is-author-date', *files],
                             capture_output=True, text=True, env=env)
                 if am.returncode:
                     sp.run(['git', '-C', str(S / p), 'am', '--abort'], capture_output=True)

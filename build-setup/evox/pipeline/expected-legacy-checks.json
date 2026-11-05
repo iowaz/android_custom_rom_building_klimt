@@ -132,7 +132,7 @@
   "persist.vendor.camera.st_repair. -> vendor_mtk_camera_prop",
   "6 TEE status props -> vendor_payment_security_prop",
   "mitee_mtdservice may set them",
-  "klimt_felica may call system_server",
+  "Mobile FeliCa removed (no klimt_felica, init.felica.sh or MobileFeliCa apps)",
   "USB product written as Xiaomi 15T Pro",
   "no ${ro.product.marketname} left in vendor rc (comments aside)",
   "dio mapper has dedicated stock label",
@@ -189,5 +189,9 @@
   "libc filters the five */overlay dirs",
   "libc no longer fakes the /data/local/tmp inode",
   "no adb_root binary or init service",
-  "no prop file sets persist.sys.usb.config"
+  "no prop file sets persist.sys.usb.config",
+  "hypsys_vendor camera property reads dontaudited, not allowed",
+  "mpbe f2fs gc_urgent writes dontaudited",
+  "vendor ambient-light debug log tags quieted",
+  "charging animation kept off the always-on display (source)"
 ]

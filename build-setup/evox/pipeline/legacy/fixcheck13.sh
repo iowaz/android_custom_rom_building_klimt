@@ -47,6 +47,19 @@ ok "6 TEE status props -> vendor_payment_security_prop" "[ \$(grep -c 'vendor_pa
 ok "mitee_mtdservice may set them" "grep -qE '^\(allow mitee_mtdservice vendor_payment_security_prop \(property_service \(set' $CIL"
 
 echo "== FeliCa script, USB product string"
-ok "klimt_felica may call system_server" "grep -qE '^\(allow klimt_felica system_server(_[0-9]+)? \(binder \(call transfer' $CIL"
+# Retired 2026-11-05: "klimt_felica may call system_server". The owner had Mobile FeliCa removed entirely: the
+# hiding script never worked (from a vendor domain `cmd settings` gets no reply, so it ran `cmd package
+# disable-user` on every boot and was denied). Its replacement checks that nothing of it is left.
+# Every input must be there before absence counts: grep's I/O error (2) must not read as "no match".
+felica_gone(){ local d
+  [ -s "$CIL" ] && [ -s "$VFC" ] && [ -d $F/vendor/etc/init ] && [ -d $F/product/app ] || return 1
+  grep -q klimt_felica "$CIL" "$VFC"; [ $? -eq 1 ] || return 1
+  grep -rqsE 'klimt_felica|init\.felica\.sh' $F/vendor/etc/init $F/odm/etc/init; [ $? -eq 1 ] || return 1
+  [ ! -e $F/vendor/bin/init.felica.sh ] && [ ! -e $F/product/etc/felica ] || return 1
+  for d in $F/product $F/system_ext $F/system/system $F/vendor $F/odm; do
+    [ -d "$d" ] || continue
+    [ -z "$(find "$d" \( -iname '*MobileFeliCa*' -o -iname '*felicanetworks*' \) -print -quit 2>/dev/null)" ] || return 1
+  done; }
+ok "Mobile FeliCa removed (no klimt_felica, init.felica.sh or MobileFeliCa apps)" "felica_gone"
 ok "USB product written as Xiaomi 15T Pro" "grep -qF 'strings/0x409/product \"Xiaomi 15T Pro\"' $F/vendor/etc/init/hw/init.mt6991.usb.rc"
 ok "no \${ro.product.marketname} left in vendor rc (comments aside)" "! grep -rh 'ro.product.marketname' $F/vendor/etc/init | grep -qv '^ *#'"

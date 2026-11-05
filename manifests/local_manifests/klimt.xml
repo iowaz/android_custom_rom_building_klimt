@@ -14,7 +14,7 @@
   <project path="device/xiaomi/klimt" name="android_device_xiaomi_klimt" remote="iowaz" revision="cnb" />
   <project path="kernel/xiaomi/klimt" name="android_kernel_xiaomi_klimt" remote="iowaz" revision="17.0" clone-depth="1" />
   <project path="kernel/xiaomi/klimt-prebuilt" name="android_kernel_xiaomi_klimt-prebuilt" remote="misakazip" revision="17.0" clone-depth="1" />
-  <project path="vendor/xiaomi/klimt" name="proprietary_vendor_xiaomi_klimt" remote="iowaz" revision="evox" />
+  <project path="vendor/xiaomi/klimt" name="proprietary_vendor_xiaomi_klimt" remote="iowaz" revision="cnb" />
 
   <!-- Device dependencies (lineage.dependencies; Evolution X's roomservice only reads evolution.dependencies) -->
   <project path="hardware/xiaomi" name="LineageOS/android_hardware_xiaomi" remote="github" revision="lineage-24.0" />

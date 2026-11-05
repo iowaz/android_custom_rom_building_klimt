@@ -31,9 +31,9 @@ signed with my own private keys, with Google apps included (`WITH_GMS=true`).
 |---|---|---|---|---|
 | everything else | [Evolution-X/manifest](https://github.com/Evolution-X/manifest) | `cnb` | public | Evolution X (AOSP + LineageOS + Evolution X projects), unchanged |
 | `device/xiaomi/klimt` | [iowaz/android_device_xiaomi_klimt](https://github.com/iowaz/android_device_xiaomi_klimt) | `cnb` | public | Device tree, fork of [misakazip-dev](https://github.com/misakazip-dev/android_device_xiaomi_klimt). Also holds the patches to ROM sources, under `patches/` (see below) |
-| `kernel/xiaomi/klimt` | [iowaz/android_kernel_xiaomi_klimt](https://github.com/iowaz/android_kernel_xiaomi_klimt) | `17.0`; the live manifest keeps its `evox31` head | public | Kernel source, fork of misakazip-dev's `17.0` |
+| `kernel/xiaomi/klimt` | [iowaz/android_kernel_xiaomi_klimt](https://github.com/iowaz/android_kernel_xiaomi_klimt) | `17.0` | public | Kernel source, fork of misakazip-dev's `17.0` |
 | `kernel/xiaomi/klimt-prebuilt` | [misakazip-dev/android_kernel_xiaomi_klimt-prebuilt](https://github.com/misakazip-dev/android_kernel_xiaomi_klimt-prebuilt) | `17.0` (pinned) | public | Builds the kernel from source |
-| `vendor/xiaomi/klimt` | iowaz/proprietary_vendor_xiaomi_klimt | `evox`; the live manifest keeps its `evox31` head | **private** | Proprietary blobs extracted from HyperOS OS3.0.335 plus MIUI Camera. Uses Git LFS |
+| `vendor/xiaomi/klimt` | iowaz/proprietary_vendor_xiaomi_klimt | `cnb` | **private** | Proprietary blobs extracted from HyperOS OS3.0.335 plus MIUI Camera. Uses Git LFS |
 | `hardware/xiaomi` | [LineageOS/android_hardware_xiaomi](https://github.com/LineageOS/android_hardware_xiaomi) | `lineage-24.0` | public | Xiaomi HALs (fingerprint, sensors) |
 | `device/mediatek/sepolicy_vndr` | [LineageOS/android_device_mediatek_sepolicy_vndr](https://github.com/LineageOS/android_device_mediatek_sepolicy_vndr) | `lineage-24.0` | public | MediaTek vendor SELinux policy |
 | `vendor/evolution-priv/keys` | not in git | | **offline only** | Signing keys, generated once (see [Keys](#keys)) |
@@ -97,7 +97,8 @@ anyone without access to the private vendor repository. So this repository ships
 - [`manifests/local_manifests/klimt-live.xml`](manifests/local_manifests/klimt-live.xml) is the live manifest
   `prepare.py upstream` installs on the build PC (`.repo/manifests/klimt-live.xml`, on the local manifests branch
   `klimt`): Evolution X's `default.xml` plus the klimt projects, with the kernel and vendor entries of the
-  previous live manifest (today their `evox31` branches).
+  previous live manifest (kernel `17.0`, vendor `cnb`). Builds are tagged in the device, kernel, vendor and
+  build repositories (`evox26`…`evox31`, then `20261104`, ...); the per-build branches were deleted on 2026-11-04.
 
 ## The build machine
 

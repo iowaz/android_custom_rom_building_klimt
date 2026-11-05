@@ -279,7 +279,7 @@
   <project name="OTA" path="evolution/OTA" remote="evo" revision="3885ccff33f8ac1ad5771b482dc6f6464ac3c17d"/>
   <project name="OTA" path="evolution/OTA-VANILLA" remote="evo" revision="72c970945d8eeae3491fa62d2d0ae7e1b95c8ae8" upstream="cnb-vanilla" dest-branch="cnb-vanilla"/>
   <project name="TheParasiteProject/packages_apps_BtHelper" path="packages/apps/BtHelper" remote="github-non-los" revision="fbcd1f249ce4c04b5631c0aa90a05e6e8ab43928" upstream="main" dest-branch="main"/>
-  <project name="android_device_xiaomi_klimt" path="device/xiaomi/klimt" remote="iowaz" revision="8f1f90332c692c4b9ae859d361d04d5333409712" upstream="evox" dest-branch="evox" groups="local::klimt"/>
+  <project name="android_device_xiaomi_klimt" path="device/xiaomi/klimt" remote="iowaz" revision="8f1f90332c692c4b9ae859d361d04d5333409712" upstream="cnb" dest-branch="cnb" groups="local::klimt"/>
   <project dest-branch="17.0" upstream="17.0" name="android_kernel_xiaomi_klimt" path="kernel/xiaomi/klimt" remote="iowaz" revision="b13ac15b32e25368f70859fff986e07c18d9d5a5" groups="local::klimt" clone-depth="1"/>
   <project name="android_kernel_xiaomi_klimt-prebuilt" path="kernel/xiaomi/klimt-prebuilt" remote="misakazip" revision="a2d1dae44726c14b1295f4042cddd9fedacd39e0" upstream="17.0" dest-branch="17.0" groups="local::klimt" clone-depth="1"/>
   <project name="art" remote="evo" revision="2ae0ac223eccfbdebc5ec5a4bb2795d58c13326d" upstream="refs/heads/cnb" dest-branch="refs/heads/cnb" groups="pdk"/>
@@ -1260,7 +1260,7 @@
   <project name="platform/tools/tradefederation/prebuilts" path="tools/tradefederation/prebuilts" remote="aosp" revision="cff1e97158caa95de4919a38abf6f3ac10409f37" upstream="refs/tags/android-17.0.0_r1" dest-branch="refs/tags/android-17.0.0_r1" groups="pdk,tradefed" clone-depth="1"/>
   <project name="platform/tools/treble" path="tools/treble" remote="aosp" revision="07f855c5b283a77b04617322aea8990d9d3cdf52" upstream="refs/tags/android-17.0.0_r1" dest-branch="refs/tags/android-17.0.0_r1" groups="pdk,tools"/>
   <project name="platform/tools/trebuchet" path="tools/trebuchet" remote="aosp" revision="fb475730e55c847362a51b1978b16a633267deb9" upstream="refs/tags/android-17.0.0_r1" dest-branch="refs/tags/android-17.0.0_r1" groups="cts,pdk,pdk-cw-fs,pdk-fs,tools"/>
-  <project dest-branch="evox" upstream="evox" name="proprietary_vendor_xiaomi_klimt" path="vendor/xiaomi/klimt" remote="iowaz" revision="74d378be9f0b832f2c83284474a0f5da72062ca2"/>
+  <project dest-branch="cnb" upstream="cnb" name="proprietary_vendor_xiaomi_klimt" path="vendor/xiaomi/klimt" remote="iowaz" revision="74d378be9f0b832f2c83284474a0f5da72062ca2"/>
   <project name="system_core" path="system/core" remote="evo" revision="ee96af1583278d5c4a32b7ddc6665d0e81e04090" groups="pdk"/>
   <project name="system_fs_fs_mgr" path="system/fs/fs_mgr" remote="evo" revision="6be2394ed00fdc4ba2ff9cd7037e0a7a2d4d8656" groups="pdk"/>
   <project name="system_libhwbinder" path="system/libhwbinder" remote="evo" revision="3a07e34e48a56b2c6ba0ae80090be3ec9c77bc19" upstream="refs/heads/cnb" dest-branch="refs/heads/cnb" groups="pdk"/>

@@ -1,7 +1,7 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current phone build: **evox31**, flashed (dirty) on 2026-11-04 and boots; the owner's app checks are open.
-Latest delivery: **[20261104](docs/20261104.md)**, built and image-checked on 2026-11-04, not flashed or boot-tested.
+Current phone build: **20261104**, flashed (dirty) on 2026-11-04 and boots; the owner's app checks are open.
+Latest delivery: **[20261104](docs/20261104.md)**, built and image-checked on 2026-11-04, flashed to slot b the same day.
 The first build without ROM-source forks: the klimt patches are in the device tree, and LineageOS's 2026-11 security fixes are in the projects that come straight from LineageOS.
 See [history](docs/history.md) for source and build results.
 

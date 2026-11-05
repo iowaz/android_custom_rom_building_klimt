@@ -170,7 +170,11 @@ On the build PC, [`prepare.py`](build-setup/evox/pipeline/prepare.py) does this 
 (upstream, move-renamed, sync, patch, label, freeze; see the [pipeline README](build-setup/evox/pipeline)), and
 freezes the result: every project at an exact commit, recorded in `manifests/snapshots/<build>.xml`. Up to
 evox31 the frozen manifests were also kept in the private `iowaz/evox16_manifest` repository, one branch per
-build.
+build; it was archived on 2026-11-04. This repository is the manifest repository now: any snapshot can be
+synced with `repo init -u https://github.com/iowaz/android_custom_rom_building_klimt -b main -m
+manifests/snapshots/<build>.xml`. The twelve ROM-source forks (and the evox16-only `android_hardware_xiaomi` and
+`android_system_memory_libdmabufheap` forks) were archived the same day: read-only, every branch kept, so the
+older snapshots that name them still sync.
 
 ### 3. Keys
 

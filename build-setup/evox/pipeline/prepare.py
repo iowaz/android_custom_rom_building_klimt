@@ -14,7 +14,10 @@ writes its record to diagnostics/builds/<build>/preparation/):
   sync          repo sync to the new manifest, then compare with the previous snapshot -> UPSTREAM_CHANGES.json.
                 About an hour: run it from a background shell.
   patch         device/xiaomi/klimt/patches/apply.py: the klimt patches onto local branch `klimt` of each
-                patched project. A MISMATCH stops here: that project's patch needs a re-export (hand port).
+                patched project. When Evolution X has rebased a patched project (apply.py: MISMATCH), the
+                recorded patches are first replayed with `git am -3` on the synced head, re-exported with
+                patches/export.py and committed on the device tree's local cnb. Only a real conflict stops
+                here: that patch needs a hand port.
   label         device tree commit (local branch cnb) that sets the kernel label in configs/kernel/metadata.config:
                 the previous build's label is replaced, evox31 -> 20261105 and ab31 -> ab20261105.
   freeze        diagnostics/builds/<build>/<build>-frozen.xml = `repo manifest -r` with every patched project
@@ -39,6 +42,8 @@ LINEAGE_DEPS = {'hardware/xiaomi': 'LineageOS/android_hardware_xiaomi',
 KLIMT = [DEVICE, KERNEL, PREBUILT, VENDOR, *LINEAGE_DEPS]
 IOWAZ = {DEVICE, KERNEL, VENDOR}         # the only iowaz repositories: no ROM-source forks since 2026-11-04
 LIVE = 'klimt-live.xml'
+COMMITTER = ('Diogo Casteluber Laass', '4793368+iowaz@users.noreply.github.com')  # same identity apply.py forces
+REBASE_BRANCH = 'klimt-rebase'
 UPSTREAM_URL = 'https://github.com/Evolution-X/manifest'
 SHA = re.compile(r'[0-9a-f]{40}')
 STEPS = ['upstream', 'move-renamed', 'sync', 'patch', 'label', 'freeze']
@@ -356,8 +361,71 @@ class Prep:
             changes.append(rec)
         return changes
 
+    def synced_heads(self):
+        """Project -> revision in this build's upstream-resolved.xml (what `sync` checked out)."""
+        resolved = self.out / 'upstream-resolved.xml'
+        return {p: a.get('revision') for p, a in project_map(resolved.read_text()).items()}
+
+    def rebase_patches(self, bundle):
+        """Evolution X rebases its projects often, which moves a patched project off its recorded base (apply.py
+        says MISMATCH). For each such project whose HEAD is exactly what `sync` checked out, replay the recorded
+        patches with `git am -3` on that head, re-export them with the device tree's export.py and commit the new
+        PATCHES.json (and any patch files whose context changed) on the device tree's local cnb. A conflict stops
+        the step with the project restored to its synced head: that patch needs a hand port. Returns the rebased
+        projects ([] when nothing moved)."""
+        apply_py = S / DEVICE / 'patches/apply.py'
+        r = sp.run(['python3', '-B', str(apply_py), str(S), '--check'], capture_output=True, text=True)
+        moved = [l.split()[1].rstrip(':') for l in r.stdout.splitlines() if l.startswith('MISMATCH ')]
+        if not moved:
+            return []
+        synced = self.synced_heads()
+        heads = {}
+        for p in moved:
+            head = git(S / p, 'rev-parse', 'HEAD')
+            if synced.get(p) != head:
+                raise SystemExit(f'{p}: HEAD {head} is not the synced revision {synced.get(p)}; not rebasing')
+            heads[p] = head
+        env = dict(os.environ, GIT_COMMITTER_NAME=COMMITTER[0], GIT_COMMITTER_EMAIL=COMMITTER[1])
+        try:
+            for p, head in heads.items():
+                files = [str(S / DEVICE / 'patches' / f['file']) for f in bundle[p]['patches']]
+                git(S / p, 'checkout', '-q', '-B', REBASE_BRANCH, head)
+                am = sp.run(['git', '-C', str(S / p), 'am', '-3', '--committer-date-is-author-date', *files],
+                            capture_output=True, text=True, env=env)
+                if am.returncode:
+                    sp.run(['git', '-C', str(S / p), 'am', '--abort'], capture_output=True)
+                    raise SystemExit(f'{p}: the recorded patches do not apply on {head[:12]} even with a 3-way merge; '
+                                     f'hand-port them, then run patches/export.py.\n{(am.stdout + am.stderr)[-1500:]}')
+                print(f'REBASED {p}: {len(files)} patches on {head[:12]}')
+            export = [sys.executable, '-B', str(S / DEVICE / 'patches/export.py'), str(S), *heads]
+            for p, head in heads.items():
+                export += ['--base', f'{p}={head}']
+            ex = sp.run(export, capture_output=True, text=True)
+            print(ex.stdout.strip())
+            if ex.returncode:
+                raise SystemExit('export.py failed; nothing committed\n' + ex.stderr.strip()[-1500:])
+        finally:
+            for p, head in heads.items():
+                git(S / p, 'checkout', '-q', '--detach', head, check=False)
+                git(S / p, 'branch', '-D', REBASE_BRANCH, check=False)
+        g = S / DEVICE
+        head = git(g, 'rev-parse', 'HEAD')
+        git(g, 'checkout', '-q', '-B', 'cnb', head)
+        git(g, 'add', '-A', 'patches')
+        names = ', '.join(heads)
+        msg = (f'klimt: patches: Rebase {names} for {self.build}\n\n'
+               f'Evolution X moved {"these projects" if len(heads) > 1 else "this project"} since the recorded base. '
+               'The patches applied with a 3-way merge\nand were re-exported by patches/export.py; their purpose is unchanged.\n\n'
+               + ''.join(f'{p}: {bundle[p]["base"][:12]} -> {h[:12]}\n' for p, h in heads.items())
+               + '\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n')
+        sp.run(['git', '-C', str(g), '-c', f'user.name={COMMITTER[0]}', '-c', f'user.email={COMMITTER[1]}', 'commit', '-q', '-F', '-'],
+               input=msg, text=True, check=True, env=env)
+        print('device commit', git(g, 'rev-parse', 'HEAD'))
+        return list(heads)
+
     def patch(self):
         self.require('patch')
+        rebased = [] if self.dry else self.rebase_patches(self.bundle())
         bundle = self.bundle()
         apply_py = S / DEVICE / 'patches/apply.py'
         argv = ['python3', '-B', str(apply_py), str(S)] + (['--check'] if self.dry else [])
@@ -372,7 +440,7 @@ class Prep:
         check = sp.run(['python3', '-B', str(apply_py), str(S), '--check'], capture_output=True, text=True)
         final = [l.strip() for l in check.stdout.splitlines() if l.strip()]
         ok = r.returncode == 0 and check.returncode == 0 and not mismatch and final and all(l.startswith('FINAL') for l in final)
-        rec = dict(apply_exit=r.returncode, apply_output=lines, apply_stderr=r.stderr.strip()[-2000:], check_exit=check.returncode,
+        rec = dict(rebased=rebased, apply_exit=r.returncode, apply_output=lines, apply_stderr=r.stderr.strip()[-2000:], check_exit=check.returncode,
                    check_output=final, projects=sorted(bundle), device_head=git(S / DEVICE, 'rev-parse', 'HEAD'),
                    heads={p: git(S / p, 'rev-parse', 'HEAD') for p in bundle})
         print(self.record('patch', rec, ok=bool(ok)))

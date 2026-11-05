@@ -36,7 +36,8 @@ export KLIMT_BUILD=20261105
 python3 -B $P/prepare.py upstream 20261105       # heads = previous snapshot; Evolution X manifest cnb -> .repo/manifests branch klimt
 python3 -B $P/prepare.py move-renamed 20261105   # moves aside projects whose repository name changed (never deletes)
 python3 -B $P/prepare.py sync 20261105           # repo sync (about an hour: background shell) -> UPSTREAM_CHANGES.json
-python3 -B $P/prepare.py patch 20261105          # device patches/apply.py; MISMATCH = that patch needs a re-export
+python3 -B $P/prepare.py patch 20261105          # device patches/apply.py; a project Evolution X rebased is re-exported
+                                                # and committed on the device cnb; only a conflict stops
 python3 -B $P/prepare.py label 20261105          # device tree commit: kernel -ab20261105 in configs/kernel/metadata.config
 python3 -B $P/prepare.py freeze 20261105         # -> diagnostics/builds/20261105/20261105-frozen.xml, manifests/snapshots/20261105.xml
 
@@ -50,6 +51,12 @@ python3 -B $P/controller.py status 20261105-attempt01
 
 # 4. Promote the verified delivery to output-zips/20261105 (a move; duplicate staged ZIPs are removed)
 python3 -B $P/promote.py 20261105-attempt01
+
+# 5. With the owner's OK: tag the build where its pinned commits are (no per-build branches)
+for r in android_device_xiaomi_klimt android_kernel_xiaomi_klimt proprietary_vendor_xiaomi_klimt; do
+  sha=...   # that repository's revision in manifests/snapshots/20261105.xml
+  gh api -X POST repos/iowaz/$r/git/refs -f ref=refs/tags/20261105 -f sha=$sha
+done        # and tag the build repository commit that records the build
 ```
 
 Each `prepare.py` step refuses to run before the step it needs, a second time after it succeeded, or on a dirty

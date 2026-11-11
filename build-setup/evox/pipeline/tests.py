@@ -679,7 +679,8 @@ Descriptors:
     Prop: com.android.build.boot.security_patch -> '2026-02-01'
 '''
         result = rollback_security.parse_avb(text)
-        self.assertEqual(result['chain_partitions'], [('boot', 3, 'abc')])
+        self.assertEqual(result['chain_partitions'], [['boot', 3, 'abc']])
+        self.assertTrue(rollback_security.compare(json.loads(json.dumps(result)), result)['pass'])
         self.assertEqual(result['security_properties'], {'com.android.build.boot.security_patch': '2026-02-01'})
         for changed in (text.replace('Rollback Index: 1\n', ''), text+'Rollback Index: 2\n',
                         text+"    Prop: com.android.build.boot.security_patch -> '2026-03-01'\n"):

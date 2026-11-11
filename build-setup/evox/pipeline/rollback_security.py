@@ -45,7 +45,7 @@ def parse_avb(text):
         chains.append((name[1], int(location[1]), key[1]))
     if len({c[0] for c in chains}) != len(chains):
         raise ValueError('Duplicate AVB chain partition')
-    result['chain_partitions'] = sorted(chains)
+    result['chain_partitions'] = [list(chain) for chain in sorted(chains)]
     return result
 
 

@@ -45,6 +45,18 @@ def main():
         candidate_gates.validate_ready(ready, ready['reviewed_project_heads'])
         if ready['candidate_evidence'] != results['candidate_evidence']:
             raise RuntimeError('Candidate audit evidence differs from verified attempt')
+        import kernel_artifact
+        artifact_reports = results.get('kernel_artifact_evidence', {})
+        if set(artifact_reports) != {'kernel-artifact-binding.json', 'image-files.json', 'filesystem-files.json'}:
+            raise RuntimeError('Packaged kernel/ELF/config/module binding evidence required')
+        for name, digest in artifact_reports.items():
+            if sha(report/name) != digest or sha(staged/name) != digest:
+                raise RuntimeError('Packaged kernel binding evidence changed after verification')
+        kernel_artifact.validate_receipt(json.loads((report/'kernel-artifact-binding.json').read_text()),
+                                         candidate_gates.revalidate(ready['candidate_evidence']['kernel_audit']),
+                                         ready['reviewed_project_heads'], results['archive_sha256'],
+                                         json.loads((report/'image-files.json').read_text()),
+                                         json.loads((report/'filesystem-files.json').read_text()))
         for name, digest in results['rollback_security'].items():
             if sha(report/name) != digest or sha(staged/name) != digest:
                 raise RuntimeError('Rollback/security report changed after verification')

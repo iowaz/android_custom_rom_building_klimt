@@ -185,7 +185,10 @@ def main(attempt,recheck=None,tool_review=None):
         import candidate_gates, rollback_security
         candidate_gates.validate_ready(ready, ready['reviewed_project_heads'])
         audit = candidate_gates.revalidate(ready['candidate_evidence']['kernel_audit'])
-        candidate_gates.validate_compiled_config(audit, O/'target/product/klimt/obj/KERNEL_OBJ/.config')
+        import kernel_artifact
+        binding = kernel_artifact.validate(audit, ready['reviewed_project_heads'], extract/'img/boot.img',
+                                           extract/'fs/system_dlkm', digest, S)
+        write_json(report/'kernel-artifact-binding.json', binding, True)
         baseline = candidate_gates.revalidate(ready['candidate_evidence']['rollback_baseline'])['security']
         security = rollback_security.collect(extract, S/'external/avb/avbtool.py', ready['security']['platform_security_patch'])
         write_json(report/'rollback-security-candidate.json', security, True)
@@ -200,6 +203,8 @@ def main(attempt,recheck=None,tool_review=None):
     if ready.get('candidate_evidence'):
         results['candidate_evidence'] = ready['candidate_evidence']
         results['kernel_expectation'] = ready['kernel_expectation']
+        results['kernel_artifact_evidence'] = {name: sha(report/name) for name in
+                                               ('kernel-artifact-binding.json', 'image-files.json', 'filesystem-files.json')}
         results['rollback_security'] = {name: sha(report/name) for name in
                                        ('rollback-security-candidate.json', 'rollback-security-equality.json')}
     write_json(report/'RESULTS.json',results,True)
@@ -217,7 +222,7 @@ Archive: `{archive.name}`. SHA256: `{digest}`. Source inputs match the frozen pr
     scripts=future_flash_scripts(dest,archive,digest)
     shutil.copyfile(report/'RESULTS.json',dest/'RESULTS.json')
     shutil.copyfile(report/'COMPARISON.md',dest/'COMPARISON.md')
-    for name in results.get('rollback_security', {}):
+    for name in dict(results.get('rollback_security', {}), **results.get('kernel_artifact_evidence', {})):
         shutil.copyfile(report/name, dest/name)
     for name in ('prebuild.xml','postbuild.xml','postverify.xml'):
         shutil.copyfile(evidence/name if name=='postverify.xml' else attempt/name,dest/name)
@@ -233,6 +238,14 @@ The update writes slot b and selects it as active. In Windows run `{scripts[1].n
 See COMPARISON.md and RESULTS.json for image/source evidence. `sha256sum -c SHA256SUMS` validates the complete delivery set.
 ''')
     marker=BUILD+' static image checks passed (source/producer/archive/layout/AVB/kernel/policy/patch/private compatibility/install integrity). NOT boot-tested.\n'
+    if ready.get('candidate_evidence'):
+        (dest/'RUNTIME_PENDING.md').write_text('''# Experimental candidate: runtime admission pending
+
+Static image checks do not admit a phone trial. Before any flash, complete the unrooted early-boot
+baseline contract, concrete slot-a fallback/recovery decision and the owner's separate go/no-go.
+The current candidate has not booted. Keep the known-good recovery ZIP and follow the staged
+K -> K+D -> K+D+S protocol. No display timing benefit or protected-mode runtime compatibility is claimed.
+''')
     # This marker is written last, after every required image/provenance gate.
     files=sorted(p for p in dest.iterdir() if p.is_file())
     sums={p.name:sha(p) for p in files}

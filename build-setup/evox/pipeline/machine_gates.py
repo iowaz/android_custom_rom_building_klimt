@@ -5,6 +5,12 @@ import re
 from pathlib import Path
 
 import abi_analysis
+import kernel_contract
+
+TARGET = '1c39bb5f635a741f90a5ecb4535e7bd264083a80'
+ACK_BASE = 'c3dd858dcf5843346c0a5b9c031ae0e9e0664277'
+LOCAL_PATHS = {'android/abi_gki_aarch64_klimt', 'android/klimt_gki_modules',
+               'arch/arm64/configs/klimt_defconfig', 'include/linux/compiler_types.h'}
 
 
 def validate(audit, frozen, retained, tool_sha256, compare_graphs):
@@ -25,12 +31,24 @@ def validate(audit, frozen, retained, tool_sha256, compare_graphs):
         require(data.get('pass') is True, message)
 
     require(bool(retained), 'Frozen retained-symbol contract is empty')
+    refs = report('ancestry', 'kernel-refs.json')
+    require(refs == report('local_delta', 'kernel-refs.json'), 'Kernel ancestry/local-delta records disagree')
+    require(refs.get('baseline') == kernel_contract.BASELINE and refs.get('true_lts_base') == ACK_BASE and
+            refs.get('target') == TARGET and refs.get('candidate') == frozen['kernel/xiaomi/klimt'] and
+            refs.get('candidate_parents') == [kernel_contract.BASELINE, TARGET] and refs.get('ancestor') is True and
+            re.fullmatch(r'[0-9a-f]{40}', refs.get('candidate_tree', '')) is not None and
+            set(refs.get('local_delta_paths', [])) == LOCAL_PATHS, 'Unreviewed kernel lineage or local-delta contract')
+    delta = file('local_delta', 'local-delta.patch').read_text()
+    patch_paths = re.findall(r'^diff --git a/(.+) b/\1$', delta, re.M)
+    require(len(patch_paths) == len(LOCAL_PATHS) and set(patch_paths) == LOCAL_PATHS,
+            'Kernel local patch has missing or extra paths')
     abi = report('type_abi', 'abi-RESULT.json')
     passed(abi, 'ABI producer failed')
     require(abi.get('exit') == 0, 'ABI producer exit was not zero')
     graph_paths = {}
     actual_untyped = {}
     proof_digests = {r['sha256'] for r in audit['checks']['type_abi']['files']}
+    proof_records = {(r['path'], r['sha256']) for r in audit['checks']['type_abi']['files']}
     for label in ('old', 'new'):
         graph_paths[label] = file('type_abi', label+'.stg')
         record = abi['inputs'][label]
@@ -40,7 +58,7 @@ def validate(audit, frozen, retained, tool_sha256, compare_graphs):
         actual_untyped[label] = coverage['untyped']
         require(hashlib.sha256(graph_paths[label].read_bytes()).hexdigest() == record['graph_sha256'], 'ABI graph hash mismatch')
         require(record['tool_sha256'] == tool_sha256, 'ABI extraction tool differs from frozen tool')
-        require(bool(record['inputs']) and all(r['sha256'] in proof_digests for r in record['inputs']), 'ABI ELF input evidence incomplete')
+        require(bool(record['inputs']) and all((r.get('path'),r['sha256']) in proof_records for r in record['inputs']), 'ABI ELF input evidence incomplete')
     require(compare_graphs(graph_paths['old'], graph_paths['new']) == 0, 'Actual type graph comparison failed')
     require(actual_untyped['old'] == actual_untyped['new'], 'ABI type presence changed')
     if actual_untyped['old']:
@@ -53,7 +71,8 @@ def validate(audit, frozen, retained, tool_sha256, compare_graphs):
             for proof in symbol['declarations']+symbol['providers']:
                 old = Path(proof['old']).read_bytes(); new = Path(proof['new']).read_bytes()
                 require(old == new and hashlib.sha256(old).hexdigest() == proof['sha256'], 'Assembly source contract changed')
-                require(proof['sha256'] in proof_digests, 'Assembly source proof is not hash-bound')
+                require((proof['old'],proof['sha256']) in proof_records and (proof['new'],proof['sha256']) in proof_records,
+                        'Assembly source proof is not individually hash-bound')
 
     pkvm = report('pkvm_types', 'pkvm-compiled-types.json')
     callbacks = report('pkvm_types', 'pkvm-callback-types.json')

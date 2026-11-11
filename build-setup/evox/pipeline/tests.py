@@ -755,5 +755,9 @@ class PostbuildReadinessTests(unittest.TestCase):
 from test_machine_gates import Reports as MachineReportTests
 from test_promotion_tooling import Promotion as PromotionToolingTests
 from test_reviewed_readiness import RevalidatedReadiness as RevalidatedReadinessTests
+from test_kernel_artifact import Artifact as KernelArtifactTests
+from test_kernel_carry import Carry as KernelCarryTests
+from test_preserve_kernel_audit import Preserve as PreserveKernelAuditTests
+from test_frozen_candidate_flow import CandidateFlow as CandidateFlowTests
 
 if __name__=='__main__':unittest.main(verbosity=2)

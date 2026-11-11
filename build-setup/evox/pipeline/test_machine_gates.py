@@ -19,6 +19,13 @@ class Reports(unittest.TestCase):
         self.retained = {'one', 'assembly'}
         self.tool = 'd'*64
         self.paths = {}
+        refs = dict(baseline=machine.kernel_contract.BASELINE, true_lts_base=machine.ACK_BASE,
+                    target=machine.TARGET, candidate='a'*40, candidate_tree='c'*40, ancestor=True,
+                    candidate_parents=[machine.kernel_contract.BASELINE,machine.TARGET],
+                    local_delta_paths=sorted(machine.LOCAL_PATHS))
+        self.add('ancestry', 'kernel-refs.json', refs)
+        self.audit['checks']['local_delta'] = {'pass':True, 'files':[dict(self.audit['checks']['ancestry']['files'][0])]}
+        self.add('local_delta', 'local-delta.patch', '\n'.join('diff --git a/'+p+' b/'+p for p in sorted(machine.LOCAL_PATHS)))
         self.graph = 'elf_symbol {\n  name: "one"\n  type_id: 0x1234\n}\nelf_symbol {\n  name: "assembly"\n}\n'
         self.add('type_abi', 'old.stg', self.graph)
         self.add('type_abi', 'new.stg', self.graph)
@@ -29,7 +36,7 @@ class Reports(unittest.TestCase):
         self.add('type_abi', 'assembly-declaration-review.json', {'pass': True, 'source_heads': {'new': 'a'*40},
             'symbols': {'assembly': {'explanation': 'reviewed', 'declarations': [proof], 'providers': [proof]}}})
         inputs = {'symbols': 2, 'untyped': ['assembly'], 'graph_sha256': self.sha(self.paths['old.stg']),
-                  'tool_sha256': self.tool, 'inputs': [{'sha256': self.sha(elf)}]}
+                  'tool_sha256': self.tool, 'inputs': [{'path':str(elf), 'sha256': self.sha(elf)}]}
         self.add('type_abi', 'abi-RESULT.json', {'pass': True, 'exit': 0, 'inputs': {'old': inputs, 'new': inputs}})
         layout = 'struct pkvm_module_ops { int callback; };'
         self.add('pkvm_types', 'pahole-pkvm-baseline.txt', layout)
@@ -91,6 +98,20 @@ class Reports(unittest.TestCase):
     def test_outer_pass_cannot_hide_failed_abi_exit(self):
         self.edit('abi-RESULT.json', lambda d: d.update(exit=4))
         with self.assertRaises(ValueError): self.validate()
+
+    def test_wrong_lineage_cannot_hide_behind_fresh_pass_flags(self):
+        original = self.paths['kernel-refs.json'].read_text()
+        for key,value in [('target','9'*40),('ancestor',False),('candidate_parents',[]),('local_delta_paths',[])]:
+            with self.subTest(key=key):
+                data=json.loads(original);data[key]=value
+                self.paths['kernel-refs.json'].write_text(json.dumps(data));self.refresh()
+                with self.assertRaises(ValueError):self.validate()
+        self.paths['kernel-refs.json'].write_text(original)
+
+    def test_unreported_local_patch_path_is_rejected(self):
+        self.paths['local-delta.patch'].write_text(self.paths['local-delta.patch'].read_text()+'\ndiff --git a/extra b/extra\n')
+        self.refresh()
+        with self.assertRaises(ValueError):self.validate()
 
     def test_actual_type_comparison_must_pass(self):
         with self.assertRaises(ValueError): self.validate(lambda a,b: 4)

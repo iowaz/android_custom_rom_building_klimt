@@ -23,7 +23,9 @@ def revalidate(record):
     return json.loads(p.read_text())
 
 
-def validate_audit(data, frozen, baseline_digest):
+def validate_audit(data, frozen, baseline_digest, _depth=0):
+    if _depth > 8:
+        raise ValueError('Kernel audit carry chain is too deep')
     wanted = {p: frozen[p] for p in (kernel_contract.KERNEL, 'kernel/xiaomi/klimt-prebuilt', 'vendor/xiaomi/klimt')}
     if data.get('schema') != 1 or data.get('source_heads') != wanted or data.get('baseline_manifest_sha256') != baseline_digest:
         raise ValueError('Kernel audit is not bound to the candidate source/control')
@@ -36,6 +38,12 @@ def validate_audit(data, frozen, baseline_digest):
         for record in check['files']:
             if rollback_security.digest(record['path']) != record['sha256']:
                 raise ValueError('Kernel audit proof hash drift: '+record['path'])
+    if 'kernel_carry' in data:
+        import kernel_carry
+        from controller import expected_heads, manifest_heads
+        kernel_carry.validate(data, frozen, revalidate,
+                             lambda parent: validate_audit(parent, frozen, parent['baseline_manifest_sha256'], _depth+1),
+                             lambda raw: expected_heads(manifest_heads(raw)))
     machine_report_check(data, frozen)
     return data
 

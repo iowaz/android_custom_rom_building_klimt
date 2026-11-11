@@ -408,6 +408,8 @@ def run(attempt_id,ready_path):
             raise RuntimeError('Stale ZIP unchanged from prebuild')
         write_json(attempt/'status.json',{'state':'verifying','time':time.time()})
         require_tooling_frozen(attempt)
+        import release_audit
+        release_audit.prepare_for_attempt(attempt)
         with open(attempt/'verify.log','xb') as verify_log:
             subprocess.run([sys.executable,'-B',str(B/'verify.py'),str(attempt)],cwd=S,
                 stdout=verify_log,stderr=subprocess.STDOUT,check=True,pass_fds=(source_lock.fileno(),),
@@ -464,6 +466,8 @@ def resume(attempt):
     # Any partial extraction/report remains evidence requiring diagnosis.
     if (X/state['attempt']).exists():
         raise RuntimeError('Partial extraction exists; preserve and diagnose before a separately named recheck')
+    import release_audit
+    release_audit.prepare_for_attempt(attempt)
     with open(attempt/'verify-resumed.log','xb') as log:
         subprocess.run([sys.executable,'-B',str(B/'verify.py'),str(attempt)],cwd=S,stdout=log,stderr=subprocess.STDOUT,check=True,
             pass_fds=(source_lock.fileno(),),env=dict(os.environ,EVOX_SOURCE_LOCK_FD=str(source_lock.fileno())))

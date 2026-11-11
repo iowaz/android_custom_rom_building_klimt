@@ -759,5 +759,8 @@ from test_kernel_artifact import Artifact as KernelArtifactTests
 from test_kernel_carry import Carry as KernelCarryTests
 from test_preserve_kernel_audit import Preserve as PreserveKernelAuditTests
 from test_frozen_candidate_flow import CandidateFlow as CandidateFlowTests
+from test_vendor_boot_contract import VendorCopies as VendorBootCopyTests
+from test_elf_contract import Crcs as ElfCrcTests
+from test_release_audit import ReleaseAudit as ReleaseAuditTests
 
 if __name__=='__main__':unittest.main(verbosity=2)

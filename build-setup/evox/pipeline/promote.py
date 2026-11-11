@@ -39,6 +39,9 @@ def main():
             import reviewed_readiness
             review = json.loads((staged/'TOOL_REVIEW.json').read_text())
             ready = reviewed_readiness.apply(ready, review, candidate_gates.revalidate, candidate_gates.validate_ready)
+        else:
+            import release_audit
+            ready = release_audit.effective_ready(L/attempt, ready)
         from controller import ready_heads
         if ready_heads(ready) != results['source_heads']:
             raise RuntimeError('Verified source heads disagree with candidate readiness')

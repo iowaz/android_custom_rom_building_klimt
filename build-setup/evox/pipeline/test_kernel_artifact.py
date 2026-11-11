@@ -63,16 +63,23 @@ class Artifact(unittest.TestCase):
         self.assertNotEqual(gate.unsigned_module(signed.replace(b'audited',b'changed'))[0],raw)
 
     def test_promotion_rejects_stale_boot_archive_config_and_module_records(self):
-        kernel={'path':'vmlinux','sha256':'a'*64};modules=[{'path':'test.ko','sha256':'b'*64}]
-        frozen={'kernel/xiaomi/klimt':'c'*40};audit={'normalized_config_sha256':'d'*64}
+        kernel={'path':'vmlinux','sha256':'a'*64};names=sorted(gate.vendor_boot_contract.RAMDISK_GKI)
+        modules=[{'path':n,'sha256':'b'*64} for n in names]
+        frozen={'kernel/xiaomi/klimt':'c'*40};audit={'normalized_config_sha256':'d'*64,
+            'checks':{'module_crc':{'files':[dict(path='preserved/Module.symvers',sha256='6'*64)]}}}
         binding=dict(schema=1,**{'pass':True},source_kernel='c'*40,archive_sha256='e'*64,
                      audited_vmlinux_sha256='a'*64,normalized_config_sha256='d'*64,
                      image_sha256='f'*64,audited_image_sha256='f'*64,boot_image_sha256='1'*64,
                      compressed_kernel_sha256='3'*64,config_sha256='4'*64,image_rule_sha256='5'*64,
-                     objcopy_sha256='6'*64,strip_sha256='7'*64,
-                     modules=[dict(name='test.ko',audited_sha256='b'*64,packaged_sha256='2'*64,
-                                   stripped_sha256='8'*64,signature_envelopes=2)])
-        images=[dict(path='boot.img',sha256='1'*64)];files=[dict(path='system_dlkm/lib/modules/test.ko',sha256='2'*64)]
+                     objcopy_sha256='6'*64,strip_sha256='7'*64,vendor_boot_sha256='a'*64,
+                     module_symvers_sha256='6'*64,elf_crcs_sha256='7'*64,elf_crc_symbols=9434,
+                     vendor_ramdisk_count=1,
+                     modules=[dict(name=n,audited_sha256='b'*64,packaged_sha256='2'*64,
+                                   stripped_sha256='8'*64,signature_envelopes=2) for n in names],
+                     vendor_boot_modules=[dict(name=n,audited_sha256='b'*64,packaged_sha256='3'*64,
+                         stripped_sha256='8'*64,signature_envelopes=1,ramdisk=0,path='lib/modules/'+n) for n in names])
+        images=[dict(path='boot.img',sha256='1'*64),dict(path='vendor_boot.img',sha256='a'*64)]
+        files=[dict(path='system_dlkm/lib/modules/'+n,sha256='2'*64) for n in names]
         with patch('kernel_artifact.audited_inputs',return_value=(kernel,modules)):
             gate.validate_receipt(binding,audit,frozen,'e'*64,images,files)
             for field in ('archive_sha256','boot_image_sha256','audited_vmlinux_sha256','normalized_config_sha256','image_sha256'):
@@ -82,4 +89,8 @@ class Artifact(unittest.TestCase):
             changed=copy.deepcopy(binding);changed['modules'][0]['packaged_sha256']='9'*64
             with self.assertRaises(ValueError):gate.validate_receipt(changed,audit,frozen,'e'*64,images,files)
             changed=copy.deepcopy(binding);del changed['image_sha256'];del changed['audited_image_sha256']
+            with self.assertRaises(ValueError):gate.validate_receipt(changed,audit,frozen,'e'*64,images,files)
+            changed=copy.deepcopy(binding);changed['vendor_boot_modules'][0]['stripped_sha256']='9'*64
+            with self.assertRaises(ValueError):gate.validate_receipt(changed,audit,frozen,'e'*64,images,files)
+            changed=copy.deepcopy(binding);changed['vendor_boot_modules'].pop()
             with self.assertRaises(ValueError):gate.validate_receipt(changed,audit,frozen,'e'*64,images,files)

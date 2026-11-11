@@ -10,8 +10,10 @@ import subprocess
 import zlib
 
 import candidate_gates
+import elf_contract
 import paths
 import rollback_security
+import vendor_boot_contract
 
 IMAGE_FLAGS = ['-O', 'binary', '-R', '.note', '-R', '.note.gnu.build-id', '-R', '.comment', '-S']
 SIGNATURE_MAGIC = b'~Module signature appended~\n'
@@ -109,12 +111,21 @@ def audited_symvers(audit):
     return Path(records[0]['path'])
 
 
+def compare_module(name, module, expected, audited_sha256):
+    unsigned, signatures = unsigned_module(module)
+    if expected != unsigned:
+        raise ValueError('Packaged GKI module differs from audited ELF: '+name)
+    return dict(name=name,audited_sha256=audited_sha256,packaged_sha256=digest(module),
+                stripped_sha256=digest(expected),signature_envelopes=signatures)
+
+
 def validate(audit, frozen, boot_path, module_directory, archive_sha256, source):
     source = Path(source)
     if any(not Path(r['path']).resolve().is_relative_to(paths.DIAGNOSTICS.resolve())
            for c in audit['checks'].values() for r in c['files']):
         raise ValueError('Packaged candidate requires all audit proofs preserved in release diagnostics')
     kernel, modules = audited_inputs(audit)
+    crc_contract = elf_contract.validate(audited_symvers(audit), [kernel['path'],*[r['path'] for r in modules]])
     makefile = subprocess.check_output(['git', '-C', str(source/'kernel/xiaomi/klimt'), 'show',
                                        frozen['kernel/xiaomi/klimt']+':arch/arm64/boot/Makefile'], text=True)
     rules = [l.split(':=', 1)[1] for l in makefile.splitlines() if l.startswith('OBJCOPYFLAGS_Image :=')]
@@ -132,21 +143,25 @@ def validate(audit, frozen, boot_path, module_directory, archive_sha256, source)
     if len(packaged) != len(list(Path(module_directory).rglob('*.ko'))) or set(packaged) != {Path(r['path']).name for r in modules}:
         raise ValueError('Packaged source-built GKI module set differs from audited ELFs')
     module_records = []
+    stripped = {}
+    module_inputs = {Path(r['path']).name:r for r in modules}
     for record in modules:
         name = Path(record['path']).name
         original = packaged[name].read_bytes()
-        unsigned, signatures = unsigned_module(original)
         expected = subprocess.check_output([str(strip), '--strip-debug', '-o', '-', record['path']])
-        if expected != unsigned:
-            raise ValueError('Packaged GKI module differs from audited ELF: '+name)
-        module_records.append(dict(name=name, audited_sha256=record['sha256'], packaged_sha256=digest(original),
-                                   stripped_sha256=digest(expected), signature_envelopes=signatures))
+        stripped[name] = expected
+        module_records.append(compare_module(name,original,expected,record['sha256']))
+    vendor_boot = Path(boot_path).with_name('vendor_boot.img').read_bytes()
+    ramdisk_count, ramdisk_modules = vendor_boot_contract.bind(vendor_boot,module_inputs,
+        lambda name,body: compare_module(name,body,stripped[name],module_inputs[name]['sha256']))
     return dict(schema=1, **{'pass':True}, source_kernel=frozen['kernel/xiaomi/klimt'], archive_sha256=archive_sha256,
                 boot_image_sha256=digest(boot), compressed_kernel_sha256=digest(payload), image_sha256=digest(image),
                 audited_image_sha256=digest(audited), audited_vmlinux_sha256=kernel['sha256'], config_sha256=digest(config),
                 normalized_config_sha256=normalized, image_rule_sha256=digest(makefile.encode()),
                 objcopy_sha256=rollback_security.digest(objcopy), strip_sha256=rollback_security.digest(strip),
-                modules=module_records)
+                module_symvers_sha256=crc_contract['symvers_sha256'],elf_crcs_sha256=crc_contract['elf_crcs_sha256'],
+                elf_crc_symbols=crc_contract['symbols'],vendor_boot_sha256=digest(vendor_boot),
+                vendor_ramdisk_count=ramdisk_count,vendor_boot_modules=ramdisk_modules,modules=module_records)
 
 
 def validate_receipt(binding, audit, frozen, archive_sha256, images, filesystem):
@@ -154,14 +169,19 @@ def validate_receipt(binding, audit, frozen, archive_sha256, images, filesystem)
     boots = [r for r in images if r['path'] == 'boot.img']
     digests = ('archive_sha256','boot_image_sha256','compressed_kernel_sha256','image_sha256','audited_image_sha256',
                'audited_vmlinux_sha256','config_sha256','normalized_config_sha256','image_rule_sha256',
-               'objcopy_sha256','strip_sha256')
+               'objcopy_sha256','strip_sha256','vendor_boot_sha256','module_symvers_sha256','elf_crcs_sha256')
+    vendors = [r for r in images if r['path'] == 'vendor_boot.img']
+    symvers = [r for r in audit['checks']['module_crc']['files'] if Path(r['path']).name == 'Module.symvers']
     if (any(not re.fullmatch(r'[0-9a-f]{64}', str(binding.get(k, ''))) for k in digests) or
         binding.get('schema') != 1 or binding.get('pass') is not True or
         binding.get('source_kernel') != frozen['kernel/xiaomi/klimt'] or binding.get('archive_sha256') != archive_sha256 or
         binding.get('audited_vmlinux_sha256') != kernel['sha256'] or
         binding.get('normalized_config_sha256') != audit['normalized_config_sha256'] or
         binding.get('image_sha256') != binding.get('audited_image_sha256') or len(boots) != 1 or
-        binding.get('boot_image_sha256') != boots[0]['sha256']):
+        binding.get('boot_image_sha256') != boots[0]['sha256'] or len(vendors) != 1 or
+        binding.get('vendor_boot_sha256') != vendors[0]['sha256'] or len(symvers) != 1 or
+        binding.get('module_symvers_sha256') != symvers[0]['sha256'] or
+        type(binding.get('elf_crc_symbols')) is not int or binding['elf_crc_symbols'] <= 0):
         raise ValueError('Packaged kernel binding is stale or inconsistent')
     expected = {Path(r['path']).name:r['sha256'] for r in modules}
     entries = binding.get('modules', [])
@@ -172,3 +192,15 @@ def validate_receipt(binding, audit, frozen, archive_sha256, images, filesystem)
         r['packaged_sha256'] != installed[r['name']] or not re.fullmatch(r'[0-9a-f]{64}',r.get('stripped_sha256','')) or
         type(r.get('signature_envelopes')) is not int or not 0 <= r['signature_envelopes'] <= 8 for r in entries)):
         raise ValueError('Packaged GKI module binding is stale or incomplete')
+    ramdisk = binding.get('vendor_boot_modules', [])
+    canonical = {r['name']:r for r in entries}
+    if (type(binding.get('vendor_ramdisk_count')) is not int or binding['vendor_ramdisk_count'] <= 0 or
+        len(ramdisk) != len(vendor_boot_contract.RAMDISK_GKI) or
+        {r['name'] for r in ramdisk} != vendor_boot_contract.RAMDISK_GKI or
+        len({(r['ramdisk'],r['path']) for r in ramdisk}) != len(ramdisk) or
+        any(r['audited_sha256'] != expected[r['name']] or
+            r['stripped_sha256'] != canonical[r['name']]['stripped_sha256'] or
+            not re.fullmatch(r'[0-9a-f]{64}',r.get('packaged_sha256','')) or
+            type(r.get('signature_envelopes')) is not int or not 0 <= r['signature_envelopes'] <= 8 or
+            type(r.get('ramdisk')) is not int or not 0 <= r['ramdisk'] < binding['vendor_ramdisk_count'] for r in ramdisk)):
+        raise ValueError('Vendor_boot GKI copy binding is stale or incomplete')

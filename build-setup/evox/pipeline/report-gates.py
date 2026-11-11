@@ -3,8 +3,9 @@
 import json,re
 from pathlib import Path
 import paths
+import kernel_contract
 B=Path(__file__).resolve().parent
-def validate(report,build):
+def validate(report,build,kernel_expectation=None):
     # evoxNN up to evox31, YYYYMMDD[.N] from 2026-11-04 (every date build takes the newest profile).
     if not paths.is_build(build):raise ValueError('Invalid build profile')
     text=(report/'raw-musthold.txt').read_text()
@@ -28,8 +29,9 @@ def validate(report,build):
     if paths.at_least(build,26):
         # The kernel release ends in -ab<build> (evox26: ab26, evox27: ab27, 20261105: ab20261105).
         kernel=re.findall(r'^Linux version .*$',text,re.M)
-        if len(kernel)!=1 or not kernel[0].startswith(f'Linux version 6.6.142-android15-8-gf6a5b29f9fe5-{paths.kernel_label(build)} (builder@pangu-build-component-system-247-r6kfm) ') or not kernel[0].endswith('#1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'):
+        if len(kernel)!=1:
             raise ValueError('Kernel identity differs from the selected build reference')
+        kernel_contract.validate_banner(kernel[0],build,kernel_expectation)
     else:
         required.append('Linux version 6.6.142-android15-8 (android-build@')
     for value in required:

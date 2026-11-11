@@ -20,6 +20,7 @@ Recorded as information, not gates: the platform security patch level of the fro
 security-bulletin review state (topic C_asb_<YYYY-MM>) for the current month ("unavailable" without network).
 """
 import argparse, json, re, shutil, subprocess as sp, time, urllib.request
+import kernel_contract
 from pathlib import Path
 
 from controller import (B, S, D, BUILD, DEVICE, PATCHES_JSON, manifest_heads, live_heads, patch_bundle,
@@ -156,6 +157,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('snapshot')
     ap.add_argument('--gate', action='append', default=[], help='NAME=EVIDENCE_PATH')
+    ap.add_argument('--kernel-audit', help='mandatory hash-bound kernel audit for a changed kernel')
+    ap.add_argument('--rollback-baseline', help='mechanically extracted baseline security/rollback metadata')
     args = ap.parse_args()
     D.mkdir(parents=True, exist_ok=True)
     snapshot = Path(args.snapshot).resolve()
@@ -163,6 +166,7 @@ def main():
     if snapshot != frozen_path:
         shutil.copyfile(snapshot, frozen_path)  # the build's own copy; the controller pins its hash
     frozen = manifest_heads(frozen_path.read_bytes())
+    kernel_expectation = kernel_contract.source_expectation(frozen, BUILD, S)
     bundle = patch_bundle(frozen)          # device/xiaomi/klimt:patches/PATCHES.json at the frozen device pin
     heads = effective_heads(frozen, bundle)
     live_heads(heads)  # raises on HEAD drift or a dirty/untracked project
@@ -208,6 +212,7 @@ def main():
     ready = {
         'approved': True, 'runtime_unvalidated': True, 'target': 'lineage_klimt-cp2a-user', 'build': BUILD,
         'snapshot': str(frozen_path), 'sha256': sha(frozen_path),
+        'kernel_expectation': kernel_expectation,
         'reviewed_project_heads': frozen, 'effective_project_heads': heads,
         'patch_bundle': {'device_head': frozen[DEVICE], 'file': PATCHES_JSON, 'projects': patched},
         'excluded_heads': final['excluded_heads'],
@@ -222,6 +227,14 @@ def main():
         'minimum_start_gib': {'host': 45, 'source': 10, 'output': 45},
         'emergency_minimum_gib': {'host': 10, 'source': 2, 'output': 2},
     }
+    import candidate_gates
+    if frozen[kernel_contract.KERNEL] != kernel_contract.BASELINE:
+        if not args.kernel_audit or not args.rollback_baseline:
+            raise SystemExit('Changed kernel requires --kernel-audit and --rollback-baseline')
+        preparation = D/'preparation/CANDIDATE.json'
+        ready['candidate_evidence'] = {name: candidate_gates.file_record(p) for name,p in
+            [('preparation', preparation), ('kernel_audit', args.kernel_audit), ('rollback_baseline', args.rollback_baseline)]}
+    candidate_gates.validate_ready(ready, frozen)
     current, _ = check_capacity(ready)
     ready['measured_free_gib'] = current
     out = D / 'BUILD_READY.json'

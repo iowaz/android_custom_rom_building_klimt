@@ -218,7 +218,13 @@ class Prep:
         i = STEPS.index(step)
         if not self.dry and self.done(step):
             raise RuntimeError(f'{step} already done for {self.build}: {self.out / RECORD[step]}')
-        for before in STEPS[:i]:
+        candidate = (self.out / 'CANDIDATE.json').exists()
+        if candidate:
+            if step not in ('label', 'freeze'):
+                raise RuntimeError('Frozen candidate forbids upstream/sync/patch steps')
+            import frozen_candidate
+            frozen_candidate.check_record(self)
+        for before in (['label'] if candidate and step == 'freeze' else [] if candidate else STEPS[:i]):
             if not self.done(before):
                 raise RuntimeError(f'Run prepare.py {before} {self.build} first')
         if not (S / '.repo').is_dir():
@@ -508,16 +514,24 @@ class Prep:
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('step', choices=STEPS)
+    ap.add_argument('step', choices=STEPS + ['candidate'])
     ap.add_argument('build')
     ap.add_argument('--previous', help='the build whose snapshot the tree holds now (default: the newest snapshot before <build>)')
     ap.add_argument('--dry-run', action='store_true')
+    ap.add_argument('--candidate-spec', help='exact local frozen-candidate JSON specification')
     args = ap.parse_args()
     if not paths.is_build(args.build) or (args.previous and not paths.is_build(args.previous)):
         ap.error('builds are YYYYMMDD or YYYYMMDD.N from 2026-11-04 (evoxNN only for history)')
     if os.environ.setdefault('KLIMT_BUILD', args.build) != args.build:
         ap.error('KLIMT_BUILD is ' + os.environ['KLIMT_BUILD'])
     prep = Prep(args.build, args.previous, args.dry_run)
+    if args.step == 'candidate':
+        if not args.candidate_spec:
+            ap.error('candidate requires --candidate-spec')
+        import frozen_candidate
+        return frozen_candidate.run(prep, args.candidate_spec)
+    if args.candidate_spec:
+        ap.error('--candidate-spec is valid only for candidate')
     getattr(prep, args.step.replace('-', '_'))()
 
 if __name__ == '__main__':

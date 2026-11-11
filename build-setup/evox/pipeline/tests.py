@@ -560,4 +560,148 @@ def ET_parse(text):
     import xml.etree.ElementTree as ET
     return ET.fromstring(text.encode() if isinstance(text,str) else text)
 
+class KernelContract(unittest.TestCase):
+    HEAD = '1' * 40
+    MAKE = 'VERSION = 6\nPATCHLEVEL = 6\nSUBLEVEL = 144\nEXTRAVERSION =\n'
+    COMMON = 'KMI_GENERATION=8\nBRANCH=android15-6.6\n'
+    META = '# actual source ' + HEAD + '\nCONFIG_LOCALVERSION="-android15-8-g' + HEAD[:12] + '-ab20261111"\n# CONFIG_LOCALVERSION_AUTO is not set\n'
+
+    def expected(self, **changes):
+        import kernel_contract
+        args = dict(makefile=self.MAKE, common=self.COMMON, metadata=self.META, head=self.HEAD, build='20261111')
+        return kernel_contract.derive(**dict(args, **changes))
+
+    def test_source_release_and_exact_banner(self):
+        import kernel_contract
+        e = self.expected()
+        self.assertEqual(e['release'], '6.6.144-android15-8-g111111111111-ab20261111')
+        banner = e['banner_prefix'] + '(test compiler) ' + e['banner_suffix']
+        kernel_contract.validate_banner(banner, '20261111', e)
+        for old, new in [('6.6.144', '6.6.142'), ('android15-8', 'android15-9'),
+                         ('g111111111111', 'g222222222222'), ('ab20261111', 'ab20261112'),
+                         ('builder@', 'other@'), ('Aug 6', 'Aug 7')]:
+            with self.subTest(new=new), self.assertRaises(ValueError):
+                kernel_contract.validate_banner(banner.replace(old, new), '20261111', e)
+
+    def test_source_metadata_and_generation_must_agree(self):
+        for args in (dict(head='2'*40), dict(build='20261112'),
+                     dict(metadata=self.META.replace('is not set', '=y')),
+                     dict(common=self.COMMON.replace('=8', '=9')),
+                     dict(common=self.COMMON.replace('android15', 'android16')),
+                     dict(makefile=self.MAKE+'SUBLEVEL = 143\n')):
+            with self.subTest(args=args), self.assertRaises(ValueError):
+                self.expected(**args)
+
+    def test_new_build_cannot_use_historical_fallback(self):
+        import kernel_contract
+        with self.assertRaises(ValueError):
+            kernel_contract.validate_banner('Linux version 6.6.142', '20261111')
+
+    def test_source_expectation_is_read_from_commit_not_worktree(self):
+        import kernel_contract
+        from unittest.mock import patch
+        frozen = {kernel_contract.KERNEL: self.HEAD, kernel_contract.DEVICE: '2'*40}
+        values = [self.MAKE, self.COMMON, self.META]
+        with patch('kernel_contract.subprocess.check_output', side_effect=values) as read:
+            e = kernel_contract.source_expectation(frozen, '20261111', '/example')
+        self.assertEqual(e['device_head'], '2'*40)
+        self.assertEqual(len(e['source_sha256']), 3)
+        self.assertTrue(all(call.args[0][-2] == 'show' for call in read.call_args_list))
+        self.assertTrue(read.call_args_list[0].args[0][-1].startswith(self.HEAD+':'))
+
+    def test_frozen_candidate_rejects_extra_heads_and_tampered_inputs(self):
+        from frozen_candidate import validate_spec
+        with tempfile.TemporaryDirectory() as temp:
+            spec = dict(schema=1, baseline_sha256='a'*64, tooling_sha256={'x.py': 'b'*64},
+                        audit_repository=temp, heads={'kernel/xiaomi/klimt': self.HEAD, 'device/xiaomi/klimt': '2'*40})
+            validate_spec(spec, 'a'*64, spec['tooling_sha256'])
+            for changed in (dict(spec, baseline_sha256='c'*64), dict(spec, tooling_sha256={}),
+                            dict(spec, heads=dict(spec['heads'], **{'frameworks/base': '3'*40})),
+                            dict(spec, heads={}), dict(spec, audit_repository='relative')):
+                with self.subTest(changed=changed), self.assertRaises(ValueError):
+                    validate_spec(changed, 'a'*64, spec['tooling_sha256'])
+
+class CandidateGates(unittest.TestCase):
+    def test_abi_graph_requires_all_retained_symbols(self):
+        import abi_analysis
+        text = 'elf_symbol {\n  name: "one"\n  type_id: 0x1234\n}\nelf_symbol {\n  name: "assembly"\n}\n'
+        coverage = abi_analysis.require_coverage(text, {'one', 'assembly'})
+        self.assertEqual(coverage, {'symbols': 2, 'untyped': ['assembly']})
+        for graph, names in [('', {'one'}), (text, {'one','missing'}), (text, set())]:
+            with self.assertRaises(ValueError):
+                abi_analysis.require_coverage(graph, names)
+
+    def test_security_equality_blocks_each_changed_security_field(self):
+        import rollback_security
+        baseline = {'schema': 1, 'actual_source_spl': '2026-11-01', 'avb': {'rollback': 1},
+                    'boot_headers': {'boot': {'packed': 17}}, 'reported': {'platform': '2026-10-05'}}
+        self.assertTrue(rollback_security.compare(baseline, dict(baseline))['pass'])
+        for name in ('actual_source_spl', 'avb', 'boot_headers', 'reported'):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                rollback_security.compare(baseline, dict(baseline, **{name: 'changed'}))
+
+    def test_avb_fields_and_chain_locations_are_extracted(self):
+        import rollback_security
+        text = '''Rollback Index: 1
+Rollback Index Location: 0
+Flags: 0
+Algorithm: SHA256_RSA4096
+Public key (sha1): abc
+Descriptors:
+    Chain Partition descriptor:
+      Partition Name: boot
+      Rollback Index Location: 3
+      Public key (sha1): abc
+    Prop: com.android.build.boot.security_patch -> '2026-02-01'
+'''
+        result = rollback_security.parse_avb(text)
+        self.assertEqual(result['chain_partitions'], [('boot', 3, 'abc')])
+        self.assertEqual(result['security_properties'], {'com.android.build.boot.security_patch': '2026-02-01'})
+        for changed in (text.replace('Rollback Index: 1\n', ''), text+'Rollback Index: 2\n',
+                        text+"    Prop: com.android.build.boot.security_patch -> '2026-03-01'\n"):
+            with self.assertRaises(ValueError):
+                rollback_security.parse_avb(changed)
+
+    def test_proof_mutation_and_missing_gate_block_audit(self):
+        import candidate_gates
+        from copy import deepcopy
+        with tempfile.TemporaryDirectory() as temp:
+            p = Path(temp)/'proof.txt'; p.write_text('measured proof')
+            frozen = {name: 'a'*40 for name in ('kernel/xiaomi/klimt', 'kernel/xiaomi/klimt-prebuilt', 'vendor/xiaomi/klimt')}
+            data = dict(schema=1, source_heads=frozen, baseline_manifest_sha256='b'*64, normalized_config_sha256='d'*64,
+                        checks={name: dict(pass_=True) for name in ()})
+            data['checks'] = {name: {'pass': True, 'explanation': 'reviewed', 'files': [candidate_gates.file_record(p)]}
+                              for name in candidate_gates.REQUIRED}
+            candidate_gates.validate_audit(data, frozen, 'b'*64)
+            for name in candidate_gates.REQUIRED:
+                changed = deepcopy(data); del changed['checks'][name]
+                with self.assertRaises(ValueError):
+                    candidate_gates.validate_audit(changed, frozen, 'b'*64)
+            changed = dict(frozen, **{'kernel/xiaomi/klimt': 'c'*40})
+            with self.assertRaises(ValueError):
+                candidate_gates.validate_audit(data, changed, 'b'*64)
+            p.write_text('mutated')
+            with self.assertRaises(ValueError):
+                candidate_gates.validate_audit(data, frozen, 'b'*64)
+
+    def test_freeze_deadline_rejects_expired_and_future_records(self):
+        import candidate_gates, datetime
+        now = datetime.datetime(2026,11,11,tzinfo=datetime.timezone.utc)
+        candidate_gates.freeze_deadline({'control_freeze_utc': '2026-11-05T00:00:00Z'}, now)
+        for stamp in ('2026-11-03T00:00:00Z', '2026-11-12T00:00:00Z'):
+            with self.assertRaises(ValueError):
+                candidate_gates.freeze_deadline({'control_freeze_utc': stamp}, now)
+
+    def test_only_build_label_can_differ_from_analyzed_config(self):
+        import candidate_gates
+        with tempfile.TemporaryDirectory() as temp:
+            p = Path(temp)/'.config'
+            before = 'CONFIG_LOCALVERSION="-old"\nCONFIG_LTO_NONE=y\n# CONFIG_LTO_CLANG is not set\n'
+            audit = {'normalized_config_sha256': hashlib.sha256(candidate_gates.normalized_config(before).encode()).hexdigest()}
+            p.write_text(before.replace('-old', '-new'))
+            candidate_gates.validate_compiled_config(audit, p)
+            p.write_text(before+'CONFIG_LTO_CLANG=y\n')
+            with self.assertRaises(ValueError):
+                candidate_gates.validate_compiled_config(audit, p)
+
 if __name__=='__main__':unittest.main(verbosity=2)

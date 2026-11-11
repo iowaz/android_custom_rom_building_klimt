@@ -60,7 +60,6 @@ need={}; prov=set(); mism={}; nimp=0
 for m in mods:
     d=open(m,'rb').read(); S=secs(d)
     for s,c in versions(d,S).items():
-        if s=='module_layout': continue
         nimp+=1; need[s]=c
         if s in symvers and symvers[s]!=c: mism.setdefault(s,[]).append(os.path.basename(m))
     prov|=exports(m)

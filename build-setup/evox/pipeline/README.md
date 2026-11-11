@@ -22,6 +22,39 @@ Run it from WSL, from this repository on the build PC:
 
 ## Steps
 
+### Controlled local kernel candidates
+
+Ordinary builds keep the upstream/sync protections below. For an audited kernel candidate, use
+`prepare.py candidate <build> --previous <control> --candidate-spec /absolute/candidate.json`, followed by
+`label` and `freeze`. This path does no sync and does not move the build checkout's kernel branch: it fetches
+the exact local object and checks it out detached. The audit repository alone advances its default `17.0`.
+Every other project and the existing ROM patch bundle must still match the control snapshot.
+
+The schema-1 specification contains `baseline_sha256` (the control snapshot), `audit_repository` (an absolute
+bare Git directory), `heads` (exactly `kernel/xiaomi/klimt` and `device/xiaomi/klimt`, each an exact SHA), and
+`tooling_sha256` (the complete `controller.tooling_hashes()` map). Device metadata must already name the
+candidate kernel SHA with the previous build token. A dry run checks the specification and full control
+graph without fetching, labeling or freezing. Never run upstream/sync after candidate preparation.
+
+For a changed kernel, `ready.py` additionally requires `--kernel-audit /absolute/audit.json` and
+`--rollback-baseline /absolute/baseline-security.json`. `candidate_gates.py` requires the named ancestry,
+local-delta, pKVM semantic/type, STG ABI, protected-export, tracked-symbol, config and module checks to pass
+with hashed proof files and exact kernel/prebuilt/vendor/control pins. The candidate record starts a
+seven-day control freeze. Missing, altered or expired evidence stops readiness, the controller and promotion.
+Configuration analysis may vary only the per-build LOCALVERSION; packaged options must match its hash.
+
+`kernel_contract.py` derives the expected release from Makefile, build.config.common and device metadata at
+the frozen commits. Historical artifacts through 20261108 retain their old profile; new builds cannot use a
+historical fallback. The verifier checks the resulting image banner. `rollback_security.py` compares all
+emitted AVB rollback headers/chain locations/security properties, boot/init_boot v4 OS fields, actual source
+SPL and reported partition patch levels against the extracted control. A difference fails verification.
+Build dates/labels remain governed by their per-build checks, rather than equality to an older build.
+
+Candidates remain local and runtime-unvalidated. An image check does not authorize flashing, a remote push,
+tag or any slot-state change. Keep the previous boot-tested ZIP and the agreed recovery procedure available.
+
+### Ordinary upstream builds
+
 There are no ROM-source forks and no per-build branches. The tree is plain Evolution X `cnb` plus the device,
 kernel, kernel-prebuilt and vendor repositories ([`klimt-live.xml`](../../../manifests/local_manifests/klimt-live.xml));
 the patches klimt needs, and the owner's personal identity layer, are in the device tree under

@@ -260,6 +260,14 @@ def readiness(path):
     heads = manifest_heads(snapshot.read_bytes())
     if ready.get('reviewed_project_heads') != heads:
         raise RuntimeError('reviewed_project_heads must cover the full frozen manifest')
+    import kernel_contract
+    if ready.get('kernel_expectation') is not None:
+        if ready['kernel_expectation'] != kernel_contract.source_expectation(heads, ready['build'], S):
+            raise RuntimeError('Frozen-source kernel expectation drift')
+    elif paths.is_date_build(ready['build']) and ready['build'] > '20261108':
+        raise RuntimeError('Frozen-source kernel expectation required for new builds')
+    import candidate_gates
+    candidate_gates.validate_ready(ready, heads)
     excluded = ready.get('excluded_heads', {})
     required = {'kernel/xiaomi/klimt','kernel/xiaomi/klimt-prebuilt','vendor/xiaomi/klimt','hardware/xiaomi','device/mediatek/sepolicy_vndr'}
     if not required <= set(excluded) or any(heads.get(p) != v for p,v in excluded.items()):

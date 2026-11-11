@@ -176,10 +176,19 @@ def main(attempt,recheck=None,tool_review=None):
         subprocess.run(['python3','-B',str(B/'check-health-his.py')],cwd=S,env=env,stdout=f,stderr=subprocess.STDOUT,check=True)
     spec=importlib.util.spec_from_file_location('report_gates',B/'report-gates.py')
     gates=importlib.util.module_from_spec(spec);spec.loader.exec_module(gates)
-    historical=gates.validate(report,BUILD)
+    historical=gates.validate(report,BUILD,ready.get('kernel_expectation'))
     if paths.at_least(BUILD,26):
         subprocess.run(['python3','-B',str(B/'check-metadata26.py')],cwd=S,env=env,check=True)
     supplemental=image_checks(ready,env,report)
+    if ready.get('candidate_evidence'):
+        import candidate_gates, rollback_security
+        candidate_gates.validate_ready(ready, ready['reviewed_project_heads'])
+        audit = candidate_gates.revalidate(ready['candidate_evidence']['kernel_audit'])
+        candidate_gates.validate_compiled_config(audit, O/'target/product/klimt/obj/KERNEL_OBJ/.config')
+        baseline = candidate_gates.revalidate(ready['candidate_evidence']['rollback_baseline'])['security']
+        security = rollback_security.collect(extract, S/'external/avb/avbtool.py', ready['security']['platform_security_patch'])
+        write_json(report/'rollback-security-candidate.json', security, True)
+        write_json(report/'rollback-security-equality.json', rollback_security.compare(baseline, security), True)
     write_json(report/'filesystem-files.json',inventory(extract/'fs'),True)
     write_json(report/'image-files.json',inventory(extract/'img'),True)
     if capture_manifest(evidence/'postverify.xml')!=heads:raise RuntimeError('Postverify manifest drift')
@@ -187,6 +196,11 @@ def main(attempt,recheck=None,tool_review=None):
     tools_match()
     results=dict(attempt=attempt_id,archive=str(archive),archive_sha256=digest,archive_bytes=archive.stat().st_size,
         recheck=recheck,historical=historical,supplemental=supplemental,source_heads=heads,runtime_unvalidated=True,time=time.time())
+    if ready.get('candidate_evidence'):
+        results['candidate_evidence'] = ready['candidate_evidence']
+        results['kernel_expectation'] = ready['kernel_expectation']
+        results['rollback_security'] = {name: sha(report/name) for name in
+                                       ('rollback-security-candidate.json', 'rollback-security-equality.json')}
     write_json(report/'RESULTS.json',results,True)
     comparison=f'''# {BUILD} comparison — {attempt_id}
 
@@ -202,6 +216,8 @@ Archive: `{archive.name}`. SHA256: `{digest}`. Source inputs match the frozen pr
     scripts=future_flash_scripts(dest,archive,digest)
     shutil.copyfile(report/'RESULTS.json',dest/'RESULTS.json')
     shutil.copyfile(report/'COMPARISON.md',dest/'COMPARISON.md')
+    for name in results.get('rollback_security', {}):
+        shutil.copyfile(report/name, dest/name)
     for name in ('prebuild.xml','postbuild.xml','postverify.xml'):
         shutil.copyfile(evidence/name if name=='postverify.xml' else attempt/name,dest/name)
     if review:shutil.copyfile(tool_review,dest/'TOOL_REVIEW.json')

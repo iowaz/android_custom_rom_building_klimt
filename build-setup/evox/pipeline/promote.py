@@ -25,6 +25,25 @@ def main():
     report = p['reports'] / attempt / ('rechecks/' + recheck if recheck else '')
     dest = p['delivery']
     results = json.loads((report / 'RESULTS.json').read_text())
+    import kernel_contract
+    if results['source_heads'][kernel_contract.KERNEL] != kernel_contract.BASELINE and not results.get('candidate_evidence'):
+        raise RuntimeError('Changed kernel cannot be promoted without candidate audit/rollback evidence')
+    from controller import L, require_tooling_frozen
+    if results.get('candidate_evidence'):
+        import candidate_gates, rollback_security
+        require_tooling_frozen(L/attempt)
+        ready = json.loads((L/attempt/'BUILD_READY.json').read_text())
+        from controller import ready_heads
+        if ready_heads(ready) != results['source_heads']:
+            raise RuntimeError('Verified source heads disagree with candidate readiness')
+        candidate_gates.validate_ready(ready, ready['reviewed_project_heads'])
+        if ready['candidate_evidence'] != results['candidate_evidence']:
+            raise RuntimeError('Candidate audit evidence differs from verified attempt')
+        for name, digest in results['rollback_security'].items():
+            if sha(report/name) != digest or sha(staged/name) != digest:
+                raise RuntimeError('Rollback/security report changed after verification')
+        rollback_security.compare(candidate_gates.revalidate(ready['candidate_evidence']['rollback_baseline'])['security'],
+                                  json.loads((report/'rollback-security-candidate.json').read_text()))
     assert (report / 'VERIFIED.txt').is_file() and results['runtime_unvalidated'] is True
     assert results['historical']['musthold'] == 'pass'
     historic = results['historical']['checks']

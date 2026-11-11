@@ -12,6 +12,6 @@ The six numeric 120 Hz keys are a later unpromoted experiment using validated K+
 must not ship without the plan's objective benefit and non-regression evidence. Existing 60/90/144 Hz
 values, vendor-named keys and tracing behavior remain unchanged. No per-build branch was created.
 
-The archived PLAN describes the runtime sequence. Review reports and their final disposition are added
-alongside this series after the independent code reviews complete. Raw phone captures, proprietary
+The archived PLAN describes the runtime sequence. [DISPOSITION.md](DISPOSITION.md) records the findings,
+completed corrections, validation and the owner's decision to stop the final rereview. Raw phone captures, proprietary
 blobs, signing keys, debug ELFs and large local proof stores are deliberately absent from Git.

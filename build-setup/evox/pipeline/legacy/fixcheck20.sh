@@ -22,7 +22,8 @@ if build_at_least 26; then
   DISPLAY_ID=$BID
   DESC="klimt_global-user 17 $BID $INC release-keys"
   # The kernel release ends in -ab<build> (evox26: ab26, evox27: ab27, 20261105: ab20261105).
-  KERNEL_RELEASE="6.6.142-android15-8-gf6a5b29f9fe5-$KERNEL_LABEL"; BUILDER=builder
+  KERNEL_RELEASE=$(python3 -B "$(dirname "$(realpath "$0")")/../kernel_contract.py") || exit 1
+  BUILDER=builder
   IDCHECKBP="$ALLBP"
 fi
 ok(){ if eval "$2" >/dev/null 2>&1; then echo "OK   $1"; else echo "FAIL $1"; fi; }

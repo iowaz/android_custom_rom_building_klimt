@@ -75,3 +75,13 @@ def validate_banner(banner, build, expected=None):
 def environment_expectation():
     p = os.environ.get('EVOX_READY')
     return json.loads(Path(p).read_text()).get('kernel_expectation') if p else None
+
+
+if __name__ == '__main__':
+    build = paths.current_build()
+    expected = environment_expectation() or historical(build)
+    release = expected['release']
+    pattern = r'6\.6\.\d+[A-Za-z0-9.-]*-android15-8-g[0-9a-f]{12}-' + re.escape(paths.kernel_label(build))
+    if expected.get('build') != build or not re.fullmatch(pattern, release):
+        raise ValueError('Invalid frozen kernel release for legacy checker')
+    print(release)

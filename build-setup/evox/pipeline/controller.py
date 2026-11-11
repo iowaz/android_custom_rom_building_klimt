@@ -245,8 +245,16 @@ def check_capacity(ready):
             raise RuntimeError('Insufficient projected '+name+' headroom')
     return current, emergency
 
+def require_ready_tooling(ready):
+    if ready.get('tooling_sha256') is not None:
+        if ready['tooling_sha256'] != tooling_hashes():
+            raise RuntimeError('Tooling changed after readiness')
+    elif paths.is_date_build(ready['build']) and ready['build'] > '20261108':
+        raise RuntimeError('New build readiness must bind the complete tooling hash map')
+
 def readiness(path):
     ready = json.loads(path.read_text())
+    require_ready_tooling(ready)
     if ready.get('approved') is not True or ready.get('runtime_unvalidated') is not True:
         raise RuntimeError('Readiness approval and runtime_unvalidated required')
     if ready.get('target') != 'lineage_klimt-cp2a-user':

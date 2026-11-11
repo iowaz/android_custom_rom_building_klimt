@@ -24,7 +24,7 @@ import kernel_contract
 from pathlib import Path
 
 from controller import (B, S, D, BUILD, DEVICE, PATCHES_JSON, manifest_heads, live_heads, patch_bundle,
-                        effective_heads, check_capacity, sha)
+                        effective_heads, check_capacity, sha, tooling_hashes)
 
 PURPOSES = [
     ('frameworks/base', 'Fix security vulnerabilities in PduParser.java'),
@@ -213,6 +213,7 @@ def main():
         'approved': True, 'runtime_unvalidated': True, 'target': 'lineage_klimt-cp2a-user', 'build': BUILD,
         'snapshot': str(frozen_path), 'sha256': sha(frozen_path),
         'kernel_expectation': kernel_expectation,
+        'tooling_sha256': tooling_hashes(),
         'reviewed_project_heads': frozen, 'effective_project_heads': heads,
         'patch_bundle': {'device_head': frozen[DEVICE], 'file': PATCHES_JSON, 'projects': patched},
         'excluded_heads': final['excluded_heads'],

@@ -43,6 +43,11 @@ with hashed proof files and exact kernel/prebuilt/vendor/control pins. The candi
 seven-day control freeze. Missing, altered or expired evidence stops readiness, the controller and promotion.
 Configuration analysis may vary only the per-build LOCALVERSION; packaged options must match its hash.
 
+Preparation retains the tools that performed its checkout/label/freeze. Readiness separately seals the
+complete build/verifier tooling map after rechecking the frozen graph. A verifier correction before the
+first attempt can therefore be recorded at readiness without rewriting preparation history. Changing any
+tool after readiness invalidates that readiness; an attempt also retains its own immutable tooling map.
+
 `kernel_contract.py` derives the expected release from Makefile, build.config.common and device metadata at
 the frozen commits. Historical artifacts through 20261108 retain their old profile; new builds cannot use a
 historical fallback. The verifier checks the resulting image banner. `rollback_security.py` compares all

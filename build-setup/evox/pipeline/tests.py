@@ -597,6 +597,30 @@ class KernelContract(unittest.TestCase):
         with self.assertRaises(ValueError):
             kernel_contract.validate_banner('Linux version 6.6.142', '20261111')
 
+    def test_actual_legacy_header_uses_frozen_kernel_expectation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)/'a/b/pipeline'; legacy=root/'legacy'; legacy.mkdir(parents=True)
+            for name in ('kernel_contract.py','paths.py'):
+                (root/name).write_bytes((B/name).read_bytes())
+            (legacy/'build-profile.sh').write_bytes((B/'legacy/build-profile.sh').read_bytes())
+            header=(B/'legacy/fixcheck20.sh').read_text().split('ok(){',1)[0]
+            script=legacy/'fixcheck20.sh';script.write_text(header+'\nprintf "%s\\n" "$KERNEL_RELEASE"\n')
+            ready=root/'ready.json';ready.write_text(json.dumps({'kernel_expectation':self.expected()}))
+            env=dict(os.environ,KLIMT_BUILD='20261111',EVOX_EXTRACT=temp,EVOX_TMP=temp,EVOX_READY=str(ready))
+            r=subprocess.run(['bash',str(script)],env=env,text=True,capture_output=True)
+            self.assertEqual(r.returncode,0,r.stderr)
+            self.assertEqual(r.stdout.strip(),self.expected()['release'])
+            for changes in ({'KLIMT_BUILD':'20261112'}, {'EVOX_READY':''}):
+                r=subprocess.run(['bash',str(script)],env=dict(env,**changes),text=True,capture_output=True)
+                self.assertNotEqual(r.returncode,0)
+
+    def test_ready_tooling_cannot_change_or_disappear(self):
+        from controller import require_ready_tooling
+        ready={'build':'20261111','tooling_sha256':tooling_hashes()}
+        require_ready_tooling(ready)
+        for changed in ({'build':'20261111'}, dict(ready,tooling_sha256={})):
+            with self.assertRaises(RuntimeError):require_ready_tooling(changed)
+
     def test_source_expectation_is_read_from_commit_not_worktree(self):
         import kernel_contract
         from unittest.mock import patch

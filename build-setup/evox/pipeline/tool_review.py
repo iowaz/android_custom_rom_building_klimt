@@ -10,6 +10,9 @@ from pathlib import Path
 from controller import B, L, D, tooling_hashes, sha
 
 attempt, recheck, evidence = sys.argv[1:4]
+extra = sys.argv[4:]
+if extra and (len(extra) != 2 or extra[0] != '--kernel-audit'):
+    raise SystemExit('Optional argument: --kernel-audit /absolute/revalidated-audit.json')
 A = L / attempt
 checks = json.loads((B / 'image-checks/IMAGE_CHECKS.json').read_text())
 for c in checks:
@@ -24,6 +27,12 @@ review = {
     'evidence': Path(evidence).read_text().strip(),
     'original_check_image_sha256': json.loads((A / 'BUILD_READY.json').read_text())['image_checks'][0]['script_sha256'],
 }
+if extra:
+    import candidate_gates, reviewed_readiness
+    original = json.loads((A/'BUILD_READY.json').read_text())
+    review['kernel_audit_previous_sha256'] = original['candidate_evidence']['kernel_audit']['sha256']
+    review['kernel_audit_update'] = candidate_gates.file_record(extra[1])
+    reviewed_readiness.apply(original, review, candidate_gates.revalidate, candidate_gates.validate_ready)
 out = D / attempt / f'TOOL_REVIEW.{recheck}.json'
 out.parent.mkdir(parents=True, exist_ok=True)
 with open(out, 'x') as f:

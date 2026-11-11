@@ -31,8 +31,14 @@ def main():
     from controller import L, require_tooling_frozen
     if results.get('candidate_evidence'):
         import candidate_gates, rollback_security
-        require_tooling_frozen(L/attempt)
+        import promotion_tooling
+        from verify import review_binding
+        promotion_tooling.validate(attempt, recheck, staged, L/attempt, require_tooling_frozen, review_binding, sha)
         ready = json.loads((L/attempt/'BUILD_READY.json').read_text())
+        if recheck:
+            import reviewed_readiness
+            review = json.loads((staged/'TOOL_REVIEW.json').read_text())
+            ready = reviewed_readiness.apply(ready, review, candidate_gates.revalidate, candidate_gates.validate_ready)
         from controller import ready_heads
         if ready_heads(ready) != results['source_heads']:
             raise RuntimeError('Verified source heads disagree with candidate readiness')

@@ -255,6 +255,8 @@ def require_ready_tooling(ready):
 def readiness(path):
     ready = json.loads(path.read_text())
     require_ready_tooling(ready)
+    if ready.get('verification_only'):
+        raise RuntimeError('A verifier-only effective readiness cannot launch a build')
     if ready.get('approved') is not True or ready.get('runtime_unvalidated') is not True:
         raise RuntimeError('Readiness approval and runtime_unvalidated required')
     if ready.get('target') != 'lineage_klimt-cp2a-user':

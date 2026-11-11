@@ -57,6 +57,16 @@ def source_expectation(frozen, build, src=None):
     return result
 
 
+def retained_symbols(frozen, src=None):
+    root = Path(src) if src is not None else paths.SRC
+    text = subprocess.check_output(['git', '-C', str(root/KERNEL), 'show',
+                                    frozen[KERNEL]+':android/abi_gki_aarch64_klimt'], text=True)
+    names = {l.strip() for l in text.splitlines() if l.strip() and not l.strip().startswith(('#','['))}
+    if not names:
+        raise ValueError('Frozen kernel retained-symbol list is empty')
+    return names
+
+
 def historical(build):
     """Immutable old profiles remain usable for their original artifacts only."""
     if paths.is_date_build(build) and build > '20261108':

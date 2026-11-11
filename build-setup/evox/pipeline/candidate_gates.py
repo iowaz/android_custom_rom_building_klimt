@@ -1,5 +1,6 @@
 """Hash-bound, fail-closed kernel audit and rollback evidence for local candidates."""
 import datetime
+import subprocess
 import json
 from pathlib import Path
 import kernel_contract
@@ -35,7 +36,18 @@ def validate_audit(data, frozen, baseline_digest):
         for record in check['files']:
             if rollback_security.digest(record['path']) != record['sha256']:
                 raise ValueError('Kernel audit proof hash drift: '+record['path'])
+    machine_report_check(data, frozen)
     return data
+
+
+def machine_report_check(data, frozen):
+    import machine_gates
+    tools = kernel_contract.paths.SRC/'prebuilts/kernel-build-tools/linux-x86/bin'
+    def compare(old, new):
+        return subprocess.run([str(tools/'stgdiff'), '-s', str(old), '-s', str(new),
+                               '-f', 'small', '-o', '/dev/null'], capture_output=True).returncode
+    return machine_gates.validate(data, frozen, kernel_contract.retained_symbols(frozen),
+                                  rollback_security.digest(tools/'stg'), compare)
 
 
 def normalized_config(text):

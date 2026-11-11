@@ -690,6 +690,12 @@ Descriptors:
     def test_proof_mutation_and_missing_gate_block_audit(self):
         import candidate_gates
         from copy import deepcopy
+        from unittest.mock import patch
+        def validate(*args):
+            with patch('candidate_gates.machine_report_check') as checker:
+                result = candidate_gates.validate_audit(*args)
+                checker.assert_called_once()
+                return result
         with tempfile.TemporaryDirectory() as temp:
             p = Path(temp)/'proof.txt'; p.write_text('measured proof')
             frozen = {name: 'a'*40 for name in ('kernel/xiaomi/klimt', 'kernel/xiaomi/klimt-prebuilt', 'vendor/xiaomi/klimt')}
@@ -697,17 +703,17 @@ Descriptors:
                         checks={name: dict(pass_=True) for name in ()})
             data['checks'] = {name: {'pass': True, 'explanation': 'reviewed', 'files': [candidate_gates.file_record(p)]}
                               for name in candidate_gates.REQUIRED}
-            candidate_gates.validate_audit(data, frozen, 'b'*64)
+            validate(data, frozen, 'b'*64)
             for name in candidate_gates.REQUIRED:
                 changed = deepcopy(data); del changed['checks'][name]
                 with self.assertRaises(ValueError):
-                    candidate_gates.validate_audit(changed, frozen, 'b'*64)
+                    validate(changed, frozen, 'b'*64)
             changed = dict(frozen, **{'kernel/xiaomi/klimt': 'c'*40})
             with self.assertRaises(ValueError):
-                candidate_gates.validate_audit(data, changed, 'b'*64)
+                validate(data, changed, 'b'*64)
             p.write_text('mutated')
             with self.assertRaises(ValueError):
-                candidate_gates.validate_audit(data, frozen, 'b'*64)
+                validate(data, frozen, 'b'*64)
 
     def test_freeze_deadline_rejects_expired_and_future_records(self):
         import candidate_gates, datetime
@@ -728,5 +734,26 @@ Descriptors:
             p.write_text(before+'CONFIG_LTO_CLANG=y\n')
             with self.assertRaises(ValueError):
                 candidate_gates.validate_compiled_config(audit, p)
+
+class PostbuildReadinessTests(unittest.TestCase):
+    def test_verification_only_ready_cannot_launch_a_build(self):
+        from controller import readiness
+        with tempfile.TemporaryDirectory() as temp:
+            p=Path(temp)/'ready.json'
+            p.write_text(json.dumps({'build':'20261111','verification_only':True,'tooling_sha256':tooling_hashes()}))
+            with self.assertRaisesRegex(RuntimeError,'verifier-only effective readiness cannot launch'):
+                readiness(p)
+
+    def test_retained_symbols_are_read_at_the_frozen_kernel_commit(self):
+        import kernel_contract
+        from unittest.mock import patch
+        with patch('kernel_contract.subprocess.check_output',return_value='first_symbol\nsecond_symbol\n') as read:
+            symbols=kernel_contract.retained_symbols({'kernel/xiaomi/klimt':'a'*40},'/isolated')
+        self.assertEqual(symbols,{'first_symbol','second_symbol'})
+        self.assertEqual(read.call_args.args[0][-1],'a'*40+':android/abi_gki_aarch64_klimt')
+
+from test_machine_gates import Reports as MachineReportTests
+from test_promotion_tooling import Promotion as PromotionToolingTests
+from test_reviewed_readiness import RevalidatedReadiness as RevalidatedReadinessTests
 
 if __name__=='__main__':unittest.main(verbosity=2)

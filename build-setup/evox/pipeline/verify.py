@@ -124,8 +124,9 @@ def main(attempt,recheck=None,tool_review=None):
         raise RuntimeError('ZIP differs from the producing wrapper exit evidence')
     attempt_id=identity['attempt']; report=C/attempt_id
     ready=json.loads((attempt/'BUILD_READY.json').read_text())
-    if review and 'image_checks' in review:
-        ready['image_checks']=review['image_checks']
+    if review:
+        import reviewed_readiness, candidate_gates
+        ready = reviewed_readiness.apply(ready, review, candidate_gates.revalidate, candidate_gates.validate_ready)
     heads=ready_heads(ready)  # frozen pins, patched projects at their PATCHES.json final_head
     if foreign_processes():raise RuntimeError('Competing historical build/extraction exists')
     if ZIP.stat().st_mtime_ns < identity['started_ns']:

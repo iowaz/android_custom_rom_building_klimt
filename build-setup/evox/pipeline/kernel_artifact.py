@@ -100,6 +100,15 @@ def audited_inputs(audit):
     return kernels[0], modules
 
 
+def audited_symvers(audit):
+    records = [r for r in audit['checks']['module_crc']['files'] if Path(r['path']).name == 'Module.symvers']
+    if len(records) != 1 or not Path(records[0]['path']).resolve().is_relative_to(paths.DIAGNOSTICS.resolve()):
+        raise ValueError('A unique preserved release Module.symvers is required')
+    if rollback_security.digest(records[0]['path']) != records[0]['sha256']:
+        raise ValueError('Preserved release Module.symvers changed')
+    return Path(records[0]['path'])
+
+
 def validate(audit, frozen, boot_path, module_directory, archive_sha256, source):
     source = Path(source)
     if any(not Path(r['path']).resolve().is_relative_to(paths.DIAGNOSTICS.resolve())

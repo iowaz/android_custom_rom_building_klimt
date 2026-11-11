@@ -5,13 +5,15 @@ import json
 from pathlib import Path
 
 import candidate_gates
+import kernel_artifact
 import kernel_contract
 import rollback_security
 
 CONTRACT = (kernel_contract.KERNEL, 'kernel/xiaomi/klimt-prebuilt', 'vendor/xiaomi/klimt')
 
 
-def validate(audit, frozen, load, parent_check, heads_from_manifest, file_sha=rollback_security.digest):
+def validate(audit, frozen, load, parent_check, heads_from_manifest, file_sha=rollback_security.digest,
+             artifact_check=kernel_artifact.validate_receipt):
     chain = audit['kernel_carry']
     parent = load(chain['audit'])
     control = load(chain['control_results'])
@@ -37,6 +39,13 @@ def validate(audit, frozen, load, parent_check, heads_from_manifest, file_sha=ro
         any(r.get('exit') != 0 for r in control['supplemental'])):
         raise ValueError('Carried kernel requires its verified control archive and exact audited contract')
     parent_check(parent)
+    evidence = control.get('kernel_artifact_evidence', {})
+    if set(evidence) != {'kernel-artifact-binding.json','image-files.json','filesystem-files.json'}:
+        raise ValueError('Carried kernel control lacks packaged artifact binding evidence')
+    reports = {name:load(dict(path=str(Path(chain['control_results']['path']).parent/name),sha256=digest))
+               for name,digest in evidence.items()}
+    artifact_check(reports['kernel-artifact-binding.json'], parent, control_heads, control['archive_sha256'],
+                   reports['image-files.json'], reports['filesystem-files.json'])
 
 
 def carry(origin, results, control_manifest, control_archive, frozen, heads_from_manifest):

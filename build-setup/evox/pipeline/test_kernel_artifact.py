@@ -1,6 +1,8 @@
 import copy
 import gzip
 import struct
+from pathlib import Path
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -9,6 +11,16 @@ import kernel_artifact as gate
 
 
 class Artifact(unittest.TestCase):
+    def test_module_crc_input_is_the_hash_bound_preserved_symvers(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path=Path(temp)/'Module.symvers';path.write_text('0x1234\tsymbol\n')
+            record=dict(path=str(path),sha256=gate.digest(path.read_bytes()))
+            audit={'checks':{'module_crc':{'files':[record]}}}
+            with patch('paths.DIAGNOSTICS',Path(temp)):
+                self.assertEqual(gate.audited_symvers(audit),path)
+                path.write_text('stale mutable output')
+                with self.assertRaises(ValueError):gate.audited_symvers(audit)
+
     def image(self, config=b'CONFIG_LTO_NONE=y\nCONFIG_LOCALVERSION="-trial"\n'):
         image=bytearray(64);image[56:60]=b'ARM\x64'
         return bytes(image)+b'same expected Linux banner\0IKCFG_ST'+gzip.compress(config)+b'IKCFG_ED'

@@ -168,6 +168,10 @@ def main(attempt,recheck=None,tool_review=None):
         if bad:raise RuntimeError('ZIP CRC failed: '+bad)
         write_json(report/'archive-inventory.json',[dict(name=i.filename,bytes=i.file_size,compressed=i.compress_size,crc=i.CRC) for i in entries],True)
     env=dict(os.environ,KLIMT_BUILD=BUILD,EVOX_EXTRACT=str(extract),EVOX_TMP=str(extract/'tmp'),EVOX_READY=str(evidence/'effective-ready.json' if recheck else attempt/'BUILD_READY.json'),EVOX_REPORT=str(report))
+    if ready.get('candidate_evidence'):
+        import kernel_artifact, candidate_gates
+        audit = candidate_gates.revalidate(ready['candidate_evidence']['kernel_audit'])
+        env['EVOX_KERNEL_SYMVERS'] = str(kernel_artifact.audited_symvers(audit))
     for filename,argv in [('raw-extract.txt',['bash',str(B/'extract.sh'),str(archive),str(extract)]),
                           ('raw-musthold.txt',['bash',str(B/'legacy/musthold.sh')])]:
         with open(report/filename,'xb') as f:

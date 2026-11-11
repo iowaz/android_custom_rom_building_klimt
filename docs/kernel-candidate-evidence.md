@@ -23,7 +23,8 @@ KLIMT_BUILD=<new-date> python3 -B build-setup/evox/pipeline/kernel_carry.py \
 Run through WSL shell from the workspace. Paths in these commands refer to the actual chosen builds;
 do not manufacture a future date or advance the experiment before its preceding runtime gate passes.
 The carry validates the control source/manifest/archive, complete passing static coverage and exact
-verified parent-audit digest. The parent audit is revalidated recursively. Kernel, kernel build/prebuilt,
+verified parent-audit digest, including its hash-bound packaged kernel/module evidence and inventories.
+The parent audit is revalidated recursively. Kernel, kernel build/prebuilt,
 vendor and normalized config must stay identical. Only the device project may differ from the control.
 All ten audit gates still run. This rebinds the contract to the new control manifest; it never drops a gate,
 changes the original evidence or establishes runtime acceptance.
@@ -53,6 +54,8 @@ frozen Image conversion; embedded IKCONFIG must match the audited normalized con
 modules must equal the audited ELFs after debug stripping and removal of structurally bounded appended
 signature envelopes. Signatures are recorded, never altered or claimed cryptographically verified by this
 comparison. Stock vendor-module CRC/protected-policy checks remain separate.
+The packaged CRC check uses the preserved, hash-validated release Module.symvers; it does not infer the
+candidate's CRC table from whatever happens to be in the mutable KERNEL_OBJ output directory later.
 
 RESULTS binds this kernel/config/module comparison and both image/filesystem inventories. Promotion
 revalidates those records against the archive, audit and each packaged module hash. GNU build-id matching

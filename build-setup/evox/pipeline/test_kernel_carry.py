@@ -21,15 +21,17 @@ class Carry(unittest.TestCase):
         coverage=['policy','patch_packaging','private_compatibility','health_semantics','gms_themes_apps','doze_packaging','install_integrity']
         self.results=dict(source_heads=copy.deepcopy(self.heads),candidate_evidence={'kernel_audit':self.chain['audit']},
                           archive_sha256='4'*64,historical={'musthold':'pass','checks':[{'pass':True}]},
-                          supplemental=[dict(coverage=c,exit=0) for c in coverage])
+                          supplemental=[dict(coverage=c,exit=0) for c in coverage],
+                          kernel_artifact_evidence={n:'5'*64 for n in ('kernel-artifact-binding.json','image-files.json','filesystem-files.json')})
         self.calls=[]
 
     def validate(self, parent_check=None, actual=None):
-        data={'old.json':self.parent,'results.json':self.results}
+        data={'old.json':self.parent,'results.json':self.results,'kernel-artifact-binding.json':{'pass':True},
+              'image-files.json':[],'filesystem-files.json':[]}
         hashes={str(self.manifest):'3'*64,'control.zip':'4'*64}
         return gate.validate(self.audit,self.heads,lambda r:data[r['path']],
                              parent_check or (lambda p:self.calls.append(p)),lambda raw:copy.deepcopy(self.heads),
-                             actual or (lambda p:hashes[p]))
+                             actual or (lambda p:hashes[p]),lambda *a:None)
 
     def test_unchanged_contract_requires_verified_parent(self):
         self.validate();self.assertEqual(self.calls,[self.parent])
@@ -56,3 +58,7 @@ class Carry(unittest.TestCase):
         self.results['supplemental'][0]['exit']=0
         def failed(parent):raise ValueError('Parent ABI proof failed')
         with self.assertRaises(ValueError):self.validate(parent_check=failed)
+
+    def test_control_without_packaged_artifact_binding_cannot_be_carried(self):
+        del self.results['kernel_artifact_evidence']
+        with self.assertRaises(ValueError):self.validate()

@@ -1,0 +1,22 @@
+From bd56cf8e93218e0e281a6a320c6cfb6d7b437aab Mon Sep 17 00:00:00 2001
+From: Diogo Casteluber Laass <4793368+iowaz@users.noreply.github.com>
+Date: Wed, 11 Nov 2026 11:50:17 -0300
+Subject: [PATCH] klimt: explicitly select the supported threaded GLES renderer
+
+---
+ configs/props/vendor.prop | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configs/props/vendor.prop b/configs/props/vendor.prop
+index fc3f6e1..eedf4a4 100644
+--- a/configs/props/vendor.prop
++++ b/configs/props/vendor.prop
+@@ -194,7 +194,7 @@ debug.hwui.initialize_gl_always=1
+ debug.mediatek.appgamepq_compress=1
+ debug.mediatek.disp_decompress=1
+ debug.mtk_tflite.target_nnapi=29
+-debug.renderengine.backend=skiagl
++debug.renderengine.backend=skiaglthreaded
+ external_storage.casefold.enabled=1
+ external_storage.projid.enabled=1
+ external_storage.sdcardfs.enabled=0

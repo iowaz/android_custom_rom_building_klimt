@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "device_base": "1b1b1cc7e00b6c716a52fc05cdbdb0b85a0d2701",
+  "kernel": "08c56166f1883020396e8e95570671407f00ba04",
+  "apply_check_pass": true,
+  "applied_to_build": false,
+  "patches": [
+    {
+      "file": "01-renderer-declaration.patch",
+      "preview_commit": "bd56cf8e93218e0e281a6a320c6cfb6d7b437aab",
+      "sha256": "480f8f96b21b3640ceed78bed85ac2a67c872b790113b1ebeaf65c0e393502a8",
+      "kind": "cleanup",
+      "runtime_admitted": false
+    },
+    {
+      "file": "02-owner-build-readme.patch",
+      "preview_commit": "9cf0d0c4f6459793d0b02cc29176b27b1cae7d89",
+      "sha256": "c4cb9e594cdd6b95a8be349b49e3dea24a8132598a93b7c1b28c07e107026a45",
+      "kind": "documentation",
+      "runtime_admitted": false
+    },
+    {
+      "file": "03-s120-experiment.patch",
+      "preview_commit": "6d91e1191e75ca2404c3d8a5da747c4e719e25a5",
+      "sha256": "e3120693651410153825e462459ea6a5ba932e6a3f47b9226d7c57dee321aa29",
+      "kind": "unpromoted experiment",
+      "runtime_admitted": false
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+From 6d91e1191e75ca2404c3d8a5da747c4e719e25a5 Mon Sep 17 00:00:00 2001
+From: Diogo Casteluber Laass <4793368+iowaz@users.noreply.github.com>
+Date: Wed, 11 Nov 2026 11:50:17 -0300
+Subject: [PATCH] klimt: trial numeric 120 Hz SurfaceFlinger duration overrides
+
+---
+ configs/props/odm.prop | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/configs/props/odm.prop b/configs/props/odm.prop
+index 46f4a2d..eb2ffd5 100644
+--- a/configs/props/odm.prop
++++ b/configs/props/odm.prop
+@@ -53,6 +53,14 @@ debug.sf.high_fps.earlyGl.app.duration=11600000
+ debug.sf.high_fps.earlyGl.sf.duration=10300000
+ debug.sf.high_fps.late.app.duration=11600000
+ debug.sf.high_fps.late.sf.duration=10300000
++
++# Trial: AOSP VsyncConfiguration reads numeric rate suffixes. Keep vendor tables and 60 Hz unchanged.
++debug.sf.early.app.duration.120=11600000
++debug.sf.early.sf.duration.120=10300000
++debug.sf.earlyGl.app.duration.120=11600000
++debug.sf.earlyGl.sf.duration.120=10300000
++debug.sf.late.app.duration.120=11600000
++debug.sf.late.sf.duration.120=10300000
+ debug.sf.set_idle_timer_ms=1100
+ persist.vendor.dc_backlight.enable=false
+ ro.surface_flinger.enable_frame_rate_override=false

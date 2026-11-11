@@ -1,0 +1,77 @@
+From 9cf0d0c4f6459793d0b02cc29176b27b1cae7d89 Mon Sep 17 00:00:00 2001
+From: Diogo Casteluber Laass <4793368+iowaz@users.noreply.github.com>
+Date: Wed, 11 Nov 2026 11:50:17 -0300
+Subject: [PATCH] klimt: document the Evolution X owner build workflow
+
+---
+ README.md | 57 +++++++++++++++++++++++--------------------------------
+ 1 file changed, 24 insertions(+), 33 deletions(-)
+
+diff --git a/README.md b/README.md
+index 0920a59..455a8f1 100644
+--- a/README.md
++++ b/README.md
+@@ -23,39 +23,30 @@
+ 
+ ## Building
+ 
+-This example targets WitAqua `17.0` / LineageOS `lineage-24.0` and uses the
+-`github` remote from that ROM manifest.
+-
+-The kernel and proprietary repositories are not part of the ROM manifest, and
+-`device/mediatek/sepolicy_vndr` has to exist before `lunch` can evaluate
+-`BoardConfig.mk`, so sync them with a local manifest, e.g.
+-`.repo/local_manifests/klimt.xml`:
+-
+-```xml
+-<?xml version="1.0" encoding="UTF-8"?>
+-<manifest>
+-  <remote name="misakazip" fetch="https://github.com/misakazip-dev" />
+-  <remote name="miru10" fetch="https://gitlab.miru10.net/misakazip" />
+-
+-  <project path="device/xiaomi/klimt" name="android_device_xiaomi_klimt" remote="misakazip" revision="17.0" />
+-  <project path="kernel/xiaomi/klimt" name="android_kernel_xiaomi_klimt" remote="misakazip" revision="17.0" clone-depth="1" />
+-  <project path="kernel/xiaomi/klimt-prebuilt" name="android_kernel_xiaomi_klimt-prebuilt" remote="misakazip" revision="17.0" clone-depth="1" />
+-  <project path="vendor/xiaomi/klimt" name="android_vendor_xiaomi_klimt" remote="miru10" revision="17.0" clone-depth="1" />
+-
+-  <project path="device/mediatek/sepolicy_vndr" name="LineageOS/android_device_mediatek_sepolicy_vndr" remote="github" revision="lineage-24.0" />
+-  <project path="hardware/xiaomi" name="LineageOS/android_hardware_xiaomi" remote="github" revision="lineage-24.0" />
+-</manifest>
+-```
+-
+-For an existing source tree, merge these entries into your local manifests by
+-`path` rather than adding a second entry for a project already present (including
+-entries in `roomservice.xml`). If an existing `hardware/xiaomi` entry still uses
+-`lineage-23.2`, update its revision explicitly; roomservice does not change it.
+-
+-Save the manifest and run `repo sync` from the ROM source root before sourcing
+-`build/envsetup.sh` and running `lunch`. roomservice sees the projects already
+-listed in the local manifest and does not add them again from
+-`lineage.dependencies`.
++This tree targets Evolution X `cnb` (Android 17), using the owner's device `cnb`,
++kernel `17.0` and vendor `cnb` branches. The kernel is built from source while
++retaining the stock OS3.0.335 vendor modules, DTB/DTBO and firmware.
++
++The canonical instructions and local manifest are in the
++[build repository](https://github.com/iowaz/android_custom_rom_building_klimt).
++Use its [pipeline](https://github.com/iowaz/android_custom_rom_building_klimt/tree/main/build-setup/evox/pipeline)
++for preparation, source freezing, readiness, a full installclean build and image checks.
++It records each date-named build with a frozen manifest and tags; there are no per-build branches.
++
++For a new source tree, initialize Evolution X `cnb`, install the build repository's
++`manifests/local_manifests/klimt.xml` as a local manifest, and sync before `lunch`.
++Merge entries by project path rather than duplicating entries from roomservice.
++The manifest includes the matching Xiaomi HAL and MediaTek vendor policy dependencies.
++
++The klimt-specific and owner-requested personal patches to upstream ROM projects are
++listed in `patches/PATCHES.json`. After sync, apply them with
++`python3 device/xiaomi/klimt/patches/apply.py .` from the source root; use `--check`
++to verify them. Do not replace the upstream projects with ROM-source forks.
++
++The vendor blobs are private and must be extracted from the matching OTA if access
++is unavailable, as described below. Existing signing keys stay offline and are never
++committed. A successful source/image check does not establish that a build boots;
++flashing and device validation are separate steps.
+ 
+ ### Proprietary files
+ 

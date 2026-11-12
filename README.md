@@ -1,7 +1,12 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current phone build: **[20261111.2](docs/20261111.2.md)**, dirty-flashed on 2026-11-12 without a wipe (105 OKAY / 0 FAILED), then rebooted and confirmed boot-complete on slot b. AudioService reports 30 media steps. Subjective speaker-volume acceptance remains pending.
-Previous boot-observed build: **[20261111](docs/20261111.md)**, retained on D: for recovery. Its kernel source is unchanged in 20261111.2; full hardware acceptance remains pending.
+Current phone build: **[20261112.2](docs/20261112.2.md)**, upstream-refreshed with all 15 local patches
+and the Android Auto A2DP-routing safeguard enabled. Full image checks pass. Dirty-flashed on 2026-11-12
+without a wipe (105 OKAY / 0 FAILED), rebooted and confirmed boot-complete on slot b. The installed flag table
+matches the verified candidate; media volume remains 30 steps/default 10. Android ID and all 702 package UIDs
+are preserved. Android Auto/car validation and subjective speaker-volume acceptance remain pending.
+Previous boot-observed builds **[20261111.2](docs/20261111.2.md)** and **[20261111](docs/20261111.md)**
+are retained on D: for recovery. Kernel source remains unchanged; full hardware acceptance remains pending.
 The first build without ROM-source forks: the klimt patches are in the device tree, and LineageOS's 2026-11 security fixes are in the projects that come straight from LineageOS.
 See [history](docs/history.md) for source and build results.
 
@@ -58,12 +63,13 @@ There are no ROM-source forks since 2026-11-04. The owner's rules:
 - **Builds are named by date from 2026-11-04**: `20261105`, and `20261105.2` for a second build the same day.
   evox1 to evox31 keep their names.
 
-The device patches are 13 patches in 10 projects. klimt needs four: the HIDL `light@2.0` drop and AIDL-only
+The device patch bundle contains 15 patches in 11 projects. klimt's build adaptations include the HIDL `light@2.0` drop and AIDL-only
 `blank_screen` (hardware/interfaces; the build fails without them), the SMPTE 2094-50 guard (frameworks/native;
 the A15 MediaTek mapper doesn't list it) and the MIUI boot jar packages (build/soong). The rest is the personal
 layer, in build/make, build/soong, vendor/lineage, lineage-sdk, packages/apps/Settings, packages/apps/Updater,
 bootable/recovery and frameworks/base (the upgrade digest includes `ro.build.date.utc`, because klimt reports a
-fixed fingerprint). The adb root policy patch (device/lineage/sepolicy) and the two init marker commits
+fixed fingerprint). SystemUI also keeps the charging animation off the always-on display, and
+device/lineage/sepolicy restricts the adb-root domain to debug builds. The two init marker commits
 (system/core) were dropped with the forks. The old iowaz forks only serve the snapshots up to evox31.
 
 ### Without access to the private repositories

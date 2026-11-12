@@ -36,6 +36,11 @@ need the owner's OK.
 - **Static checks are not a boot test.** Say "image-checked" until the phone has booted the build.
 - **Flashing only when the user asks**, to slot b, with `fastboot update --skip-reboot` and never `-w`: the user's
   data is kept ("dirty flash"). Keep the previous working ZIP ready to restore the same way.
+- **Reboot after a successful flash by default** (owner request, 2026-11-12). Flash authorization includes
+  booting Android afterwards, unless the owner explicitly asks to stay in fastboot. Check the update exit
+  status, then run `fastboot reboot` if the helper has not already done it; verify ADB boot completion,
+  slot and build. Never auto-reboot after a failed or uncertain flash. This supersedes older instructions
+  that leave the reboot to the operator, including helpers generated before this rule.
 - **Never commit or upload signing keys** (`vendor/evolution-priv/keys`, `backups\signing-keys`), and never put
   raw phone logs (bugreports, full logcat, getprop) in this public repository. Only trimmed excerpts.
 - **One build at a time.** The controller takes a source lock. Do not edit the pipeline while an attempt runs (its

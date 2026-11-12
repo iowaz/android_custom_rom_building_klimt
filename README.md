@@ -1,6 +1,6 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Installed on slot b: **[20261111.2](docs/20261111.2.md)**, dirty-flashed on 2026-11-12 without a wipe (105 OKAY / 0 FAILED). The phone is left in fastbootd for the owner's Android reboot; first boot and volume acceptance are pending.
+Current phone build: **[20261111.2](docs/20261111.2.md)**, dirty-flashed on 2026-11-12 without a wipe (105 OKAY / 0 FAILED), then rebooted and confirmed boot-complete on slot b. AudioService reports 30 media steps. Subjective speaker-volume acceptance remains pending.
 Previous boot-observed build: **[20261111](docs/20261111.md)**, retained on D: for recovery. Its kernel source is unchanged in 20261111.2; full hardware acceptance remains pending.
 The first build without ROM-source forks: the klimt patches are in the device tree, and LineageOS's 2026-11 security fixes are in the projects that come straight from LineageOS.
 See [history](docs/history.md) for source and build results.
@@ -277,7 +277,10 @@ lineage_klimt-<build>-flash.bat /flash
 ```
 
 It checks the ZIP's hash and that the phone is a `klimt`, runs `fastboot update --skip-reboot` with the
-`fastboot.exe` in `D:\android_rom_building\tools\platform-tools`, and leaves the reboot to you.
+`fastboot.exe` in `D:\android_rom_building\tools\platform-tools`, checks success, then reboots Android.
+Failed flashes stay in fastboot. An authorized flash includes the successful-flash reboot unless you
+explicitly ask to remain in fastboot. With an older helper that stops there, the agent performs the
+final `fastboot reboot` after checking the update succeeded.
 
 - **First install, or after changing keys:** wipe afterwards with `fastboot -w` and Format data in recovery.
 - **Updating a build signed with the same keys:** flash without a wipe ("dirty"), as every build since evox8.

@@ -282,8 +282,11 @@ class Gates(unittest.TestCase):
             marker=p/'VERIFIED.txt';marker.write_text('fixture only')
             script,bat=future_flash_scripts(p,archive,hashlib.sha256(archive.read_bytes()).hexdigest())
             self.assertIn('"%FASTBOOT%" --slot=b update --skip-reboot "'+archive.name+'"',bat.read_text())
+            self.assertIn('if not "%errorlevel%"=="0" exit /b 1\n"%FASTBOOT%" reboot\nif not "%errorlevel%"=="0" exit /b 1',bat.read_text())
             mock=p/'fastboot';log=p/'calls'
-            mock.write_text('#!/bin/bash\nif [ "$1" = getvar ]; then printf "%s\\n" "$MOCK_PRODUCT"; exit 0; fi\nprintf "%s\\n" "$@" >> "$MOCK_LOG"\n')
+            mock.write_text('#!/bin/bash\nif [ "$1" = getvar ]; then printf "%s\\n" "$MOCK_PRODUCT"; exit 0; fi\nprintf "%s\\n" "$@" >> "$MOCK_LOG"\n'
+                            'if [ "$1" = --slot=b ] && [ -n "$MOCK_UPDATE_EXIT" ]; then exit "$MOCK_UPDATE_EXIT"; fi\n'
+                            'if [ "$1" = reboot ] && [ -n "$MOCK_REBOOT_EXIT" ]; then exit "$MOCK_REBOOT_EXIT"; fi\nexit 0\n')
             mock.chmod(0o755)
             env=dict(os.environ,PATH=str(p)+':'+os.environ['PATH'],MOCK_LOG=str(log))
             for product,accepted in [('product: klimt',True),('(bootloader) product: klimt',True),
@@ -292,7 +295,15 @@ class Gates(unittest.TestCase):
                 log.unlink(missing_ok=True)
                 result=subprocess.run(['bash',str(script),'--flash'],env=dict(env,MOCK_PRODUCT=product),capture_output=True)
                 self.assertEqual(result.returncode==0,accepted,(product,result.stderr))
-                self.assertEqual(log.read_text().splitlines() if log.exists() else [],['--slot=b','update','--skip-reboot',archive.name] if accepted else [])
+                self.assertEqual(log.read_text().splitlines() if log.exists() else [],['--slot=b','update','--skip-reboot',archive.name,'reboot'] if accepted else [])
+            for update_exit,reboot_exit in [(7,0),(-1,0),(0,9)]:
+                log.unlink(missing_ok=True)
+                result=subprocess.run(['bash',str(script),'--flash'],env=dict(env,MOCK_PRODUCT='product: klimt',
+                    MOCK_UPDATE_EXIT=str(update_exit),MOCK_REBOOT_EXIT=str(reboot_exit)),capture_output=True)
+                self.assertNotEqual(result.returncode,0)
+                expected=['--slot=b','update','--skip-reboot',archive.name]+([] if update_exit else ['reboot'])
+                self.assertEqual(log.read_text().splitlines(),expected)
+                self.assertNotIn(b'Update complete.',result.stdout)
             for defect in ('hash','marker','argument'):
                 log.unlink(missing_ok=True);archive.write_bytes(b'bad' if defect=='hash' else b'fixture archive')
                 if defect=='marker':marker.unlink()
@@ -300,6 +311,70 @@ class Gates(unittest.TestCase):
                 result=subprocess.run(['bash',str(script)]+([] if defect=='argument' else ['--flash']),env=dict(env,MOCK_PRODUCT='product: klimt'),capture_output=True)
                 self.assertNotEqual(result.returncode,0)
                 self.assertFalse(log.exists())
+    def test_windows_flash_reboots_only_after_success(self):
+        from verify import future_flash_scripts
+        import paths
+        compiler=Path('/mnt/c/Windows/Microsoft.NET/Framework64/v4.0.30319/csc.exe')
+        if not compiler.is_file():self.skipTest('Windows .NET Framework compiler unavailable')
+        parent=paths.ROOT/'diagnostics/logs';parent.mkdir(parents=True,exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix='flash-reboot-',dir=parent) as tmp:
+            root=Path(tmp);dest=root/'output-zips/evox99';dest.mkdir(parents=True)
+            tools=root/'tools/platform-tools';tools.mkdir(parents=True)
+            executable=tools/'fastboot.exe';source=root/'FakeFastboot.cs';log=root/'calls'
+            source.write_text(r'''using System;
+using System.IO;
+class FakeFastboot {
+  static int Main(string[] args) {
+    if (args.Length == 0) return 99;
+    if (args[0] == "getvar") {
+      Console.Error.WriteLine(Environment.GetEnvironmentVariable("MOCK_PRODUCT"));
+      return 0;
+    }
+    File.AppendAllText(Environment.GetEnvironmentVariable("MOCK_LOG"),
+      string.Join(" ", args) + Environment.NewLine);
+    int code;
+    string name = args[0] == "--slot=b" ? "MOCK_UPDATE_EXIT" :
+      args[0] == "reboot" ? "MOCK_REBOOT_EXIT" : "";
+    return name != "" && int.TryParse(Environment.GetEnvironmentVariable(name), out code) ? code : 99;
+  }
+}''')
+            def win(path):return subprocess.check_output(['wslpath','-w',str(path)],text=True).strip()
+            compiled=subprocess.run([str(compiler),'/nologo','/out:'+win(executable),win(source)],capture_output=True)
+            self.assertEqual(compiled.returncode,0,compiled.stdout+compiled.stderr)
+            self.assertTrue(executable.is_file())
+            archive=dest/'lineage_klimt-evox99-img.zip';archive.write_bytes(b'fixture archive')
+            (dest/'VERIFIED.txt').write_text('fixture only')
+            _,bat=future_flash_scripts(dest,archive,hashlib.sha256(archive.read_bytes()).hexdigest())
+            driver=root/'run.bat'
+            for name,product,update_exit,reboot_exit in [
+                    ('success','product: klimt',0,0),
+                    ('update-failed','product: klimt',7,0),
+                    ('update-crashed','product: klimt',-1,0),
+                    ('reboot-failed','product: klimt',0,9),
+                    ('reboot-crashed','product: klimt',0,-1),
+                    ('wrong-product','product: different',0,0),
+                    ('bad-hash','product: klimt',0,0)]:
+                with self.subTest(case=name):
+                    log.unlink(missing_ok=True)
+                    archive.write_bytes(b'bad' if name=='bad-hash' else b'fixture archive')
+                    driver.write_text(f'''@echo off
+setlocal
+set "PSModulePath=%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\Modules"
+set "MOCK_PRODUCT={product}"
+set "MOCK_LOG={win(log)}"
+set "MOCK_UPDATE_EXIT={update_exit}"
+set "MOCK_REBOOT_EXIT={reboot_exit}"
+call "{win(bat)}" /flash
+exit /b %errorlevel%
+''',newline='\r\n')
+                    result=subprocess.run(['/mnt/c/Windows/System32/cmd.exe','/d','/c',win(driver)],capture_output=True)
+                    self.assertEqual(result.returncode==0,name=='success',result.stdout+result.stderr)
+                    calls=log.read_text().splitlines() if log.exists() else []
+                    expected=[] if name in ('wrong-product','bad-hash') else [
+                        '--slot=b update --skip-reboot '+archive.name]+([] if update_exit else ['reboot'])
+                    self.assertEqual(calls,expected)
+                    if name!='success':self.assertNotIn(b'Update complete.',result.stdout)
+
     def test_recheck_binding_rejects_changed_source_or_tooling(self):
         from verify import review_binding
         review=dict(approved=True,attempt='evox17-attempt01',source_snapshot_sha256='a'*64,evidence='independent reviewer',tooling_sha256=tooling_hashes())

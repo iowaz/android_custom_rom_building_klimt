@@ -41,7 +41,8 @@ product=$(fastboot getvar product 2>&1)
 printf '%s\\n' "$product"
 test "$(printf '%s\\n' "$product" | grep -cE '^(\\(bootloader\\)[[:space:]]*)?product:[[:space:]]*klimt[[:space:]]*$')" = 1
 fastboot --slot=b update --skip-reboot 'ARCHIVE'
-echo 'Update complete. Reboot the phone when ready.'
+fastboot reboot
+echo 'Update complete. Android reboot requested.'
 '''.replace('DIGEST',digest).replace('ARCHIVE',archive.name),newline='\n')
     bat=dest/(stem+'-flash.bat')
     bat.write_text('''@echo off
@@ -62,8 +63,10 @@ if errorlevel 1 exit /b 2
 powershell.exe -NoProfile -Command "if (@(Select-String -LiteralPath 'product-check.txt' -Pattern '^(?:\\(bootloader\\)\\s*)?product:\\s*klimt\\s*$' -CaseSensitive).Count -ne 1) { exit 2 }"
 if errorlevel 1 exit /b 2
 "%FASTBOOT%" --slot=b update --skip-reboot "ARCHIVE"
-if errorlevel 1 exit /b 1
-echo Update complete. Reboot the phone when ready.
+if not "%errorlevel%"=="0" exit /b 1
+"%FASTBOOT%" reboot
+if not "%errorlevel%"=="0" exit /b 1
+echo Update complete. Android reboot requested.
 exit /b 0
 '''.replace('DIGEST',digest).replace('ARCHIVE',archive.name),newline='\r\n')
     return [script,bat]
@@ -240,7 +243,7 @@ Archive: `{archive.name}`. SHA256: `{digest}`. Source inputs match the frozen pr
 
 Build target: lineage_klimt-cp2a-user. Static image checks passed. **Not boot-tested**. Keep the previous boot-tested ZIP available. Rollback to an older vendor security patch level is unvalidated.
 
-The fastboot image ZIP contains the same 19 artifacts as Evox15. Supplied Windows `.bat` and Linux `.sh` wrappers check the ZIP hash and Klimt product, select slot b with `fastboot --slot=b update --skip-reboot`, omit data wiping and leave reboot to the operator. Run only after separately authorizing the phone operation. They require the phone already in fastboot and a working fastboot installation.
+The fastboot image ZIP contains the same 19 artifacts as Evox15. Supplied Windows `.bat` and Linux `.sh` wrappers check the ZIP hash and Klimt product, select slot b with `fastboot --slot=b update --skip-reboot`, omit data wiping and run `fastboot reboot` only after a successful update. Failed flashes remain in fastboot. Run only after authorizing the flash; that authorization includes the successful-flash reboot unless the owner explicitly asks to stay in fastboot. They require the phone already in fastboot and a working fastboot installation.
 
 The update writes slot b and selects it as active. In Windows run `{scripts[1].name} /flash`; in Linux run `bash ./{scripts[0].name} --flash`. These commands are supplied for the operator; package preparation does not run them.
 

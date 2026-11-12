@@ -152,8 +152,11 @@ record), extracts it, and requires:
 It then stages the delivery: `lineage_klimt-<build>-img.zip`, `lineage_klimt-<build>-flash.bat`/`.sh`,
 `SHA256SUMS`, `VERIFIED.txt` ("static image checks passed, NOT boot-tested"), `RESULTS.json`,
 `COMPARISON.md`, `README.md` and the pre/post manifests. The flash helpers check the hash and the `klimt`
-product, need `/flash` or `--flash`, run `fastboot update --skip-reboot` (no wipe) and use
-`D:\android_rom_building\tools\platform-tools\fastboot.exe` when it exists.
+product, need `/flash` or `--flash`, run `fastboot update --skip-reboot` (no wipe), then run
+`fastboot reboot` only if the update succeeds. A failed flash stays in fastboot. Flash authorization
+includes the successful-flash reboot unless the owner explicitly asks to remain in fastboot. Helpers
+use `D:\android_rom_building\tools\platform-tools\fastboot.exe` when it exists. For older delivery
+helpers that stop in fastboot, the agent performs the final reboot after checking successful completion.
 
 ### Verifier fixes without a rebuild
 

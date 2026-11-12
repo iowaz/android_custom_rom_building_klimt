@@ -24,6 +24,8 @@ writes its record to diagnostics/builds/<build>/preparation/):
                 pinned at its upstream base, copied to manifests/snapshots/<build>.xml and .repo/manifests.
 Then: ready.py <frozen> -> start.sh -> promote.py. The device commit (iowaz cnb) is pushed only with the owner's OK.
 """
+import hostcheck
+hostcheck.require_linux(__file__)
 import argparse, hashlib, json, os, re, shutil, subprocess as sp, sys, time
 import xml.etree.ElementTree as ET
 from pathlib import Path

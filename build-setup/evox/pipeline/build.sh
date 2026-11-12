@@ -2,10 +2,11 @@
 # Invoked only by controller.py after the immutable readiness checks pass.
 set -eo pipefail
 : "${KLIMT_ATTEMPT:?controller-owned attempt required}"
+PIPELINE=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 finish() {
     rc=$?
-    python3 - "$KLIMT_ATTEMPT/build-exit.json" "$rc" <<'PY'
-import hashlib,json,os,sys,time
+    python3 - "$KLIMT_ATTEMPT/build-exit.json" "$rc" "$PIPELINE/staging_evidence.py" "$KLIMT_ATTEMPT" <<'PY'
+import hashlib,json,os,subprocess,sys,time
 path=sys.argv[1]
 temp=path+'.runner.tmp'
 record={'exit':int(sys.argv[2]),'time':time.time()}
@@ -16,6 +17,12 @@ if record['exit']==0:
         for chunk in iter(lambda:f.read(4*1024*1024),b''):h.update(chunk)
     st=os.stat(archive)
     record.update(zip_sha256=h.hexdigest(),zip_mtime_ns=st.st_mtime_ns,zip_bytes=st.st_size)
+    # Staging evidence for simple verification (staging_evidence.py). Exit 0 already proves installclean and
+    # the empty-staging assertion ran; a capture failure leaves the compile result alone and makes simple
+    # verification stop on missing evidence.
+    capture=subprocess.run(['python3','-B',sys.argv[3],sys.argv[4]],capture_output=True,text=True)
+    if capture.returncode==0:record['staging_evidence']=json.loads(capture.stdout)
+    else:record['staging_evidence_error']=(capture.stdout+capture.stderr)[-2000:]
 with open(temp,'x') as f:json.dump(record,f)
 os.replace(temp,path)
 PY

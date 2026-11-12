@@ -5,6 +5,8 @@ No source repair/retry/phone action is performed here. A new attempt always need
 a new directory and the reviewed BUILD_READY.json input. Linux /proc start ticks,
 boot ID, session and process group identify the build before any signal.
 """
+import hostcheck
+hostcheck.require_linux(__file__)
 import argparse
 import fcntl
 import hashlib
@@ -278,6 +280,11 @@ def readiness(path):
         raise RuntimeError('Frozen-source kernel expectation required for new builds')
     import candidate_gates
     candidate_gates.validate_ready(ready, heads)
+    if ready.get('verification') is not None:
+        import verification
+        record = verification.validate_record(ready['verification'])
+        if record['candidate'] != bool(ready.get('candidate_evidence')):
+            raise RuntimeError('Verification record candidate state disagrees with candidate evidence')
     excluded = ready.get('excluded_heads', {})
     required = {'kernel/xiaomi/klimt','kernel/xiaomi/klimt-prebuilt','vendor/xiaomi/klimt','hardware/xiaomi','device/mediatek/sepolicy_vndr'}
     if not required <= set(excluded) or any(heads.get(p) != v for p,v in excluded.items()):
@@ -419,14 +426,23 @@ def run(attempt_id,ready_path):
     except Exception as e:
         if owner and owned(owner):
             stop_owned(owner)
-        write_json(attempt/'tool-error.json',{'error':str(e),'time':time.time()},True)
-        write_json(attempt/'status.json',{'state':'tool-failed','error':str(e),'time':time.time()})
+        failure=verify_failure(attempt,e)
+        write_json(attempt/'tool-error.json',dict({'error':str(e),'time':time.time()},**failure),True)
+        write_json(attempt/'status.json',dict({'state':'tool-failed','error':str(e),'time':time.time()},**failure))
         raise
     finally:
         for name in ('status.json','BUILD_READY.json','owner.json','build-exit.json','watchdog-terminal.json','disk-stop.json','tool-error.json'):
             if (attempt/name).exists():
                 shutil.copyfile(attempt/name,debug/name)
         source_lock.close()
+
+def verify_failure(attempt,error):
+    """The verifier's exit code (1 defect, 2 missing tool/evidence, 3 unexpected) and failing check, if it ran."""
+    if not isinstance(error,subprocess.CalledProcessError) or 'verify.py' not in ' '.join(map(str,error.cmd)):
+        return {}
+    record=attempt/'verify-exit.initial.json'
+    found=json.loads(record.read_text()) if record.is_file() else {}
+    return {'verify_exit':error.returncode,'verify_kind':found.get('kind'),'verify_check':found.get('check')}
 
 def resume(attempt):
     # Recovery observes the existing attempt. It never launches a new build.

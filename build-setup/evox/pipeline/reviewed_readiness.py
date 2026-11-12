@@ -18,5 +18,11 @@ def apply(original, review, load_record, validate_candidate):
             raise ValueError('Verifier recheck cannot change kernel inputs or control')
         ready['candidate_evidence']['kernel_audit'] = review['kernel_audit_update']
         validate_candidate(ready, ready['reviewed_project_heads'])
+    if 'verification' in review:
+        import verification
+        widened = verification.widen(ready.get('verification'), review['verification'])
+        if widened['candidate'] != bool(ready.get('candidate_evidence')):
+            raise ValueError('Recheck verification record disagrees with the candidate evidence')
+        ready['verification'] = widened
     ready['verification_only'] = True
     return ready

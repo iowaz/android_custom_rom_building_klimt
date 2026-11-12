@@ -60,6 +60,14 @@ tag or any slot-state change. Keep the previous boot-tested ZIP and the agreed r
 
 ### Ordinary upstream builds
 
+When an ordinary upstream refresh retains a previously audited non-baseline kernel, complete the six
+source-preparation steps below first. Then run `upstream_kernel_control.py <build> --control <full-control>`
+to bind all six successful records and the frozen snapshot to the unchanged kernel/prebuilt/vendor pins.
+Carry the full control's audit with `kernel_carry.py`, capture its rollback/security control, and supply both
+to `ready.py`. ROM projects may refresh; kernel/prebuilt/vendor or normalized kernel configuration changes
+still require a new audit. The refreshed build receives its own image verification; it does not inherit the
+control's ROM result. `20261112.2` uses full verification for this path.
+
 There are no ROM-source forks and no per-build branches. The tree is plain Evolution X `cnb` plus the device,
 kernel, kernel-prebuilt and vendor repositories ([`klimt-live.xml`](../../../manifests/local_manifests/klimt-live.xml));
 the patches klimt needs, and the owner's personal identity layer, are in the device tree under
@@ -128,6 +136,45 @@ always gets a new ID, and nothing in an attempt is overwritten.
 
 ## Verification
 
+### Simple and full modes
+
+`ready.py` seals a verification mode in `BUILD_READY.json` (`verification`, see [`verification.py`](verification.py)
+and [the design](../../../docs/designs/verifier-simplification.md)). It compares this build's readiness with the
+newest earlier build that has `PROMOTED.json`:
+
+- **full**, the verifier described below, when the private vendor blobs, signing certificates or target changed, a
+  `klimt` patch moved to an unmapped project, `BoardConfig.mk` partition/super/AVB lines, `modules.load.*` or the
+  fstab changed, there is no baseline, or the operator asks (`--mode full`);
+- **simple** otherwise, with focused extras for what changed: a kernel project (`kernel`, the module CRC check),
+  a patched project's base or patch (`policy`, `patch_packaging`), `hardware/xiaomi`, `vendor/gms*`,
+  `device/mediatek/sepolicy_vndr`, or device-tree paths (`health/` → `health_semantics`, `sepolicy/` → `policy`,
+  `udfps/`, `parts/`, `apps/`, overlays → `doze_packaging`, `wifi/` → `private_compatibility`, ...). A kernel head
+  other than `kernel_contract.BASELINE` adds the `kernel` extra and the candidate checks.
+
+`--extra NAME` (repeatable) and `--reason` add checks; nothing removes a computed one, and `--mode simple` is
+refused when inputs require full. A readiness without the record is verified in full.
+
+Simple runs eight checks on the producing ZIP, then the extras: `attempt.provenance`, `archive.integrity` (19
+entries, CRC, the delivery copy hashed while copying and read back), `avb.chain` (`verify_image
+--follow_chain_partitions`; vbmeta/chain keys equal the baseline's), `flash.layout` (super_empty,
+fastboot-info, android-info against author/build9), `dtb.live` (DTBO payload and vendor_boot DTB against the
+live slot b), `identity.metadata` (check-metadata26's 112 assertions on the staged build.prop files, packaged
+kernel banner), `staging.clean` (every staged path is a product install, kernel modules excepted; only the
+selected Telecom variant) and `signing.platform` (staged framework-res.apk signer). The staging inputs are
+captured by `build.sh` at packaging time ([`staging_evidence.py`](staging_evidence.py), hashed into
+`build-exit.json`); an attempt without them cannot be verified in simple mode. A simple candidate extracts only
+`vendor_dlkm` and `system_dlkm` for the module CRC and kernel binding checks. Track extras extract all eight
+filesystems and run the registered image check. Results are `RESULTS.json` schema 2 with one entry per
+required check; `promote.py` requires exactly the sealed list, all passing. The marker says `SIMPLE` and that
+filesystem contents were not inspected.
+
+`verify.py` exits 0 passed, 1 artifact/assertion defect, 2 missing tool/evidence or wrong host, 3 unexpected
+error, 130 interrupted; it writes `verify-exit.<run>.json` beside the attempt, and the controller copies the code
+and failing check into `status.json`. Every Linux-only entry point stops under Windows Python with exit 2 and
+the `wsl.exe` command to use ([`hostcheck.py`](hostcheck.py)).
+
+### Full mode
+
 [`verify.py`](verify.py) only accepts the ZIP this attempt produced (hash, size, mtime from the build's own exit
 record), extracts it, and requires:
 
@@ -171,6 +218,10 @@ python3 -B $P/verify.py /mnt/wsl/evox/logs/20261105/20261105-attempt01 --recheck
 python3 -B $P/promote.py 20261105-attempt01 recheck01
 ```
 
+`tool_review.py ... --mode full` or `--extra NAME` widens the sealed verification record for that recheck (more
+checks, never fewer); omitted, the recheck inherits it. A simple recheck reads the ZIP from `out/` while it is still
+this attempt's, otherwise from the attempt's staged or promoted copy, matched by the build-exit digest.
+
 Run long commands through `start.sh` or a background shell; a process started with `setsid ... &` inside a
 one-off `wsl.exe` call can die when the call returns.
 
@@ -182,6 +233,8 @@ verification stopped because a progress watcher was called `watch-build.sh evox1
 
 ## Tests
 
-`python3 -B tests.py` (controller, effective heads, gates, date names, `prepare.py` helpers, flash helpers) and
+`python3 -B tests.py` (controller, effective heads, gates, date names, `prepare.py` helpers, flash helpers),
+`python3 -B test_simple_verification.py` (host guard, mode resolver, recheck widening, schema-2 promotion, archive/AVB/
+layout/identity/staging/signer fixtures including the evox16 stray Telecom), the other `test_*.py` files and
 `python3 -B image-checks/tests.py` (checker helpers and negative fixtures). Neither builds or verifies an image.
 Do not run them during an attempt: they write files the controller's tooling snapshot would see change.

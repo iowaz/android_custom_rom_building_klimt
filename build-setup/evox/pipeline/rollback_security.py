@@ -8,7 +8,8 @@ from pathlib import Path
 
 IMAGES = ('boot', 'init_boot', 'vendor_boot', 'dtbo', 'vbmeta', 'vbmeta_system', 'vbmeta_vendor',
           'system', 'system_ext', 'product', 'vendor', 'odm', 'system_dlkm', 'vendor_dlkm', 'odm_dlkm')
-PROPS = {'system': 'system/system/build.prop', 'system_ext': 'system_ext/etc/build.prop',
+SPARSE = b'\x3a\xff\x26\xed'
+PROPS = {'system':'system/system/build.prop', 'system_ext': 'system_ext/etc/build.prop',
          'product': 'product/etc/build.prop', 'vendor': 'vendor/build.prop', 'odm': 'odm/etc/build.prop',
          'system_dlkm': 'system_dlkm/etc/build.prop', 'vendor_dlkm': 'vendor_dlkm/etc/build.prop',
          'odm_dlkm': 'odm_dlkm/etc/build.prop'}
@@ -72,8 +73,9 @@ def collect(extract, avbtool, actual_source_spl):
             magic = f.read(4)
             f.seek(-64, 2)
             footer = f.read(4)
-        # Partitions without their own vbmeta are verified through parent descriptors.
-        if magic == b'AVB0' or footer == b'AVBf':
+        # Partitions without their own vbmeta are verified through parent descriptors. avbtool reads Android
+        # sparse images directly, so simple verification need not unsparse system/system_ext/product first.
+        if magic in (b'AVB0', SPARSE) or footer == b'AVBf':
             text = subprocess.check_output(['python3', str(avbtool), 'info_image', '--image', str(path)], text=True)
             images[name] = parse_avb(text)
         else:

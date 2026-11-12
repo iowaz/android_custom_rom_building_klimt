@@ -8,6 +8,19 @@ import kernel_carry as gate
 
 
 class Carry(unittest.TestCase):
+    def test_rom_refresh_does_not_change_kernel_contract(self):
+        control = {p: 'a'*40 for p in gate.CONTRACT}
+        control['frameworks/base'] = 'b'*40
+        refreshed = dict(control, **{'frameworks/base': 'c'*40, 'new/rom/project': 'd'*40})
+        gate.unchanged_contract(control, refreshed)
+        for project in gate.CONTRACT:
+            with self.subTest(project=project):
+                with self.assertRaises(ValueError):
+                    gate.unchanged_contract(control, dict(refreshed, **{project: 'e'*40}))
+                missing = dict(refreshed); del missing[project]
+                with self.assertRaises(ValueError):
+                    gate.unchanged_contract(control, missing)
+
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.manifest=Path(self.temp.name)/'control.xml';self.manifest.write_text('control manifest')

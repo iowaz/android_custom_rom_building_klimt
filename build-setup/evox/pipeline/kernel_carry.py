@@ -12,6 +12,12 @@ import rollback_security
 CONTRACT = (kernel_contract.KERNEL, 'kernel/xiaomi/klimt-prebuilt', 'vendor/xiaomi/klimt')
 
 
+def unchanged_contract(control, frozen):
+    """ROM projects may refresh; the audited kernel/prebuilt/vendor pins may not."""
+    if any(not control.get(p) or frozen.get(p) != control[p] for p in CONTRACT):
+        raise ValueError('Kernel carry requires unchanged kernel/prebuilt/vendor projects')
+
+
 def validate(audit, frozen, load, parent_check, heads_from_manifest, file_sha=rollback_security.digest,
              artifact_check=kernel_artifact.validate_receipt):
     chain = audit['kernel_carry']
@@ -52,8 +58,7 @@ def carry(origin, results, control_manifest, control_archive, frozen, heads_from
     parent = candidate_gates.revalidate(origin)
     control = candidate_gates.revalidate(results)
     baseline_heads = heads_from_manifest(Path(control_manifest['path']).read_bytes())
-    if set(baseline_heads) != set(frozen) or any(baseline_heads[p] != frozen[p] for p in frozen if p != kernel_contract.DEVICE):
-        raise ValueError('Kernel carry stage may change only the device project over its control')
+    unchanged_contract(baseline_heads, frozen)
     audit = copy.deepcopy(parent)
     audit['baseline_manifest_sha256'] = control_manifest['sha256']
     audit['kernel_carry'] = dict(audit=origin, control_results=results, control_manifest=control_manifest,

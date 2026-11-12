@@ -87,6 +87,9 @@ def validate_ready(ready, frozen):
         return
     prep = revalidate(records['preparation'])
     freeze_deadline(prep)
+    if prep.get('mode') == 'upstream-refresh-audited-kernel':
+        import upstream_kernel_control
+        upstream_kernel_control.validate(prep, frozen, ready['sha256'], ready['tooling_sha256'])
     if prep['heads'][kernel_contract.KERNEL] != frozen[kernel_contract.KERNEL]:
         raise ValueError('Candidate preparation kernel drift')
     audit = revalidate(records['kernel_audit'])

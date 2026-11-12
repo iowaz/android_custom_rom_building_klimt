@@ -8,6 +8,8 @@ checked against its SHA256SUMS and RESULTS.json, then moved (a rename on the sam
 output-zips/<build>. Any other staged ZIP of the same build with the same SHA-256 is an exact duplicate and
 is removed. Nothing else is deleted.
 """
+import hostcheck
+hostcheck.require_linux(__file__)
 import hashlib, json, os, sys
 from pathlib import Path
 
@@ -66,11 +68,26 @@ def main():
         rollback_security.compare(candidate_gates.revalidate(ready['candidate_evidence']['rollback_baseline'])['security'],
                                   json.loads((report/'rollback-security-candidate.json').read_text()))
     assert (report / 'VERIFIED.txt').is_file() and results['runtime_unvalidated'] is True
-    assert results['historical']['musthold'] == 'pass'
-    historic = results['historical']['checks']
-    expected = json.loads((Path(__file__).resolve().parent / 'expected-legacy-checks.json').read_text())
-    assert sorted(v['name'] for v in historic) == sorted(expected) and all(v['pass'] is True for v in historic)
-    assert {v['coverage'] for v in results['supplemental']} == MODES and all(v['exit'] == 0 for v in results['supplemental'])
+    # The sealed record from readiness, widened only by the bound TOOL_REVIEW, decides the contract.
+    # A missing record means the legacy full contract, never simple.
+    import verification
+    review = json.loads((staged/'TOOL_REVIEW.json').read_text()) if recheck else None
+    record = verification.effective_record(json.loads((L/attempt/'BUILD_READY.json').read_text()), review)
+    if results.get('schema') == 2:
+        if recheck:
+            from verify import review_binding
+            review_binding(review, attempt, sha(L/attempt/'prebuild.xml'))
+        verification.check_results(record, results)
+        if results['archive_sha256'] != json.loads((L/attempt/'build-exit.json').read_text())['zip_sha256']:
+            raise RuntimeError('Verified archive is not the producing build-exit ZIP')
+    else:
+        if record is not None and record['mode'] != 'full':
+            raise RuntimeError('A simple-mode record needs a schema-2 report')
+        assert results['historical']['musthold'] == 'pass'
+        historic = results['historical']['checks']
+        expected = json.loads((Path(__file__).resolve().parent / 'expected-legacy-checks.json').read_text())
+        assert sorted(v['name'] for v in historic) == sorted(expected) and all(v['pass'] is True for v in historic)
+        assert {v['coverage'] for v in results['supplemental']} == MODES and all(v['exit'] == 0 for v in results['supplemental'])
     archive = staged / f'lineage_klimt-{BUILD}-img.zip'
     assert Path(results['archive']).resolve() == archive.resolve(), (results['archive'], archive)
     for line in (staged / 'SHA256SUMS').read_text().splitlines():

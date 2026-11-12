@@ -16,11 +16,18 @@ Gates:
   - build.sh cleans the staging directories before updatepackage;
   - the seven image checks are registered with their exact hash and passed their tests on Linux;
   - every --gate evidence file exists and is not empty (reviews, negative tests, ...).
+Verification mode (verification.py), sealed under `verification`: compared with the newest earlier promoted build,
+recorded input changes select full mode or focused extras; otherwise simple. `--mode full`, `--extra NAME` and
+`--reason TEXT` can add checks, never remove computed ones; `--mode simple` is refused when inputs require full.
 Recorded as information, not gates: the platform security patch level of the frozen source, and the LineageOS
 security-bulletin review state (topic C_asb_<YYYY-MM>) for the current month ("unavailable" without network).
 """
-import argparse, json, re, shutil, subprocess as sp, time, urllib.request
+import hostcheck
+hostcheck.require_linux(__file__)
+import argparse, json, re, shutil, subprocess as sp, tempfile, time, urllib.request, zipfile
 import kernel_contract
+import paths
+import verification
 from pathlib import Path
 
 from controller import (B, S, D, BUILD, DEVICE, PATCHES_JSON, manifest_heads, live_heads, patch_bundle,
@@ -153,8 +160,69 @@ def bulletin_state(month, fetch=None):
         result.update(state='unavailable', error=f'{type(e).__name__}: {e}'[:300])
     return result
 
+def find_baseline(build, root=None):
+    """The newest earlier build with PROMOTED.json and BUILD_READY.json, or None."""
+    root = root or paths.DIAGNOSTICS
+    own = verification.build_order(build)
+    found = []
+    for d in root.iterdir():
+        try:
+            key = verification.build_order(d.name)
+        except ValueError:
+            continue
+        if key < own and (d / 'PROMOTED.json').is_file() and (d / 'BUILD_READY.json').is_file():
+            found.append((key, d))
+    return max(found)[1] if found else None
+
+def baseline_avb_keys(baseline_dir):
+    """vbmeta/chain public keys of the baseline's promoted ZIP, bound to its PROMOTED.json digest. (keys, problem)"""
+    receipt = json.loads((baseline_dir / 'PROMOTED.json').read_text())
+    archive = Path(receipt['delivery']) / f'lineage_klimt-{baseline_dir.name}-img.zip'
+    if not archive.is_file():
+        return None, f'baseline ZIP missing: {archive}'
+    print('Hashing the baseline ZIP', archive, flush=True)
+    if sha(archive) != receipt['archive_sha256']:
+        return None, f'baseline ZIP differs from its PROMOTED.json digest: {archive}'
+    with tempfile.TemporaryDirectory() as tmp, zipfile.ZipFile(archive) as z:
+        z.extract('vbmeta.img', tmp)
+        info = sp.run(['python3', str(S / 'external/avb/avbtool.py'), 'info_image', '--image', str(Path(tmp) / 'vbmeta.img')],
+                      capture_output=True, text=True, check=True).stdout
+    return verification.vbmeta_keys(info), None
+
+def resolve_verification(ready, frozen, args):
+    """The sealed verification record for this readiness (see verification.computed for the rules)."""
+    base_dir = find_baseline(BUILD)
+    baseline, identity, device_paths, board, notes = None, None, None, None, []
+    if base_dir is not None:
+        baseline = json.loads((base_dir / 'BUILD_READY.json').read_text())
+        keys, problem = baseline_avb_keys(base_dir)
+        if problem:
+            notes.append(problem)
+            baseline = None
+        else:
+            old = baseline['reviewed_project_heads'].get(DEVICE)
+            names = git(DEVICE, 'diff', '--name-only', old, frozen[DEVICE], ok=False)
+            if names.returncode == 0:
+                device_paths = [l for l in names.stdout.splitlines() if l]
+                board = git(DEVICE, 'diff', '-U0', old, frozen[DEVICE], '--', 'BoardConfig.mk', ok=False).stdout
+            else:
+                notes.append('device tree diff unavailable: ' + names.stderr.strip()[-200:])
+            identity = dict(build=base_dir.name, ready_sha256=sha(base_dir / 'BUILD_READY.json'),
+                            archive_sha256=json.loads((base_dir / 'PROMOTED.json').read_text())['archive_sha256'],
+                            device_head=old, avb_keys=keys)
+    try:
+        record = verification.resolve(ready, baseline, device_paths, board, kernel_contract.BASELINE,
+                                      dict(mode=args.mode, extras=args.extra, reason=args.reason), identity)
+    except ValueError as e:
+        raise SystemExit('GATE NOT MET: verification mode :: ' + str(e) + ('; ' + '; '.join(notes) if notes else ''))
+    record['reasons'] += notes
+    return record
+
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument('--mode', choices=verification.MODES, help='verification mode; default: resolved from recorded inputs')
+    ap.add_argument('--extra', action='append', default=[], choices=verification.EXTRAS, help='add a focused check group')
+    ap.add_argument('--reason', help='why the mode or extras were requested')
     ap.add_argument('snapshot')
     ap.add_argument('--gate', action='append', default=[], help='NAME=EVIDENCE_PATH')
     ap.add_argument('--kernel-audit', help='mandatory hash-bound kernel audit for a changed kernel')
@@ -236,6 +304,11 @@ def main():
         ready['candidate_evidence'] = {name: candidate_gates.file_record(p) for name,p in
             [('preparation', preparation), ('kernel_audit', args.kernel_audit), ('rollback_baseline', args.rollback_baseline)]}
     candidate_gates.validate_ready(ready, frozen)
+    ready['verification'] = resolve_verification(ready, frozen, args)
+    v = ready['verification']
+    check('verification mode resolved and sealed', True,
+          f"{v['mode']} extras={v['extras']} candidate={v['candidate']} baseline={(v.get('baseline') or {}).get('build')}: "
+          + ('; '.join(v['reasons']) or 'routine'))
     current, _ = check_capacity(ready)
     ready['measured_free_gib'] = current
     out = D / 'BUILD_READY.json'

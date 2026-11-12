@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Foreground startup handshake for an independently detached controller."""
+import hostcheck
+hostcheck.require_linux(__file__)
 import argparse,json,os
 from pathlib import Path
 import subprocess,sys,time

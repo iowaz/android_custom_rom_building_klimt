@@ -1,7 +1,7 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current phone build: **[20261111](docs/20261111.md)**, dirty-flashed to slot b on 2026-11-11; the owner observed its boot and ADB confirmed the expected 6.6.144 kernel. Full hardware acceptance remains pending.
-Latest candidate: **[20261111.2](docs/20261111.2.md)**, the same frozen sources plus finer media-volume steps; built in 41m22s and image-checked on 2026-11-12, not flashed or boot-tested.
+Installed on slot b: **[20261111.2](docs/20261111.2.md)**, dirty-flashed on 2026-11-12 without a wipe (105 OKAY / 0 FAILED). The phone is left in fastbootd for the owner's Android reboot; first boot and volume acceptance are pending.
+Previous boot-observed build: **[20261111](docs/20261111.md)**, retained on D: for recovery. Its kernel source is unchanged in 20261111.2; full hardware acceptance remains pending.
 The first build without ROM-source forks: the klimt patches are in the device tree, and LineageOS's 2026-11 security fixes are in the projects that come straight from LineageOS.
 See [history](docs/history.md) for source and build results.
 

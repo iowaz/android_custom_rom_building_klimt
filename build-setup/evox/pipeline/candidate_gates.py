@@ -90,6 +90,9 @@ def validate_ready(ready, frozen):
     if prep.get('mode') == 'upstream-refresh-audited-kernel':
         import upstream_kernel_control
         upstream_kernel_control.validate(prep, frozen, ready['sha256'], ready['tooling_sha256'])
+    elif prep.get('mode') == 'local-rom-patches-audited-kernel':
+        import local_rom_control
+        local_rom_control.validate(prep, frozen, ready['sha256'], ready['tooling_sha256'])
     if prep['heads'][kernel_contract.KERNEL] != frozen[kernel_contract.KERNEL]:
         raise ValueError('Candidate preparation kernel drift')
     audit = revalidate(records['kernel_audit'])

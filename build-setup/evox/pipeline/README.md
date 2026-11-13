@@ -60,6 +60,15 @@ tag or any slot-state change. Keep the previous boot-tested ZIP and the agreed r
 
 ### Ordinary upstream builds
 
+For the owner-requested local keybox feature, `local_rom_control.py` validates the
+`local-rom-patches-audited-kernel` preparation record. It allows exactly the reviewed
+frameworks/base and Evolver commits plus the device patch bundle/build label, preserves
+the existing patches and upstream bases, and rejects all other source changes. The
+record binds the full before/after graph, implementation source hashes, preparation
+script, frozen snapshot and tooling. Readiness, the controller and promotion recheck
+it alongside the carried kernel audit and rollback control. This path performs no sync;
+ordinary upstream builds retain all six preparation requirements below.
+
 When an ordinary upstream refresh retains a previously audited non-baseline kernel, complete the six
 source-preparation steps below first. Then run `upstream_kernel_control.py <build> --control <full-control>`
 to bind all six successful records and the frozen snapshot to the unchanged kernel/prebuilt/vendor pins.

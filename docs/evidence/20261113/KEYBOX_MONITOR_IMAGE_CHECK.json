@@ -1,0 +1,85 @@
+{
+  "build": "20261113",
+  "runtime_validated": false,
+  "archive_sha256": "c9c31463a268ac3aa45405798641cd5ec259652ac4653987c7b23574b4410072",
+  "checks": [
+    {
+      "name": "Framework monitor contract defined",
+      "pass": true
+    },
+    {
+      "name": "System-owned monitor defined",
+      "pass": true
+    },
+    {
+      "name": "Shared certificate inspector defined",
+      "pass": true
+    },
+    {
+      "name": "TrickyStore settings defined",
+      "pass": true
+    },
+    {
+      "name": "settings: ts_monitor_enabled",
+      "pass": true
+    },
+    {
+      "name": "settings: ts_monitor_interval",
+      "pass": true
+    },
+    {
+      "name": "settings: ts_monitor_minutes",
+      "pass": true
+    },
+    {
+      "name": "settings: ts_monitor_hours",
+      "pass": true
+    },
+    {
+      "name": "settings: ts_monitor_one_hour",
+      "pass": true
+    },
+    {
+      "name": "settings: ts_monitor_schedule",
+      "pass": true
+    },
+    {
+      "name": "framework_resources: ts_monitor_channel_results",
+      "pass": true
+    },
+    {
+      "name": "framework_resources: ts_monitor_channel_recovery",
+      "pass": true
+    },
+    {
+      "name": "framework_resources: ts_monitor_expired",
+      "pass": true
+    },
+    {
+      "name": "framework_resources: ts_monitor_revoked",
+      "pass": true
+    },
+    {
+      "name": "framework_resources: ts_monitor_failed",
+      "pass": true
+    }
+  ],
+  "files": {
+    "framework": {
+      "sha256": "7517d579fe6c258d3b27af4ca3f30cab08d35f663a34aa7aeac601f26999b3c3",
+      "image_relative_path": "system/system/framework/framework.jar"
+    },
+    "services": {
+      "sha256": "3c2dabfdc2f38917a97e51de34bfc2ce91ee9e5cebfa8448d26b399a9cf8e775",
+      "image_relative_path": "system/system/framework/services.jar"
+    },
+    "framework_resources": {
+      "sha256": "866b155e47e4301a49349462e31cd4fd522362f60c26e1f06f416e12a12eec00",
+      "image_relative_path": "system/system/framework/framework-res.apk"
+    },
+    "settings": {
+      "sha256": "ce0fc4368812857021fd5c2db03697ae89a027a3ff3180be0de775a9131d68aa",
+      "image_relative_path": "system_ext/priv-app/SettingsGoogle/SettingsGoogle.apk"
+    }
+  }
+}

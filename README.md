@@ -5,8 +5,9 @@ and the Android Auto A2DP-routing safeguard enabled. Full image checks pass. Dir
 without a wipe (105 OKAY / 0 FAILED), rebooted and confirmed boot-complete on slot b. The installed flag table
 matches the verified candidate; media volume remains 30 steps/default 10. Android ID and all 702 package UIDs
 are preserved. Android Auto/car validation and subjective speaker-volume acceptance remain pending.
-Previous boot-observed builds **[20261111.2](docs/20261111.2.md)** and **[20261111](docs/20261111.md)**
-are retained on D: for recovery. Kernel source remains unchanged; full hardware acceptance remains pending.
+The boot-observed **[20261111](docs/20261111.md)** control ZIP remains on D: for verification and recovery.
+The owner authorized deletion of the redundant 20261111.2 delivery on 2026-11-13. Kernel source remains
+unchanged; full hardware acceptance remains pending.
 The first build without ROM-source forks: the klimt patches are in the device tree, and LineageOS's 2026-11 security fixes are in the projects that come straight from LineageOS.
 See [history](docs/history.md) for source and build results.
 
@@ -63,7 +64,7 @@ There are no ROM-source forks since 2026-11-04. The owner's rules:
 - **Builds are named by date from 2026-11-04**: `20261105`, and `20261105.2` for a second build the same day.
   evox1 to evox31 keep their names.
 
-The device patch bundle contains 15 patches in 11 projects. klimt's build adaptations include the HIDL `light@2.0` drop and AIDL-only
+The device patch bundle contains 17 patches in 12 projects. klimt's build adaptations include the HIDL `light@2.0` drop and AIDL-only
 `blank_screen` (hardware/interfaces; the build fails without them), the SMPTE 2094-50 guard (frameworks/native;
 the A15 MediaTek mapper doesn't list it) and the MIUI boot jar packages (build/soong). The rest is the personal
 layer, in build/make, build/soong, vendor/lineage, lineage-sdk, packages/apps/Settings, packages/apps/Updater,
@@ -71,6 +72,12 @@ bootable/recovery and frameworks/base (the upgrade digest includes `ro.build.dat
 fixed fingerprint). SystemUI also keeps the charging animation off the always-on display, and
 device/lineage/sepolicy restricts the adb-root domain to debug builds. The two init marker commits
 (system/core) were dropped with the forks. The old iowaz forks only serve the snapshots up to evox31.
+
+The local source also carries the owner-requested [scheduled keybox monitor](docs/designs/keybox-monitor.md)
+as two personal patches. [20261113](docs/20261113.md) is built, fully image-checked and promoted,
+with the six requested intervals, quiet valid-result notifications and validated recovery for
+expired/revoked keyboxes. All 15 packaged feature checks pass. Installation is authorized and pending;
+the installed build above still has 15 patches. Runtime monitoring remains unvalidated.
 
 ### Without access to the private repositories
 

@@ -5,6 +5,7 @@ keybox monitor. Full image checks and 15 packaged-feature assertions pass. The n
 slot-b update and automatic reboot succeeded; the owner confirmed boot and testing.
 The follow-up [20261113.2](docs/20261113.2.md) revises manual checks, scheduling,
 notification choices, intervals and translations. It is source-checked, independently reviewed and published before building.
+Attempt01 was stopped at the owner's request shortly after launch; no new image was produced.
 The 20261112.2 ZIP remains available as an additional working fallback.
 The boot-observed **[20261111](docs/20261111.md)** control ZIP remains on D: for verification and recovery.
 The owner authorized deletion of the redundant 20261111.2 delivery on 2026-11-13. Kernel source remains

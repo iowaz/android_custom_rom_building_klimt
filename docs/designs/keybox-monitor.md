@@ -126,3 +126,21 @@ A pre-inspection timeout/rejection is not a completed check and posts no status 
 It returns an error to a foreground caller and preserves the previous verdict/deadline.
 Twenty-two host tests and final focused compilation pass. Real service/UI lifecycle and phone
 timing/recovery acceptance remain required before an upstream submission.
+
+
+## Consolidated patch delivery
+
+At the owner's request, the initial feature and its reviewed fixes are consolidated into
+one framework patch and one Evolver patch. The full device bundle now has 17 patches in
+12 projects: these two feature patches and 15 unchanged unrelated patches. The final Git
+trees in both ROM projects are byte-identical to the reviewed 20261113.2 source. Each
+consolidated series replayed twice using the canonical apply code and a sparse checkout.
+No compilation, new build or phone operation was performed for this repackaging.
+
+The device default branch is updated; historical tags/snapshots and the cancelled build's
+hash-bound preparation remain untouched. A later build needs fresh preparation/snapshot
+for the consolidated commit identities. Existing preparation guards remain strict; the
+old cancelled attempt must not be resumed with the new identities.
+
+The [consolidation receipt](../evidence/keybox-monitor-consolidated/CONSOLIDATION.json)
+records both old/new heads, identical tree hashes and the successful replay counts.

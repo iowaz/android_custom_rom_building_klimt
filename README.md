@@ -66,7 +66,7 @@ There are no ROM-source forks since 2026-11-04. The owner's rules:
 - **Builds are named by date from 2026-11-04**: `20261105`, and `20261105.2` for a second build the same day.
   evox1 to evox31 keep their names.
 
-The device patch bundle contains 19 patches in 12 projects. klimt's build adaptations include the HIDL `light@2.0` drop and AIDL-only
+The device patch bundle contains 17 patches in 12 projects. klimt's build adaptations include the HIDL `light@2.0` drop and AIDL-only
 `blank_screen` (hardware/interfaces; the build fails without them), the SMPTE 2094-50 guard (frameworks/native;
 the A15 MediaTek mapper doesn't list it) and the MIUI boot jar packages (build/soong). The rest is the personal
 layer, in build/make, build/soong, vendor/lineage, lineage-sdk, packages/apps/Settings, packages/apps/Updater,
@@ -79,6 +79,10 @@ The local source also carries the owner-requested [scheduled keybox monitor](doc
 in the device patch bundle. [20261113](docs/20261113.md) introduced the feature and booted;
 [20261113.2](docs/20261113.2.md) contains the requested follow-up revisions. Real standby,
 timing and recovery acceptance remains pending for the revised implementation.
+The keybox feature is consolidated into one framework patch and one Evolver patch.
+All 15 unrelated patches and both final source trees are unchanged;
+[replay/tree evidence](docs/evidence/keybox-monitor-consolidated/CONSOLIDATION.json) is retained.
+The cancelled attempt stays stopped; fresh preparation is required for a future build.
 
 ### Without access to the private repositories
 

@@ -1,0 +1,38 @@
+{
+  "kind": "patch-history-consolidation",
+  "functional_changes": false,
+  "build_started": false,
+  "bundle_patches_before": 19,
+  "bundle_patches_after": 17,
+  "unchanged_unrelated_patches": 15,
+  "projects": {
+    "frameworks/base": {
+      "old_head": "1f6ac1d343be020de5a4cd00e3c89fde13b0c4d4",
+      "new_head": "5471726e8c0a16088acb5a557b6146347b43d373",
+      "feature_parent": "49fbac9c7a3b9b8a9429ef70532a84b56a48f531",
+      "reference": "refs/heads/klimt",
+      "old_tree": "ba0d3f58b6495c35e617df1d026092d25191f998",
+      "new_tree": "ba0d3f58b6495c35e617df1d026092d25191f998",
+      "source_unchanged": true,
+      "replays": 2,
+      "feature_patches_before": 2,
+      "feature_patches_after": 1,
+      "sparse_paths": 17
+    },
+    "packages/apps/Evolver": {
+      "old_head": "231fa8246f7f3c32532f462f238445455b2140c8",
+      "new_head": "98cc19712212a3e0eb33613adc44454b1edeb3d1",
+      "feature_parent": "bb1d4dc8d6f9875779a08b7105e9c6710743b279",
+      "reference": "HEAD",
+      "old_tree": "0df31165dc151e1c9f5574f16104f30b20e18531",
+      "new_tree": "0df31165dc151e1c9f5574f16104f30b20e18531",
+      "source_unchanged": true,
+      "replays": 2,
+      "feature_patches_before": 2,
+      "feature_patches_after": 1,
+      "sparse_paths": 5
+    }
+  },
+  "historical_tags_unchanged": true,
+  "device_head": "0072f30d01e59de5d78c833f9acc6510a122c23d"
+}

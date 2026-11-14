@@ -1,12 +1,15 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current phone build: **[20261113](docs/20261113.md)**, with the first scheduled TrickyStore
-keybox monitor. Full image checks and 15 packaged-feature assertions pass. The no-wipe
-slot-b update and automatic reboot succeeded; the owner confirmed boot and testing.
+Current phone build: **[20261113.3](docs/20261113.3.md)**, the consolidated keybox monitor with the
+revised manual checks, scheduling, notifications, intervals and translations. Full image checks pass;
+the no-wipe slot-b update and automatic reboot succeeded on 2026-11-14 and Android booted with data intact.
+On-phone testing of the revised feature is pending.
+The previous phone build [20261113](docs/20261113.md) introduced the scheduled TrickyStore keybox monitor;
+the owner confirmed its boot and testing, and its ZIP remains on D: as the working fallback.
 The follow-up [20261113.2](docs/20261113.2.md) revises manual checks, scheduling,
 notification choices, intervals and translations. It is source-checked, independently reviewed and published before building.
 Attempt01 was stopped at the owner's request shortly after launch; no new image was produced.
-The owner subsequently requested [20261113.3](docs/20261113.3.md), using the consolidated patches, with hourly progress checks.
+The owner subsequently requested [20261113.3](docs/20261113.3.md), using the consolidated patches; it is the current phone build.
 The 20261112.2 ZIP remains available as an additional working fallback.
 The boot-observed **[20261111](docs/20261111.md)** control ZIP remains on D: for verification and recovery.
 The owner authorized deletion of the redundant 20261111.2 delivery on 2026-11-13. Kernel source remains

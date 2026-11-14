@@ -1,5 +1,6 @@
 import copy
 import unittest
+from unittest import mock
 import local_rom_control as gate
 
 
@@ -81,6 +82,48 @@ class LocalRomControl(unittest.TestCase):
         self.existing_evolver()
         self.after['packages/apps/Evolver']['base']='different'
         with self.assertRaises(ValueError): self.check()
+
+    def consolidated(self):
+        self.existing_evolver()
+        original=[{'file':'identity.patch','class':'personal'}, {'file':'aod.patch','class':'klimt'}]
+        self.before['frameworks/base']['patches']=original+[{'file':'first-feature.patch','class':'personal'}]
+        self.after['frameworks/base']['patches']=copy.deepcopy(original)+[{'file':'combined-feature.patch','class':'personal'}]
+        self.after['packages/apps/Evolver']['patches']=[{'file':'combined-ui.patch','class':'personal'}]
+
+    def check_consolidated(self):
+        gate.check_delta(self.old,self.new,self.before,self.after,self.review,consolidated=True)
+
+    def test_consolidated_pair_preserves_unrelated_prefix(self):
+        self.consolidated()
+        self.check_consolidated()
+
+    def test_consolidation_cannot_change_identity_patch(self):
+        self.consolidated()
+        self.after['frameworks/base']['patches'][0]['file']='changed.patch'
+        with self.assertRaises(ValueError):self.check_consolidated()
+
+    def test_consolidation_cannot_add_a_second_feature_patch(self):
+        self.consolidated()
+        self.after['packages/apps/Evolver']['patches'].append({'file':'extra.patch','class':'personal'})
+        with self.assertRaises(ValueError):self.check_consolidated()
+
+    def test_consolidation_requires_an_explicit_validated_path(self):
+        self.consolidated()
+        with self.assertRaises(ValueError):self.check()
+
+    def test_consolidation_bridge_rejects_unbound_original_review(self):
+        review={'consolidation':{'original_review':{'path':'original'},'anchor_preparation':{'path':'anchor'},'receipt':{'path':'receipt'}}}
+        with mock.patch.object(gate.candidate_gates,'revalidate',side_effect=[{}, {'implementation_review':{'path':'different'}}, {}]):
+            with self.assertRaises(ValueError):gate.validate_consolidation(review,{})
+
+    def test_consolidation_bridge_rejects_different_git_trees(self):
+        review={'source_heads':{p:'new' for p in gate.ROM},'source_sha256':{},
+                'consolidation':{'original_review':{'path':'original'},'anchor_preparation':{'path':'anchor'},'receipt':{'path':'receipt'}}}
+        original={'source_heads':{p:'old' for p in gate.ROM},'source_sha256':{}}
+        receipt={'functional_changes':False,'unchanged_unrelated_patches':15,
+                 'projects':{p:dict(old_head='old',new_head='new',replays=2,old_tree='tree',new_tree='tree') for p in gate.ROM}}
+        with mock.patch.object(gate.candidate_gates,'revalidate',side_effect=[original,{'implementation_review':{'path':'original'}},receipt]), mock.patch('subprocess.check_output',side_effect=['tree','changed']):
+            with self.assertRaises(ValueError):gate.validate_consolidation(review,{})
 
 
 if __name__=='__main__': unittest.main()

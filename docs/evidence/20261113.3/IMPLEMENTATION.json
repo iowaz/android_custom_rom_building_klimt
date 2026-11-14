@@ -1,0 +1,57 @@
+{
+  "status": "Reviewed and compiled source preserved byte-for-byte by consolidation; new build pending",
+  "source_heads": {
+    "frameworks/base": "5471726e8c0a16088acb5a557b6146347b43d373",
+    "packages/apps/Evolver": "98cc19712212a3e0eb33613adc44454b1edeb3d1"
+  },
+  "patch_count": 17,
+  "project_count": 12,
+  "preserved_existing_patch_records": true,
+  "deterministic_export_replays": 2,
+  "host_junit_tests": 22,
+  "production_staging_written": false,
+  "phone_operations": false,
+  "source_sha256": {
+    "frameworks/base/core/java/android/app/IActivityManager.aidl": "6d0e9136ea76726e33fbd73795be2b955f3b6672b2253ccd6af092a211be0077",
+    "frameworks/base/core/java/android/security/trickystore/KeyBoxManager.java": "1a678905a3beb118a32f54c4b14bee4e4b90a23d69fcb0e3a88d71e610e10ab9",
+    "frameworks/base/core/java/android/security/trickystore/KeyboxMonitor.java": "f1a48c83ff2f1f1ce09d85c2270bb2fe56989859d573778e21185b283c28a606",
+    "frameworks/base/core/java/android/security/trickystore/TrickyStoreService.java": "f09e8f1540a0ad124f34d6cb0834cb649a6fa6dcc1e06f982312fc9843064da1",
+    "frameworks/base/core/res/res/values-en-rUS/klimt_keybox_monitor.xml": "5039107095c54391c721be76bb368d86c015dee528dea82d5885b492288c4d3a",
+    "frameworks/base/core/res/res/values-pt-rBR/klimt_keybox_monitor.xml": "a53f55a08cc8b1c982c6232d73ee5f99ca8cfd3dfba27af02c2045d8f4aef4eb",
+    "frameworks/base/core/res/res/values/klimt_keybox_monitor.xml": "5039107095c54391c721be76bb368d86c015dee528dea82d5885b492288c4d3a",
+    "frameworks/base/core/res/res/values/symbols.xml": "8a6a3fd0272093d42ffde94e5706a46d0e13a1fd7413b146e7aff2eb1023e682",
+    "frameworks/base/services/core/java/com/android/server/am/ActivityManagerService.java": "ef642ad254d70a18dd5d83b7446fe84f4d1443a87538b8b0a1737d23861e09e1",
+    "frameworks/base/services/core/java/com/android/server/spoof/AxSpoofManager.java": "8c6a95615941b85d765f42f4a797099e46bb54d80b344003be0405af99694e6b",
+    "frameworks/base/services/core/java/com/android/server/spoof/IAxSpoofManager.java": "4036a03c30a735c3fb11a0a1f59559973ed54a2081579dacad26ef168d391144",
+    "frameworks/base/services/core/java/com/android/server/spoof/KeyboxInspector.java": "a43eacf0dd5d8da112be4e4387f65d86457c308b57989c087bcd0c9e79c82995",
+    "frameworks/base/services/core/java/com/android/server/spoof/KeyboxOperations.java": "9916c534e6f112ba0e921a8ecb52e65e4dbd8197b2cf139d6d1860dc7baa9de1",
+    "frameworks/base/services/core/java/com/android/server/spoof/KeyboxSchedule.java": "bc594cdc00d531a7057b675b2778b62402c77c220be00f890887572d34c06c24",
+    "frameworks/base/services/core/java/com/android/server/spoof/TrickyStoreKeyboxMonitor.java": "149c262b0b8e7e8f1ffac37c89c27e611723f16b84bdb095001a0ce562f90f27",
+    "frameworks/base/services/tests/servicestests/src/com/android/server/spoof/KeyboxMonitorTest.java": "ebb560d2f33670e5b83850b2a243682aba9b463e3b03f2414122a009636a27c2",
+    "packages/apps/Evolver/res/values-en-rUS/klimt_keybox_monitor.xml": "6a3487ad61884a0b1b5b791873aa33633e49e60e7c64eafe3e3d80ef4e825914",
+    "packages/apps/Evolver/res/values-pt-rBR/klimt_keybox_monitor.xml": "b7e565a0e5e4ee40a773c39d0277af4a7c87a0a9b40ce269b15bca1cc6b0657d",
+    "packages/apps/Evolver/res/values/klimt_keybox_monitor.xml": "6a3487ad61884a0b1b5b791873aa33633e49e60e7c64eafe3e3d80ef4e825914",
+    "packages/apps/Evolver/src/org/evolution/settings/fragments/miscellaneous/TrickyStore.kt": "04f31fd0dd5ea681d4a781d3b0b86d5e9c9a8e5dc300b7b8be4cdaa45b4ff749",
+    "packages/apps/Evolver/src/org/evolution/settings/fragments/miscellaneous/TrickyStoreContent.kt": "40e362a3acda9980e3b1ec97bb915b096c155f45afd8213e83375d56d35e35a1"
+  },
+  "independent_review": {
+    "model": "claude-opus-5-5",
+    "effort": "medium",
+    "review_sha256": "6e6df12e63bd0e616280e5dbe5b8924e416836c592ca9da9973b2da4d817cf61",
+    "disposition_sha256": "75ab88d070a3b3a37c97589c4edf3037fb1f4d32f7798639729ba7c4a7ab4472"
+  },
+  "consolidation": {
+    "original_review": {
+      "path": "/mnt/d/android_rom_building/diagnostics/features/keybox-monitor/20261113.2/IMPLEMENTATION.json",
+      "sha256": "68d0a517bc68656b1b7c5124c0d74fba858d347b3ba4cce7e48c1a9a8bd373f9"
+    },
+    "receipt": {
+      "path": "/mnt/d/android_rom_building/diagnostics/features/keybox-monitor/consolidated/CONSOLIDATION.json",
+      "sha256": "d2164811247e19d169e68774bee703d1d9fe3b9b9a61588dbf4d77ee8eaf6221"
+    },
+    "anchor_preparation": {
+      "path": "/mnt/d/android_rom_building/diagnostics/builds/20261113.2/preparation/CANDIDATE.json",
+      "sha256": "6f8a9996e033d3b207a8838acaea8f47a87cbfe69ca609489e8246cd809292c7"
+    }
+  }
+}

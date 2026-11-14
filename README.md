@@ -1,10 +1,11 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current phone build: **[20261112.2](docs/20261112.2.md)**, upstream-refreshed with all 15 local patches
-and the Android Auto A2DP-routing safeguard enabled. Full image checks pass. Dirty-flashed on 2026-11-12
-without a wipe (105 OKAY / 0 FAILED), rebooted and confirmed boot-complete on slot b. The installed flag table
-matches the verified candidate; media volume remains 30 steps/default 10. Android ID and all 702 package UIDs
-are preserved. Android Auto/car validation and subjective speaker-volume acceptance remain pending.
+Current phone build: **[20261113](docs/20261113.md)**, with the first scheduled TrickyStore
+keybox monitor. Full image checks and 15 packaged-feature assertions pass. The no-wipe
+slot-b update and automatic reboot succeeded; the owner confirmed boot and testing.
+The follow-up [20261113.2](docs/20261113.2.md) revises manual checks, scheduling,
+notification choices, intervals and translations. It is source-checked, independently reviewed and published before building.
+The 20261112.2 ZIP remains available as an additional working fallback.
 The boot-observed **[20261111](docs/20261111.md)** control ZIP remains on D: for verification and recovery.
 The owner authorized deletion of the redundant 20261111.2 delivery on 2026-11-13. Kernel source remains
 unchanged; full hardware acceptance remains pending.
@@ -64,7 +65,7 @@ There are no ROM-source forks since 2026-11-04. The owner's rules:
 - **Builds are named by date from 2026-11-04**: `20261105`, and `20261105.2` for a second build the same day.
   evox1 to evox31 keep their names.
 
-The device patch bundle contains 17 patches in 12 projects. klimt's build adaptations include the HIDL `light@2.0` drop and AIDL-only
+The device patch bundle contains 19 patches in 12 projects. klimt's build adaptations include the HIDL `light@2.0` drop and AIDL-only
 `blank_screen` (hardware/interfaces; the build fails without them), the SMPTE 2094-50 guard (frameworks/native;
 the A15 MediaTek mapper doesn't list it) and the MIUI boot jar packages (build/soong). The rest is the personal
 layer, in build/make, build/soong, vendor/lineage, lineage-sdk, packages/apps/Settings, packages/apps/Updater,
@@ -74,10 +75,9 @@ device/lineage/sepolicy restricts the adb-root domain to debug builds. The two i
 (system/core) were dropped with the forks. The old iowaz forks only serve the snapshots up to evox31.
 
 The local source also carries the owner-requested [scheduled keybox monitor](docs/designs/keybox-monitor.md)
-as two personal patches. [20261113](docs/20261113.md) is built, fully image-checked and promoted,
-with the six requested intervals, quiet valid-result notifications and validated recovery for
-expired/revoked keyboxes. All 15 packaged feature checks pass. Installation is authorized and pending;
-the installed build above still has 15 patches. Runtime monitoring remains unvalidated.
+in the device patch bundle. [20261113](docs/20261113.md) introduced the feature and booted;
+[20261113.2](docs/20261113.2.md) contains the requested follow-up revisions. Real standby,
+timing and recovery acceptance remains pending for the revised implementation.
 
 ### Without access to the private repositories
 

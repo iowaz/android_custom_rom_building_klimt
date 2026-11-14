@@ -2,19 +2,19 @@
 
 Implemented as owner-requested `personal` patches for `frameworks/base` and
 `packages/apps/Evolver`, carried by the klimt device patch bundle. The source baseline is
-the 20261112.2 checkout. The installed 20261112.2 ROM does not contain this feature.
+the 20261112.2 checkout. The first implementation shipped in 20261113; the owner confirmed boot and testing. The requested follow-up is recorded in [20261113.2](../20261113.2.md).
 
 ## Operation
 
 Evolver > TrickyStore has an opt-in **Automatically check and recover keybox** switch.
 It defaults off; the default interval is one hour. Choices are 15, 30 and 45 minutes,
-and 1, 2 and 12 hours. The page shows the next check and the existing status row shows
+and 1, 4, 12 and 24 hours. The page shows the next check and the existing status row shows
 the last result and time. Tapping that row checks immediately.
 
 Enabling schedules an immediate check. Subsequent exact elapsed-realtime wakeup alarms
 are anchored to scheduled times, including standby; network completion is not guaranteed
 when offline. Changing the interval starts the new interval from the change. Manual checks
-do not move the schedule. Reboot restores the saved deadline after unlock, performing one
+reset the next deadline to completion plus the selected interval, including offline checks. Reboot restores the saved deadline after unlock, performing one
 overdue check instead of replaying missed checks. Wall-clock changes update the displayed
 deadline without changing elapsed-time scheduling.
 
@@ -22,14 +22,21 @@ Monitoring pauses while TrickyStore is off, while device RKP is enabled, or when
 keybox is installed. Explicit deletion leaves it waiting for a new import/fetch. Disabling
 monitoring cancels pending automatic work and prevents a late replacement from being installed.
 
-Each cycle updates a quiet notification for valid results. Expiring-soon certificates remain
-valid until expiry; there is no early automatic replacement. Expired, revoked and suspended
-keyboxes produce an alert and trigger one official replacement attempt. Recovery updates
-the same alert with success or failure. Verification/network errors alert without claiming
-that an old result is newly valid. Offline reports retain the preceding confirmed result and
-timestamp for the same keybox. Notifications open TrickyStore and conceal their content on
-the lock screen. Android notification-channel settings remain under the user's control.
+Notifications follow one of three choices: every completed check; only expired, revoked or
+suspended results regardless of recovery outcome; or only those results whose recovery fails
+(the default). Manual status checks follow the same choice while monitoring is enabled.
+Each qualifying check posts one final notification. Recovery policy uses the original verdict
+even when a valid replacement is installed. Expiring-soon remains valid until expiry, and an
+unknown/offline check never asserts a new valid result. Reports retain the previous confirmed
+status and timestamp for the same payload. Notifications open TrickyStore, conceal content on
+the lock screen and respect Android channels. UI and notification resources include en-US
+and pt-BR. The first release's two-hour interval migrates to four hours.
 
+Upstream's existing daily check is a screen-onResume trigger. When monitoring is enabled,
+it follows the system service's persisted deadline; otherwise it retains the daily behavior.
+The background alarm remains necessary while Settings is closed. The same serialized
+operation performs foreground and background checks. Foreground polling preserves the
+checking label and progress indicator until the operation completes.
 ## Validation and recovery
 
 The shared inspector checks the framework keybox loader's structural/private-key checks,
@@ -76,7 +83,7 @@ settings and results use the existing Settings.Secure storage model. No public S
 - Compiled both changed Kotlin/Compose files with the existing Kotlin and Compose compilers.
 - Compiled the new XML resources with AAPT2. Temporary resource symbols were used for the
   focused Java/Kotlin compilation; this is not a full resource link or ROM build.
-- Passed 13 JUnit tests using generated non-production keys: both algorithms, unordered chains,
+- Passed 22 JUnit tests using generated non-production keys: both algorithms, unordered chains,
   leaf/intermediate expiry, revocation/suspension, both serial encodings, untrusted/mismatched
   keys, malformed/offline status data, hash binding, all intervals, drift, reboot/clock changes,
   missed ticks and stale-write rejection. The host adapter replaces Android native logging;
@@ -103,3 +110,19 @@ packaged feature checks. Monitor timing and recovery still require phone validat
 
 Passing public certificate checks does not establish a successful Play Integrity or Wallet
 verdict. Those are separate runtime outcomes.
+
+
+## Revision checks and review
+
+[20261113.2](../20261113.2.md) records the complete revision and the Claude Opus 5.5 Medium
+review/disposition. The service owns a dedicated Handler and bounded cleanup executor. The
+read-only operation engine is tested independently of state writes. Unchanged legacy hourly
+refresh downloads only the mirror and preserves the last status; changed candidates receive
+fresh validation. Explicit structurally valid imports work offline and then receive the
+existing follow-up check. Invalid imports/worker rejection preserve the installed verdict.
+Incomplete Google-process reload is distinguished from failed installation.
+
+A pre-inspection timeout/rejection is not a completed check and posts no status notification.
+It returns an error to a foreground caller and preserves the previous verdict/deadline.
+Twenty-two host tests and final focused compilation pass. Real service/UI lifecycle and phone
+timing/recovery acceptance remain required before an upstream submission.

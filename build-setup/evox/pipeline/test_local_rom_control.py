@@ -57,5 +57,30 @@ class LocalRomControl(unittest.TestCase):
         self.after['frameworks/base']['final_head']='base'
         with self.assertRaises(ValueError): self.check()
 
+    def existing_evolver(self):
+        self.before['packages/apps/Evolver'] = dict(
+            base='evo-base', final_tree='old-evo-tree', purpose='monitor',
+            final_head=self.old['packages/apps/Evolver'],
+            patches=[{'file':'existing-evo.patch','class':'personal'}])
+        self.before['packages/apps/Evolver']['class']='personal'
+        self.after['packages/apps/Evolver']=copy.deepcopy(self.before['packages/apps/Evolver'])
+        self.after['packages/apps/Evolver'].update(
+            final_head=self.new['packages/apps/Evolver'], final_tree='new-evo-tree')
+        self.after['packages/apps/Evolver']['patches'].append({'file':'revision.patch','class':'personal'})
+
+    def test_existing_evolver_can_add_one_reviewed_patch(self):
+        self.existing_evolver()
+        self.check()
+
+    def test_existing_evolver_patch_cannot_be_rewritten(self):
+        self.existing_evolver()
+        self.after['packages/apps/Evolver']['patches'][0]['file']='rewritten.patch'
+        with self.assertRaises(ValueError): self.check()
+
+    def test_existing_evolver_base_cannot_change(self):
+        self.existing_evolver()
+        self.after['packages/apps/Evolver']['base']='different'
+        with self.assertRaises(ValueError): self.check()
+
 
 if __name__=='__main__': unittest.main()

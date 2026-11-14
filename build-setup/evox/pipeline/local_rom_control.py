@@ -17,26 +17,28 @@ def check_delta(control, current, old_bundle, new_bundle, reviewed_heads):
         raise ValueError('Local ROM changes must be exactly the two reviewed ROM projects and device bundle/label')
     if any(current[p] != reviewed_heads[p] for p in ROM):
         raise ValueError('Local ROM heads differ from reviewed implementation')
-    if set(new_bundle) - set(old_bundle) != {'packages/apps/Evolver'}:
-        raise ValueError('Only the Evolver patch project may be added')
+    added = set(new_bundle) - set(old_bundle)
+    if added != ({'packages/apps/Evolver'} if 'packages/apps/Evolver' not in old_bundle else set()):
+        raise ValueError('Only the initial Evolver patch project may be added')
     if set(old_bundle) - set(new_bundle):
         raise ValueError('An existing patch project was removed')
     for project, old in old_bundle.items():
         new = new_bundle[project]
-        if project != 'frameworks/base':
+        if project not in ROM:
             if new != old:
                 raise ValueError('An unrelated patch record changed: ' + project)
             continue
         stable = set(old) - {'purpose', 'final_head', 'final_tree', 'patches'}
         if any(old[k] != new.get(k) for k in stable):
-            raise ValueError('Framework base or classification changed')
+            raise ValueError('Reviewed ROM base or classification changed: ' + project)
         if new['patches'][:len(old['patches'])] != old['patches'] or len(new['patches']) != len(old['patches']) + 1:
-            raise ValueError('Existing framework patches must be preserved with exactly one addition')
+            raise ValueError('Existing ROM patches must be preserved with exactly one addition: ' + project)
         if new['patches'][-1].get('class') != 'personal':
-            raise ValueError('The owner-requested framework patch must be personal')
+            raise ValueError('The owner-requested ROM patch must be personal: ' + project)
     evo = new_bundle['packages/apps/Evolver']
-    if evo.get('class') != 'personal' or len(evo.get('patches', [])) != 1:
-        raise ValueError('The Evolver addition must be one personal patch')
+    previous_count = len(old_bundle.get('packages/apps/Evolver', {}).get('patches', []))
+    if evo.get('class') != 'personal' or len(evo.get('patches', [])) != previous_count + 1:
+        raise ValueError('The Evolver update must add exactly one personal patch')
     for project in ROM:
         if new_bundle[project]['final_head'] != current[project]:
             raise ValueError('Reviewed ROM patch is not at final_head')

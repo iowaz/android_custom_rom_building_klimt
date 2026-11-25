@@ -4,6 +4,9 @@ import json
 
 def apply(original, review, load_record, validate_candidate):
     ready = json.loads(json.dumps(original))
+    # Audit renewals may admit an existing artifact only, never another compilation.
+    ready['verification_only'] = True
+    ready['verification_attempt'] = review.get('attempt')
     if 'image_checks' in review:
         ready['image_checks'] = review['image_checks']
     if 'kernel_audit_update' in review:

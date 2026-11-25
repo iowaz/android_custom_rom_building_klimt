@@ -86,7 +86,12 @@ def validate_ready(ready, frozen):
     if not records:
         return
     prep = revalidate(records['preparation'])
-    freeze_deadline(prep)
+    audit = revalidate(records['kernel_audit'])
+    if audit.get('control_revalidation'):
+        import control_revalidation
+        control_revalidation.validate(revalidate(audit['control_revalidation']), ready, prep, audit)
+    else:
+        freeze_deadline(prep)
     if prep.get('mode') == 'upstream-refresh-audited-kernel':
         import upstream_kernel_control
         upstream_kernel_control.validate(prep, frozen, ready['sha256'], ready['tooling_sha256'])
@@ -95,7 +100,6 @@ def validate_ready(ready, frozen):
         local_rom_control.validate(prep, frozen, ready['sha256'], ready['tooling_sha256'])
     if prep['heads'][kernel_contract.KERNEL] != frozen[kernel_contract.KERNEL]:
         raise ValueError('Candidate preparation kernel drift')
-    audit = revalidate(records['kernel_audit'])
     validate_audit(audit, frozen, prep['baseline_sha256'])
     baseline_record = revalidate(records['rollback_baseline'])
     if baseline_record.get('schema') != 1 or baseline_record.get('baseline_manifest_sha256') != prep['baseline_sha256']:

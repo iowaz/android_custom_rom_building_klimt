@@ -58,6 +58,24 @@ Build dates/labels remain governed by their per-build checks, rather than equali
 Candidates remain local and runtime-unvalidated. An image check does not authorize flashing, a remote push,
 tag or any slot-state change. Keep the previous boot-tested ZIP and the agreed recovery procedure available.
 
+For an expired campaign followed by a new ordinary upstream build, `kernel_control_refresh.py`
+establishes a new control from a complete, promoted full-verification result. It rehashes the
+producing archive and full kernel proof chain, recaptures security against verified inventories,
+and rebinds packaged kernel/modules to audited ELFs. Its fresh seven-day receipt is bound to
+one new build, snapshot, current tooling, signing certificates and unchanged kernel/prebuilt/vendor.
+Pass it to `upstream_kernel_control.py --control-refresh`, then carry that full control's audit
+and use the freshly captured security baseline. The original campaign records are never changed.
+The old verification-only revalidation cannot admit a new compilation; when an audit is carried,
+that receipt stays with its parent rather than being copied onto the new build's audit.
+
+```bash
+python3 -B $P/kernel_control_refresh.py 20261119 --control 20261118 \
+  --control-extract /mnt/wsl/build/compare/20261118/20261118-attempt01/rechecks/recheck01 \
+  --output /mnt/d/android_rom_building/diagnostics/builds/20261119/control-refresh01
+python3 -B $P/upstream_kernel_control.py 20261119 --control 20261118 \
+  --control-refresh /mnt/d/android_rom_building/diagnostics/builds/20261119/control-refresh01/CONTROL_REFRESH.json
+```
+
 ### Ordinary upstream builds
 
 For the owner-requested local keybox feature, `local_rom_control.py` validates the
@@ -215,6 +233,29 @@ use `D:\android_rom_building\tools\platform-tools\fastboot.exe` when it exists. 
 helpers that stop in fastboot, the agent performs the final reboot after checking successful completion.
 
 ### Verifier fixes without a rebuild
+
+An expired kernel-control window requires a separate fresh control stage. For an
+unchanged kernel already covered by a fully verified control, `control_revalidation.py`
+rehashes the producing archive and complete audit/control chain, recaptures the control's
+security metadata against its verified image inventories, rebinds its packaged kernel
+and modules to the audited ELFs, and checks current source SPL, signing certificates
+and bulletin state. It writes an exclusive dated receipt and augmented audit under
+diagnostics. The original preparation, freeze timestamp and readiness are unchanged.
+
+The receipt binds one producing attempt/archive, full frozen graph, original
+preparation, audit, verified control, certificates and current tooling. It is accepted
+only through `tool_review.py --kernel-audit` for a verification-only recheck and expires
+after seven days. It cannot authorize a compilation, transfer to another attempt,
+change the kernel/vendor/configuration/control, or replace missing/failed audit proof.
+
+```bash
+export KLIMT_BUILD=20261118
+python3 -B $P/control_revalidation.py 20261118-attempt01 \
+  --kernel-audit /mnt/d/android_rom_building/diagnostics/builds/20261118/20261118-attempt01/release-audit/sealed/kernel-audit.json \
+  --control-extract /mnt/wsl/build/compare/20261113.3/20261113.3-attempt01 \
+  --output /mnt/d/android_rom_building/diagnostics/builds/20261118/control-revalidation01
+# Supply the resulting kernel-audit-revalidated.json to tool_review.py --kernel-audit.
+```
 
 A checker defect (exit 2 = tooling, exit 1 = image defect) can be fixed and the same ZIP re-verified:
 install the fixed checker, run `image-checks/tests.py`, re-register its hash in `IMAGE_CHECKS.json` and

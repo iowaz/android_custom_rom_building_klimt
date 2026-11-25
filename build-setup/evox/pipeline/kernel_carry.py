@@ -60,6 +60,9 @@ def carry(origin, results, control_manifest, control_archive, frozen, heads_from
     baseline_heads = heads_from_manifest(Path(control_manifest['path']).read_bytes())
     unchanged_contract(baseline_heads, frozen)
     audit = copy.deepcopy(parent)
+    # A verifier-only receipt belongs to the producing parent. Retain it in chain['audit'],
+    # but never transfer its admission to a new compilation or source graph.
+    audit.pop('control_revalidation', None)
     audit['baseline_manifest_sha256'] = control_manifest['sha256']
     audit['kernel_carry'] = dict(audit=origin, control_results=results, control_manifest=control_manifest,
                                 control_archive=control_archive)

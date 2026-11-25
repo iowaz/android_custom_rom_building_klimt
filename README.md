@@ -1,15 +1,16 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current phone build: **[20261113.3](docs/20261113.3.md)**, the consolidated keybox monitor with the
-revised manual checks, scheduling, notifications, intervals and translations. Full image checks pass;
-the no-wipe slot-b update and automatic reboot succeeded on 2026-11-14 and Android booted with data intact.
-On-phone testing of the revised feature is pending.
-The previous phone build [20261113](docs/20261113.md) introduced the scheduled TrickyStore keybox monitor;
-the owner confirmed its boot and testing, and its ZIP remains on D: as the working fallback.
+Current phone build: **[20261121](docs/20261121.md)**, the Evolution X 12.4 refresh with the merged
+Evolver keybox monitor. Full image verification passed. The no-wipe slot B update and reboot
+succeeded on 2026-11-22. The Android ID and all 695 retained package UIDs matched the baseline.
+The previous build **[20261118](docs/20261118.md)** and its ZIP are the boot-tested fallback.
+The older **[20261113.3](docs/20261113.3.md)** is also boot-tested.
+It contains the consolidated keybox monitor, with revised manual checks, scheduling, notifications,
+intervals and translations. The earlier [20261113](docs/20261113.md) introduced the feature.
 The follow-up [20261113.2](docs/20261113.2.md) revises manual checks, scheduling,
 notification choices, intervals and translations. It is source-checked, independently reviewed and published before building.
 Attempt01 was stopped at the owner's request shortly after launch; no new image was produced.
-The owner subsequently requested [20261113.3](docs/20261113.3.md), using the consolidated patches; it is the current phone build.
+The owner subsequently requested [20261113.3](docs/20261113.3.md), using the consolidated patches; it booted on 2026-11-14.
 The 20261112.2 ZIP remains available as an additional working fallback.
 The boot-observed **[20261111](docs/20261111.md)** control ZIP remains on D: for verification and recovery.
 The owner authorized deletion of the redundant 20261111.2 delivery on 2026-11-13. Kernel source remains
@@ -34,7 +35,7 @@ No source code, blobs or keys live here. They are in the repositories listed bel
 | Kernel | GKI 6.6 (`6.6.x-android15-8-klimt-4k`), built from source with the ROM |
 | Partitions | A/B with dynamic partitions (`super`) and Virtual A/B; images are flashed with `fastboot update` |
 
-The ROM is **Evolution X 12.3** (branch `cnb`, Android 17, build ID CP2A), built as `lineage_klimt-cp2a-user`,
+The ROM is **Evolution X 12.4** (branch `cnb`, Android 17, build ID CP2A), built as `lineage_klimt-cp2a-user`,
 signed with my own private keys, with Google apps included (`WITH_GMS=true`).
 
 ## Repositories

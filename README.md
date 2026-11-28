@@ -1,9 +1,11 @@
 # Building Evolution X for the Xiaomi 15T Pro (klimt)
 
-Current phone build: **[20261121](docs/20261121.md)**, the Evolution X 12.4 refresh with the merged
-Evolver keybox monitor. Full image verification passed. The no-wipe slot B update and reboot
-succeeded on 2026-11-22. The Android ID and all 695 retained package UIDs matched the baseline.
-The previous build **[20261118](docs/20261118.md)** and its ZIP are the boot-tested fallback.
+Current phone build: **[20261127](docs/20261127.md)**, an upstream refresh from 20261121 with the
+Evolver keybox monitor hand-ported again. Full image verification passed after the sepolicy pin moved.
+The no-wipe slot B update and reboot succeeded on 2026-11-28. The Android ID was preserved; the
+package list changed only by upstream clock packages.
+The previous build **[20261121](docs/20261121.md)** and its ZIP are the boot-tested fallback.
+The earlier **[20261118](docs/20261118.md)** is also boot-tested.
 The older **[20261113.3](docs/20261113.3.md)** is also boot-tested.
 It contains the consolidated keybox monitor, with revised manual checks, scheduling, notifications,
 intervals and translations. The earlier [20261113](docs/20261113.md) introduced the feature.

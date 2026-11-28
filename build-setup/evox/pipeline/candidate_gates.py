@@ -81,7 +81,7 @@ def freeze_deadline(preparation, now=None):
 
 def validate_ready(ready, frozen):
     records = ready.get('candidate_evidence')
-    if frozen[kernel_contract.KERNEL] != kernel_contract.BASELINE and not records:
+    if kernel_contract.audit_required(frozen[kernel_contract.KERNEL]) and not records:
         raise ValueError('New kernel requires mandatory candidate evidence')
     if not records:
         return

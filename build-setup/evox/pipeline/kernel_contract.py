@@ -13,6 +13,15 @@ DEVICE = 'device/xiaomi/klimt'
 BASELINE = 'f6a5b29f9fe59e4849680d50232f8b5758aa8c11'
 HOST = 'pangu-build-component-system-247-r6kfm'
 STAMP = '#1 SMP PREEMPT Thu Aug 6 00:00:00 UTC 2026'
+# Owner decision 2026-11-27: the hash-bound kernel audit chain (candidate evidence: kernel audit, rollback
+# baseline, control refresh) is no longer required for a kernel that differs from BASELINE. Such a kernel is
+# built and image-verified like any other source. Evidence passed explicitly to ready.py is still enforced.
+AUDIT_REQUIRED = False
+
+
+def audit_required(head):
+    """Whether a build with this kernel head must carry candidate (kernel audit/rollback) evidence."""
+    return AUDIT_REQUIRED and head != BASELINE
 
 
 def one(pattern, text, name):

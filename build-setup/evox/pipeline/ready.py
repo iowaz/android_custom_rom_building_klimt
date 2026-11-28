@@ -211,7 +211,9 @@ def resolve_verification(ready, frozen, args):
                             archive_sha256=json.loads((base_dir / 'PROMOTED.json').read_text())['archive_sha256'],
                             device_head=old, avb_keys=keys)
     try:
-        record = verification.resolve(ready, baseline, device_paths, board, kernel_contract.BASELINE,
+        # Candidate checks follow the candidate evidence; without it the frozen kernel is the reference.
+        kernel_reference = kernel_contract.BASELINE if ready.get('candidate_evidence') else frozen[kernel_contract.KERNEL]
+        record = verification.resolve(ready, baseline, device_paths, board, kernel_reference,
                                       dict(mode=args.mode, extras=args.extra, reason=args.reason), identity)
     except ValueError as e:
         raise SystemExit('GATE NOT MET: verification mode :: ' + str(e) + ('; ' + '; '.join(notes) if notes else ''))
@@ -297,7 +299,7 @@ def main():
         'emergency_minimum_gib': {'host': 10, 'source': 2, 'output': 2},
     }
     import candidate_gates
-    if frozen[kernel_contract.KERNEL] != kernel_contract.BASELINE:
+    if args.kernel_audit or args.rollback_baseline or kernel_contract.audit_required(frozen[kernel_contract.KERNEL]):
         if not args.kernel_audit or not args.rollback_baseline:
             raise SystemExit('Changed kernel requires --kernel-audit and --rollback-baseline')
         preparation = D/'preparation/CANDIDATE.json'

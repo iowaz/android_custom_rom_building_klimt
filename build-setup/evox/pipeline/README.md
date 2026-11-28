@@ -24,6 +24,13 @@ Run it from WSL, from this repository on the build PC:
 
 ### Controlled local kernel candidates
 
+**Owner decision, 2026-11-27:** the hash-bound kernel audit chain is no longer required.
+`kernel_contract.AUDIT_REQUIRED` is False. A kernel that differs from `kernel_contract.BASELINE` is built and
+image-verified like any other source, with no candidate evidence (kernel audit, rollback baseline or control
+refresh). ready.py, candidate_gates.py and promote.py still enforce evidence that is passed explicitly with
+`--kernel-audit` / `--rollback-baseline`. The candidate, control-refresh and carry paths below are kept for
+that case and for the history; 20261127 is the first build without them.
+
 Ordinary builds keep the upstream/sync protections below. For an audited kernel candidate, use
 `prepare.py candidate <build> --previous <control> --candidate-spec /absolute/candidate.json`, followed by
 `label` and `freeze`. This path does no sync and does not move the build checkout's kernel branch: it fetches
@@ -87,8 +94,9 @@ script, frozen snapshot and tooling. Readiness, the controller and promotion rec
 it alongside the carried kernel audit and rollback control. This path performs no sync;
 ordinary upstream builds retain all six preparation requirements below.
 
-When an ordinary upstream refresh retains a previously audited non-baseline kernel, complete the six
-source-preparation steps below first. Then run `upstream_kernel_control.py <build> --control <full-control>`
+Since 2026-11-27, an ordinary upstream refresh that retains a non-baseline kernel needs only the six
+source-preparation steps below, `ready.py` and the build. The kernel's image checks still run. Before that
+date, after the six steps, builds ran `upstream_kernel_control.py <build> --control <full-control>`
 to bind all six successful records and the frozen snapshot to the unchanged kernel/prebuilt/vendor pins.
 Carry the full control's audit with `kernel_carry.py`, capture its rollback/security control, and supply both
 to `ready.py`. ROM projects may refresh; kernel/prebuilt/vendor or normalized kernel configuration changes

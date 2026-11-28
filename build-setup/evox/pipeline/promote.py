@@ -28,7 +28,7 @@ def main():
     dest = p['delivery']
     results = json.loads((report / 'RESULTS.json').read_text())
     import kernel_contract
-    if results['source_heads'][kernel_contract.KERNEL] != kernel_contract.BASELINE and not results.get('candidate_evidence'):
+    if kernel_contract.audit_required(results['source_heads'][kernel_contract.KERNEL]) and not results.get('candidate_evidence'):
         raise RuntimeError('Changed kernel cannot be promoted without candidate audit/rollback evidence')
     from controller import L, require_tooling_frozen
     if results.get('candidate_evidence'):
